@@ -50,10 +50,10 @@
     </header>
 
     <section class="hero">
-      <p class="eyebrow reveal">Daniel Delaway</p>
-      <h1 class="reveal">Everything I make,<br><span class="grad">in one place.</span></h1>
-      <p class="lede reveal">I build an app that records family life stories, help e-commerce brands grow, and interview people about their lives. Pick a door.</p>
-      <ul class="pills reveal" aria-label="What I do">
+      <p class="eyebrow rise">Daniel Delaway</p>
+      <h1 class="rise">Everything I make,<br><span class="grad">in one place.</span></h1>
+      <p class="lede rise">I build an app that records family life stories, help e-commerce brands grow, and interview people about their lives. Pick a door.</p>
+      <ul class="pills rise" aria-label="What I do">
         <li>Founder</li><li>Fractional CMO</li><li>Copywriter</li><li>Interviewer</li>
       </ul>
     </section>
@@ -147,9 +147,7 @@
 
     // Reveal on scroll
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const hero = document.querySelectorAll('.hero .reveal');
-    const rest = document.querySelectorAll('.reveal:not(.hero .reveal)');
-    hero.forEach((e, i) => { e.style.transitionDelay = i * 90 + 'ms'; requestAnimationFrame(() => e.classList.add('in')); });
+    const rest = document.querySelectorAll('.reveal');
     if (reduce || !('IntersectionObserver' in window)) {
       rest.forEach(e => e.classList.add('in'));
     } else {

@@ -119,11 +119,16 @@ h1 {
 .end p { margin: 0; }
 
 /* ---------- reveal ---------- */
+.rise { animation: rise .7s cubic-bezier(.2,.7,.2,1) both; }
+.hero .rise:nth-child(2) { animation-delay: .1s; }
+.hero .rise:nth-child(3) { animation-delay: .2s; }
+.hero .rise:nth-child(4) { animation-delay: .3s; }
+@keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
 .reveal.in { opacity: 1; transform: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .blob, .track, .grad, .dot { animation: none !important; }
+  .blob, .track, .grad, .dot, .rise { animation: none !important; }
   .reveal { opacity: 1; transform: none; transition: none; }
   .card, .logo img, .btn { transition: none; }
 }
