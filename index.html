@@ -8,14 +8,15 @@
   <link rel="canonical" href="https://danieldelaway.com/">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Daniel Delaway">
-  <meta property="og:description" content="Everything I'm working on, in one place: Everyone, Delaway Digital, Upwork and The Archive.">
+  <meta property="og:description" content="Everything I make, in one place: Everyone, Delaway Digital, Upwork and The Archive.">
   <meta property="og:url" content="https://danieldelaway.com/">
   <meta property="og:image" content="https://danieldelaway.com/assets/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#0b0d14">
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="/styles.css">
   <script type="application/ld+json">
   {
@@ -35,62 +36,137 @@
   </script>
 </head>
 <body>
+  <div class="bg" aria-hidden="true">
+    <span class="blob b1"></span>
+    <span class="blob b2"></span>
+    <span class="blob b3"></span>
+    <span class="grain"></span>
+  </div>
+
   <main class="wrap">
-    <header class="intro">
-      <p class="eyebrow">Daniel Delaway</p>
-      <h1>Everything I'm working on, in one place.</h1>
-      <p class="lede">Founder, marketer and interviewer, based in Melbourne, Australia. I build an app for recording family life stories, help e-commerce brands grow, and interview people about their lives.</p>
+    <header class="top">
+      <a class="mono" href="/" aria-label="Daniel Delaway home">DD</a>
+      <p class="where"><span class="dot"></span>Melbourne, Australia <span class="sep">·</span> <span id="clock">--:--</span></p>
     </header>
+
+    <section class="hero">
+      <p class="eyebrow reveal">Daniel Delaway</p>
+      <h1 class="reveal">Everything I make,<br><span class="grad">in one place.</span></h1>
+      <p class="lede reveal">I build an app that records family life stories, help e-commerce brands grow, and interview people about their lives. Pick a door.</p>
+      <ul class="pills reveal" aria-label="What I do">
+        <li>Founder</li><li>Fractional CMO</li><li>Copywriter</li><li>Interviewer</li>
+      </ul>
+    </section>
+
+    <div class="ticker" aria-hidden="true">
+      <div class="track">
+        <span>Everyone app</span><span>✦</span><span>Delaway Digital</span><span>✦</span><span>Upwork</span><span>✦</span><span>The Archive</span><span>✦</span><span>Life stories</span><span>✦</span><span>CRO</span><span>✦</span><span>Conversion copy</span><span>✦</span><span>Interviews</span><span>✦</span>
+        <span>Everyone app</span><span>✦</span><span>Delaway Digital</span><span>✦</span><span>Upwork</span><span>✦</span><span>The Archive</span><span>✦</span><span>Life stories</span><span>✦</span><span>CRO</span><span>✦</span><span>Conversion copy</span><span>✦</span><span>Interviews</span><span>✦</span>
+      </div>
+    </div>
 
     <section class="grid" aria-label="Projects">
 
-      <a class="card" href="https://downloadeveryone.com/" target="_blank" rel="noopener">
+      <a class="card reveal" style="--accent:#2fd3a8" href="https://downloadeveryone.com/" target="_blank" rel="noopener">
+        <span class="num">01</span>
         <div class="logo"><img src="/assets/everyone.png" alt="Everyone app icon"></div>
         <div class="body">
           <span class="tag">App</span>
           <h2>Everyone</h2>
-          <p>Film your family's life stories. A free app for iPhone and Android: pick the questions, press record, and keep their face, voice and words forever.</p>
-          <span class="link">downloadeveryone.com</span>
+          <p>Film your family's life stories. Pick the questions, press record, and keep their face, voice and words forever.</p>
+          <div class="foot">
+            <span class="chip">Free on iPhone &amp; Android</span>
+            <span class="go">downloadeveryone.com <i>→</i></span>
+          </div>
         </div>
       </a>
 
-      <a class="card" href="https://delawaydigital.com/" target="_blank" rel="noopener">
+      <a class="card reveal" style="--accent:#5b7bff" href="https://delawaydigital.com/" target="_blank" rel="noopener">
+        <span class="num">02</span>
         <div class="logo"><img src="/assets/delaway-digital.png" alt="Delaway Digital logo"></div>
         <div class="body">
           <span class="tag">Consulting</span>
           <h2>Delaway Digital</h2>
-          <p>Fractional CMO, conversion rate optimisation and conversion copywriting for growing e-commerce and consumer brands. 10+ years, $50M+ generated for clients.</p>
-          <span class="link">delawaydigital.com</span>
+          <p>Fractional CMO, conversion rate optimisation and conversion copy for growing e-commerce and consumer brands.</p>
+          <div class="foot">
+            <span class="chip">$50M+ generated for clients</span>
+            <span class="go">delawaydigital.com <i>→</i></span>
+          </div>
         </div>
       </a>
 
-      <a class="card" href="https://www.upwork.com/freelancers/danieldelaway" target="_blank" rel="noopener">
+      <a class="card reveal" style="--accent:#8bdc3f" href="https://www.upwork.com/freelancers/danieldelaway" target="_blank" rel="noopener">
+        <span class="num">03</span>
         <div class="logo"><img src="/assets/upwork.svg" alt="Upwork logo"></div>
         <div class="body">
           <span class="tag">Freelance</span>
           <h2>Upwork</h2>
-          <p>Top Rated Plus with 100% Job Success and 30+ five-star reviews. Hire me for CRO, copy, Meta ads or fractional CMO work, or book a quick consultation.</p>
-          <span class="link">upwork.com/freelancers/danieldelaway</span>
+          <p>Hire me for CRO, copy, Meta ads or fractional CMO work, or book a quick consultation and pick my brain.</p>
+          <div class="foot">
+            <span class="chip">Top Rated Plus · 100% Job Success</span>
+            <span class="go">upwork.com/freelancers/danieldelaway <i>→</i></span>
+          </div>
         </div>
       </a>
 
-      <a class="card" href="https://www.youtube.com/@TheArchiveDanielDelaway" target="_blank" rel="noopener">
-        <div class="logo"><img src="/assets/youtube-avatar.jpg" alt="The Archive channel avatar"></div>
+      <a class="card reveal" style="--accent:#ff5f6d" href="https://www.youtube.com/@TheArchiveDanielDelaway" target="_blank" rel="noopener">
+        <span class="num">04</span>
+        <div class="logo"><img class="round" src="/assets/youtube-avatar.jpg" alt="The Archive channel avatar"></div>
         <div class="body">
           <span class="tag">YouTube</span>
           <h2>The Archive</h2>
-          <p>Long-form life story interviews with everyday people about life, opinions and experiences. The channel that started everything behind the Everyone app.</p>
-          <span class="link">youtube.com/@TheArchiveDanielDelaway</span>
+          <p>Long-form life story interviews with everyday people about life, opinions and experiences. Where Everyone began.</p>
+          <div class="foot">
+            <span class="chip">3.6K subscribers · 47 videos</span>
+            <span class="go">youtube.com/@TheArchiveDanielDelaway <i>→</i></span>
+          </div>
         </div>
       </a>
 
     </section>
 
-    <footer class="foot">
-      <p>Want to work together? The quickest way is the contact form on <a href="https://delawaydigital.com/#contact" target="_blank" rel="noopener">delawaydigital.com</a>.</p>
-      <p class="copy">&copy; <span id="y">2026</span> Daniel Delaway</p>
+    <section class="cta reveal">
+      <h3>Want to work together?</h3>
+      <p>The quickest way is the contact form on Delaway Digital.</p>
+      <a class="btn" href="https://delawaydigital.com/#contact" target="_blank" rel="noopener">Get in touch <i>→</i></a>
+    </section>
+
+    <footer class="end">
+      <p>&copy; <span id="y">2026</span> Daniel Delaway</p>
     </footer>
   </main>
-  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
+
+  <script>
+    document.getElementById('y').textContent = new Date().getFullYear();
+
+    // Melbourne clock
+    const clock = document.getElementById('clock');
+    const fmt = new Intl.DateTimeFormat('en-AU', { hour: 'numeric', minute: '2-digit', timeZone: 'Australia/Melbourne' });
+    const tick = () => clock.textContent = fmt.format(new Date());
+    tick(); setInterval(tick, 15000);
+
+    // Reveal on scroll
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const hero = document.querySelectorAll('.hero .reveal');
+    const rest = document.querySelectorAll('.reveal:not(.hero .reveal)');
+    hero.forEach((e, i) => { e.style.transitionDelay = i * 90 + 'ms'; requestAnimationFrame(() => e.classList.add('in')); });
+    if (reduce || !('IntersectionObserver' in window)) {
+      rest.forEach(e => e.classList.add('in'));
+    } else {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+      }, { threshold: 0.08 });
+      rest.forEach((e, i) => { e.style.transitionDelay = (i % 4) * 70 + 'ms'; io.observe(e); });
+    }
+
+    // Spotlight follows the cursor on cards
+    document.querySelectorAll('.card').forEach(card => {
+      card.addEventListener('pointermove', e => {
+        const r = card.getBoundingClientRect();
+        card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+        card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+      });
+    });
+  </script>
 </body>
 </html>
