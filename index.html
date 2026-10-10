@@ -46,7 +46,6 @@
   <main class="wrap">
     <header class="top">
       <a class="mono" href="/" aria-label="Daniel Delaway home">DD</a>
-      <p class="where"><span class="dot"></span>Melbourne, Australia <span class="sep">·</span> <span id="clock">--:--</span></p>
     </header>
 
     <section class="hero">
@@ -138,12 +137,6 @@
 
   <script>
     document.getElementById('y').textContent = new Date().getFullYear();
-
-    // Melbourne clock
-    const clock = document.getElementById('clock');
-    const fmt = new Intl.DateTimeFormat('en-AU', { hour: 'numeric', minute: '2-digit', timeZone: 'Australia/Melbourne' });
-    const tick = () => clock.textContent = fmt.format(new Date());
-    tick(); setInterval(tick, 15000);
 
     // Reveal on scroll
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
