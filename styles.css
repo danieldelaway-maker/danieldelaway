@@ -45,7 +45,7 @@ h1 { margin: 0 0 16px; font-size: clamp(30px, 5vw, 44px); line-height: 1.1; font
 .card:hover, .card:focus-visible { transform: translateY(-2px); border-color: var(--blue); box-shadow: 0 8px 28px rgba(0,0,0,.08); outline: none; }
 .logo {
   height: 150px; display: flex; align-items: center; justify-content: center;
-  background: var(--bg); border-bottom: 1px solid var(--border); padding: 24px;
+  background: #ffffff; border-bottom: 1px solid var(--border); padding: 24px;
 }
 .logo img { max-height: 100%; max-width: 100%; width: auto; height: auto; object-fit: contain; border-radius: 12px; }
 .body { padding: 20px 22px 22px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
