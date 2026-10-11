@@ -58,9 +58,9 @@ h1 {
 
 /* rolling drum for the last line */
 .roll { display: inline-grid; vertical-align: top; perspective: 700px; line-height: 1.04; overflow: hidden;
-  padding: .12em .1em; margin: -.12em -.1em;
-  -webkit-mask: linear-gradient(180deg, transparent 0, #000 22%, #000 78%, transparent 100%);
-  mask: linear-gradient(180deg, transparent 0, #000 22%, #000 78%, transparent 100%); }
+  padding: .28em .18em; margin: -.28em -.18em;
+  -webkit-mask: linear-gradient(180deg, transparent 0, #000 17%, #000 83%, transparent 100%);
+  mask: linear-gradient(180deg, transparent 0, #000 17%, #000 83%, transparent 100%); }
 .sizer { grid-area: 1 / 1; visibility: hidden; }
 .drum { grid-area: 1 / 1; position: relative; transform-style: preserve-3d; animation: drum 12s cubic-bezier(.65,0,.35,1) infinite; }
 .face { position: absolute; left: 0; top: 0; white-space: nowrap; width: 100%; backface-visibility: hidden; transform: rotateX(calc(var(--i) * -72deg)) translateZ(.72em); }
