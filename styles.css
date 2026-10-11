@@ -84,6 +84,7 @@ h1 {
 .track { display: flex; gap: 28px; width: max-content; animation: scroll 40s linear infinite; font-family: var(--display); font-weight: 700; font-size: 15px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
 .track span:nth-child(even) { color: var(--teal); }
 @keyframes scroll { to { transform: translateX(-50%); } }
+.ticker:hover .track { animation-play-state: paused; }
 
 /* ---------- cards ---------- */
 .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
