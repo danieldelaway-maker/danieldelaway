@@ -55,6 +55,23 @@ h1 {
   background-size: 200% 100%; animation: shimmer 8s linear infinite;
 }
 @keyframes shimmer { to { background-position: 200% 0; } }
+
+/* rolling drum for the last line */
+.roll { display: inline-grid; vertical-align: top; perspective: 700px; line-height: 1.04; overflow: hidden;
+  padding: .12em .06em; margin: -.12em -.06em;
+  -webkit-mask: linear-gradient(180deg, transparent 0, #000 22%, #000 78%, transparent 100%);
+  mask: linear-gradient(180deg, transparent 0, #000 22%, #000 78%, transparent 100%); }
+.sizer { grid-area: 1 / 1; visibility: hidden; }
+.drum { grid-area: 1 / 1; position: relative; transform-style: preserve-3d; animation: drum 12s cubic-bezier(.65,0,.35,1) infinite; }
+.face { position: absolute; left: 0; top: 0; white-space: nowrap; backface-visibility: hidden; transform: rotateX(calc(var(--i) * -72deg)) translateZ(.72em); }
+@keyframes drum {
+  0%, 15%   { transform: rotateX(0deg); }
+  20%, 35%  { transform: rotateX(72deg); }
+  40%, 55%  { transform: rotateX(144deg); }
+  60%, 75%  { transform: rotateX(216deg); }
+  80%, 95%  { transform: rotateX(288deg); }
+  100%      { transform: rotateX(360deg); }
+}
 .lede { margin: 0 0 22px; font-size: clamp(17px, 2.2vw, 20px); color: var(--text); max-width: 600px; }
 .pills { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
 .pills li { font-size: 13px; font-weight: 600; padding: 7px 12px; border: 1px solid var(--border); border-radius: 999px; color: var(--ink); background: rgba(255,255,255,.03); }
@@ -124,7 +141,7 @@ h1 {
 .reveal.in { opacity: 1; transform: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .blob, .track, .grad, .dot, .rise { animation: none !important; }
+  .blob, .track, .grad, .dot, .rise, .drum { animation: none !important; }
   .reveal { opacity: 1; transform: none; transition: none; }
   .card, .logo img, .btn { transition: none; }
 }
