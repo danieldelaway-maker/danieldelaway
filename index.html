@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="/styles.css?v=8">
+  <link rel="stylesheet" href="/styles.css?v=9">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -146,6 +146,9 @@
     </footer>
   </main>
 
+  <div class="cur-dot" aria-hidden="true"></div>
+  <div class="cur-ring" aria-hidden="true"></div>
+
   <script>
     document.getElementById('y').textContent = new Date().getFullYear();
 
@@ -159,6 +162,22 @@
         entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
       }, { threshold: 0.08 });
       rest.forEach((e, i) => { e.style.transitionDelay = (i % 4) * 70 + 'ms'; io.observe(e); });
+    }
+
+
+    // Custom cursor: dot + lagging ring (mouse devices only)
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      const dot = document.querySelector('.cur-dot'), ring = document.querySelector('.cur-ring');
+      let tx = -100, ty = -100, rx = -100, ry = -100, shown = false;
+      document.body.classList.add('has-cursor');
+      window.addEventListener('pointermove', e => {
+        tx = e.clientX; ty = e.clientY;
+        dot.style.transform = `translate(${tx}px, ${ty}px)`;
+        if (!shown) { shown = true; dot.classList.add('on'); ring.classList.add('on'); }
+        ring.classList.toggle('big', !!e.target.closest('a, button'));
+      });
+      document.addEventListener('mouseleave', () => { dot.classList.remove('on'); ring.classList.remove('on'); shown = false; });
+      (function loop() { rx += (tx - rx) * .22; ry += (ty - ry) * .22; ring.style.transform = `translate(${rx}px, ${ry}px)`; requestAnimationFrame(loop); })();
     }
 
     // Spotlight follows the cursor on cards
