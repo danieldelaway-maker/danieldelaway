@@ -63,7 +63,9 @@ h1 {
   mask: linear-gradient(180deg, transparent 0, #000 17%, #000 83%, transparent 100%); }
 .sizer { grid-area: 1 / 1; visibility: hidden; }
 .drum { grid-area: 1 / 1; position: relative; transform-style: preserve-3d; animation: drum 12s cubic-bezier(.65,0,.35,1) infinite; }
-.face { position: absolute; left: 0; top: 0; white-space: nowrap; width: 100%; backface-visibility: hidden; transform: rotateX(calc(var(--i) * -72deg)) translateZ(.72em); }
+.face { position: absolute; left: 0; top: 0; white-space: nowrap; width: 100%; backface-visibility: hidden; transform: rotateX(calc(var(--i) * -72deg)) translateZ(.72em);
+  animation: facefade 12s cubic-bezier(.65,0,.35,1) infinite; animation-delay: calc(var(--i) * -2.4s); }
+@keyframes facefade { 0%, 15% { opacity: 1; } 20%, 95% { opacity: 0; } 100% { opacity: 1; } }
 @keyframes drum {
   0%, 15%   { transform: rotateX(0deg); }
   20%, 35%  { transform: rotateX(72deg); }
@@ -141,7 +143,8 @@ h1 {
 .reveal.in { opacity: 1; transform: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .blob, .track, .grad, .dot, .rise, .drum { animation: none !important; }
+  .blob, .track, .grad, .dot, .rise, .drum, .face { animation: none !important; }
+  .face:not([style*="--i:0"]) { display: none; }
   .reveal { opacity: 1; transform: none; transition: none; }
   .card, .logo img, .btn { transition: none; }
 }
