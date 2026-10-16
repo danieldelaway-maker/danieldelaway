@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Learning list</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0b0d14">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/styles.css?v=11">
+  <style>
+    .topics { display: grid; gap: 14px; margin-top: 8px; }
+    .topic { padding: 22px 22px 20px; border-radius: 18px; background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--accent, var(--teal)); }
+    .topic .tag { color: var(--accent, var(--teal)); }
+    .topic h2 { margin: 6px 0 6px; font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: -.01em; color: var(--ink); }
+    .topic p { margin: 0 0 12px; font-size: 15.5px; }
+    .topic ul { margin: 0; padding-left: 18px; font-size: 15px; }
+    .topic li { margin: 4px 0; }
+    .topic a { color: var(--accent, var(--teal)); }
+    .empty { padding: 28px; border-radius: 18px; border: 1px dashed var(--border); text-align: center; color: var(--muted); }
+    .back { display: inline-block; margin-top: 40px; color: var(--muted); font-size: 13px; text-decoration: none; }
+    .back:hover { color: var(--teal); }
+  </style>
+</head>
+<body>
+  <div class="bg" aria-hidden="true">
+    <span class="blob b1"></span>
+    <span class="blob b2"></span>
+    <span class="blob b3"></span>
+    <span class="grain"></span>
+  </div>
+
+  <main class="wrap">
+    <header class="top">
+      <a class="mono" href="/" aria-label="Daniel Delaway home">DD</a>
+    </header>
+
+    <section class="hero">
+      <p class="eyebrow rise">You found the back room</p>
+      <h1 class="rise">Things I'm <span class="grad">learning.</span></h1>
+      <p class="lede rise">A private list of topics I want to get good at, with notes and the best resources I've found.</p>
+    </section>
+
+    <section class="topics" id="topics" aria-label="Topics"></section>
+
+    <a class="back" href="/">← Back to danieldelaway.com</a>
+  </main>
+
+  <script>
+    // Add a topic: copy one { ... } block. status: "Next up", "Learning", "Done".
+    const TOPICS = [
+      // {
+      //   title: "Topic name",
+      //   status: "Learning",
+      //   why: "Why I want to learn this.",
+      //   links: [["Resource name", "https://example.com"]],
+      // },
+    ];
+
+    const colours = { "Next up": "#5b7bff", "Learning": "#2fd3a8", "Done": "#8b91a1" };
+    const box = document.getElementById('topics');
+    const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    if (!TOPICS.length) {
+      box.innerHTML = '<div class="empty">No topics yet. First ones coming soon.</div>';
+    } else {
+      box.innerHTML = TOPICS.map(t => `
+        <article class="topic" style="--accent:${colours[t.status] || '#2fd3a8'}">
+          <span class="tag">${esc(t.status || '')}</span>
+          <h2>${esc(t.title)}</h2>
+          ${t.why ? `<p>${esc(t.why)}</p>` : ''}
+          ${(t.links || []).length ? `<ul>${t.links.map(([n, u]) => `<li><a href="${esc(u)}" target="_blank" rel="noopener">${esc(n)}</a></li>`).join('')}</ul>` : ''}
+        </article>`).join('');
+    }
+  </script>
+</body>
+</html>

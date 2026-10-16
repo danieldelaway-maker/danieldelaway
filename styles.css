@@ -133,6 +133,8 @@ h1 {
 .btn:hover i { transform: translateX(4px); }
 .end { margin-top: 40px; text-align: center; color: var(--muted); font-size: 13px; }
 .end p { margin: 0; }
+.secret { color: inherit; text-decoration: none; }
+.secret:hover { color: var(--teal); }
 
 /* ---------- custom cursor ---------- */
 .cur-dot, .cur-ring { position: fixed; left: 0; top: 0; pointer-events: none; z-index: 9999; border-radius: 50%; opacity: 0; will-change: transform; }
