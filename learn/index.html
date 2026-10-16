@@ -9,21 +9,52 @@
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&family=Frank+Ruhl+Libre:wght@500;700&family=Marcellus&family=Cinzel:wght@600;700&display=swap">
   <link rel="stylesheet" href="/styles.css?v=13">
   <style>
     h1 { line-height: 1.14; }
-    .topics { display: grid; gap: 14px; margin-top: 8px; }
-    .topic { padding: 22px 22px 20px; border-radius: 18px; background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--accent, var(--teal)); }
-    .topic .tag { color: var(--accent, var(--teal)); }
-    .topic h2 { margin: 6px 0 6px; font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: -.01em; color: var(--ink); }
-    .topic p { margin: 0 0 12px; font-size: 15.5px; }
-    .topic ul { margin: 0; padding-left: 18px; font-size: 15px; }
-    .topic li { margin: 4px 0; }
-    .topic a { color: var(--accent, var(--teal)); }
-    .empty { padding: 28px; border-radius: 18px; border: 1px dashed var(--border); text-align: center; color: var(--muted); }
+
+    /* Each subject card wears its own theme; the page it opens will too. */
+    .subjects { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin-top: 8px; }
+    .subject { position: relative; display: flex; flex-direction: column; height: 440px; border-radius: 22px; overflow: hidden; text-decoration: none;
+      color: var(--s-ink); background: var(--s-bg); border: 1px solid var(--s-line);
+      transition: transform .35s cubic-bezier(.2,.7,.2,1), box-shadow .35s ease, border-color .35s ease; }
+    .subject:hover, .subject:focus-visible { transform: translateY(-6px); border-color: var(--s-accent); box-shadow: 0 26px 60px -22px var(--s-glow); outline: none; }
+    .subject.soon { cursor: default; }
+    .subject.soon:hover { transform: none; box-shadow: none; border-color: var(--s-line); }
+    .art { position: relative; height: 230px; flex: none; display: grid; place-items: center; overflow: hidden; }
+    .art svg { position: relative; z-index: 1; width: 62%; height: auto; transition: transform .6s cubic-bezier(.2,.7,.2,1); }
+    .subject:not(.soon):hover .art svg { transform: scale(1.05); }
+    .art .ghost { position: absolute; inset: 0; display: grid; place-items: center; font-size: 150px; line-height: 1; opacity: .08; white-space: nowrap; pointer-events: none; }
+    .info { display: flex; flex-direction: column; gap: 8px; padding: 20px 22px 22px; flex: 1; }
+    .num { font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--s-accent); }
+    .subject h2 { margin: 0; font-family: var(--s-font); font-weight: 700; font-size: 28px; line-height: 1.1; color: var(--s-ink); }
+    .era { font-size: 13px; font-weight: 600; letter-spacing: .06em; color: var(--s-muted); }
+    .subject p { margin: 0; font-size: 15px; color: var(--s-text); }
+    .status { margin-top: auto; align-self: flex-start; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+      padding: 6px 11px; border-radius: 999px; color: var(--s-accent); border: 1px solid var(--s-accent); }
+
+    /* Jewish history: midnight blue and gold, Hebrew serif */
+    .jewish { --s-bg: linear-gradient(180deg, #0f1d44 0%, #0a1430 100%); --s-line: rgba(212,175,55,.25); --s-accent: #d9b44a; --s-glow: rgba(217,180,74,.45);
+      --s-ink: #f6efd9; --s-text: #c9cde0; --s-muted: #9aa3c4; --s-font: "Frank Ruhl Libre", Georgia, serif; }
+    .jewish .art { background: radial-gradient(240px 160px at 50% 60%, rgba(217,180,74,.22), transparent 70%); border-bottom: 1px solid var(--s-line); }
+    .jewish .ghost { font-family: "Frank Ruhl Libre", serif; color: #d9b44a; font-size: 120px; }
+
+    /* Egyptian history: desert sand, lapis and gold */
+    .egypt { --s-bg: linear-gradient(180deg, #2a1d10 0%, #1a120a 100%); --s-line: rgba(232,196,138,.25); --s-accent: #e8b961; --s-glow: rgba(232,185,97,.45);
+      --s-ink: #fbefd8; --s-text: #dccbb0; --s-muted: #b39a76; --s-font: "Marcellus", Georgia, serif; }
+    .egypt .art { background: linear-gradient(180deg, #2f4fa8 0%, #e39b4f 62%, #c98a3e 100%); border-bottom: 1px solid var(--s-line); }
+
+    /* Roman history: imperial crimson, marble and Trajan capitals */
+    .rome { --s-bg: linear-gradient(180deg, #3a0d10 0%, #22070a 100%); --s-line: rgba(240,228,214,.18); --s-accent: #e7c873; --s-glow: rgba(200,40,50,.5);
+      --s-ink: #f4ece2; --s-text: #dcc9c2; --s-muted: #b8968f; --s-font: "Cinzel", Georgia, serif; }
+    .rome .art { background: radial-gradient(260px 170px at 50% 55%, rgba(244,236,226,.14), transparent 70%), #4a1015; border-bottom: 1px solid var(--s-line); }
+    .rome .ghost { font-family: "Cinzel", serif; color: #f4ece2; font-size: 110px; letter-spacing: .08em; }
+    .rome h2 { letter-spacing: .04em; font-size: 26px; }
+
     .back { display: inline-block; margin-top: 40px; color: var(--muted); font-size: 13px; text-decoration: none; }
     .back:hover { color: var(--teal); }
+    @media (prefers-reduced-motion: reduce) { .subject, .art svg { transition: none; } }
   </style>
 </head>
 <body>
@@ -56,36 +87,81 @@
       <p class="lede rise">A private list of topics I want to get good at, with notes and the best resources I've found.</p>
     </section>
 
-    <section class="topics" id="topics" aria-label="Topics"></section>
+    <!-- When a subject's page is built: remove "soon" and aria-disabled, and set the status text. -->
+    <section class="subjects" aria-label="Subjects">
+
+      <a class="subject jewish soon" href="/learn/jewish-history/" aria-disabled="true" onclick="return !this.classList.contains('soon')">
+        <div class="art">
+          <span class="ghost" aria-hidden="true">זכור</span>
+          <svg viewBox="0 0 200 170" fill="none" stroke="#d9b44a" stroke-width="4" stroke-linecap="round" aria-hidden="true">
+            <path d="M100 46 V138"/>
+            <path d="M80 46 A20 20 0 0 0 120 46"/>
+            <path d="M60 46 A40 40 0 0 0 140 46"/>
+            <path d="M40 46 A60 60 0 0 0 160 46"/>
+            <path d="M84 156 H116 L108 138 H92 Z" fill="#d9b44a" fill-opacity=".18"/>
+            <g fill="#f3d27a" stroke="none">
+              <ellipse cx="40" cy="34" rx="4" ry="8"/><ellipse cx="60" cy="34" rx="4" ry="8"/><ellipse cx="80" cy="34" rx="4" ry="8"/>
+              <ellipse cx="100" cy="34" rx="4" ry="8"/><ellipse cx="120" cy="34" rx="4" ry="8"/><ellipse cx="140" cy="34" rx="4" ry="8"/>
+              <ellipse cx="160" cy="34" rx="4" ry="8"/>
+            </g>
+          </svg>
+        </div>
+        <div class="info">
+          <span class="num">01 · History</span>
+          <h2>Jewish History</h2>
+          <span class="era">c. 1800 BCE – today</span>
+          <p>Four thousand years of one people: from Abraham and the Exodus to exile, return and the modern day.</p>
+          <span class="status">Starting now</span>
+        </div>
+      </a>
+
+      <a class="subject egypt soon" href="/learn/egyptian-history/" aria-disabled="true" onclick="return !this.classList.contains('soon')">
+        <div class="art">
+          <svg viewBox="0 0 200 150" aria-hidden="true">
+            <circle cx="138" cy="44" r="18" fill="#ffd77a"/>
+            <circle cx="138" cy="44" r="28" fill="#ffd77a" opacity=".25"/>
+            <polygon points="20,130 82,52 144,130" fill="#f1c27d"/>
+            <polygon points="82,52 144,130 100,130" fill="#c98a3e"/>
+            <polygon points="110,130 150,80 190,130" fill="#e9b26a"/>
+            <polygon points="150,80 190,130 162,130" fill="#b87a33"/>
+            <rect x="0" y="130" width="200" height="20" fill="#9a6428"/>
+            <path d="M0 140 Q50 134 100 140 T200 140" stroke="#2f4fa8" stroke-width="3" fill="none" opacity=".7"/>
+          </svg>
+        </div>
+        <div class="info">
+          <span class="num">02 · History</span>
+          <h2>Egyptian History</h2>
+          <span class="era">c. 3100 BCE – 30 BCE</span>
+          <p>Three thousand years of pharaohs, pyramids and gods, all built along the banks of the Nile.</p>
+          <span class="status">Coming soon</span>
+        </div>
+      </a>
+
+      <a class="subject rome soon" href="/learn/roman-history/" aria-disabled="true" onclick="return !this.classList.contains('soon')">
+        <div class="art">
+          <span class="ghost" aria-hidden="true">SPQR</span>
+          <svg viewBox="0 0 200 150" fill="#f4ece2" aria-hidden="true">
+            <polygon points="100,14 176,48 24,48" fill="none" stroke="#f4ece2" stroke-width="4" stroke-linejoin="round"/>
+            <rect x="26" y="52" width="148" height="8" rx="1"/>
+            <rect x="38" y="66" width="12" height="58" rx="2"/><rect x="70" y="66" width="12" height="58" rx="2"/>
+            <rect x="118" y="66" width="12" height="58" rx="2"/><rect x="150" y="66" width="12" height="58" rx="2"/>
+            <rect x="22" y="126" width="156" height="7" rx="1"/>
+            <rect x="14" y="135" width="172" height="7" rx="1" opacity=".7"/>
+            <circle cx="100" cy="36" r="5" fill="#e7c873"/>
+          </svg>
+        </div>
+        <div class="info">
+          <span class="num">03 · History</span>
+          <h2>Roman History</h2>
+          <span class="era">753 BCE – 476 CE</span>
+          <p>From a village on seven hills to an empire that ruled the Mediterranean, and how it all fell apart.</p>
+          <span class="status">Coming soon</span>
+        </div>
+      </a>
+
+    </section>
 
     <a class="back" href="/">← Back to danieldelaway.com</a>
   </main>
-
-  <script>
-    // Add a topic: copy one { ... } block. status: "Next up", "Learning", "Done".
-    const TOPICS = [
-      // {
-      //   title: "Topic name",
-      //   status: "Learning",
-      //   why: "Why I want to learn this.",
-      //   links: [["Resource name", "https://example.com"]],
-      // },
-    ];
-
-    const colours = { "Next up": "#5b7bff", "Learning": "#2fd3a8", "Done": "#8b91a1" };
-    const box = document.getElementById('topics');
-    const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-    if (!TOPICS.length) {
-      box.innerHTML = '<div class="empty">No topics yet. First ones coming soon.</div>';
-    } else {
-      box.innerHTML = TOPICS.map(t => `
-        <article class="topic" style="--accent:${colours[t.status] || '#2fd3a8'}">
-          <span class="tag">${esc(t.status || '')}</span>
-          <h2>${esc(t.title)}</h2>
-          ${t.why ? `<p>${esc(t.why)}</p>` : ''}
-          ${(t.links || []).length ? `<ul>${t.links.map(([n, u]) => `<li><a href="${esc(u)}" target="_blank" rel="noopener">${esc(n)}</a></li>`).join('')}</ul>` : ''}
-        </article>`).join('');
-    }
-  </script>
 </body>
 </html>
