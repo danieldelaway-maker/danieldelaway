@@ -513,7 +513,9 @@
     function hide() { if (active) active.classList.remove('on'); active = armed = null; tip.classList.remove('show'); }
     function place(x, y) {
       const w = tip.offsetWidth, h = tip.offsetHeight, pad = 12, gap = 18;
-      let left = x + gap, top = y + gap;
+      // with the yad cursor, the pop-up's top-left corner sits at the yad's bottom end (39 x 64px from the fingertip)
+      const yad = document.body.classList.contains('yadded');
+      let left = x + (yad ? 38 : gap), top = y + (yad ? 62 : gap);
       if (left + w > innerWidth - pad) left = x - w - gap;
       if (top + h > innerHeight - pad) top = y - h - gap;
       tip.style.left = Math.max(pad, left) + 'px';
