@@ -25,14 +25,16 @@
       body, .spot, .back { cursor: url("/assets/yad-cursor.png?v=3") 2 1, pointer; }
     }
     .scene { position: fixed; inset: 0; overflow: hidden; }
-    .stage { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    /* Wide screens: trim at most ~1% off the top (the welcome text sits there) and the rest off the bottom */
+    .stage { --sw: max(100vw, calc(100dvh * var(--r))); --over: calc(var(--sw) / var(--r) - 100dvh);
+      position: absolute; left: 50%; top: calc(-1 * min(var(--over), var(--sw) / var(--r) * .011)); transform: translateX(-50%);
       width: max(100vw, calc(100dvh * var(--r))); aspect-ratio: 3840 / 2151; }
     .stage img { display: block; width: 100%; height: 100%; user-select: none; -webkit-user-drag: none; }
     /* Phones held upright: full height, swipe sideways along the table */
     @media (orientation: portrait) {
       .scene { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
       .scene::-webkit-scrollbar { display: none; }
-      .stage { left: 0; transform: translateY(-50%); }
+      .stage { left: 0; top: 0; transform: none; }
     }
 
     /* Click zones: positioned in % of the image so they stay on their object at any size */
@@ -74,13 +76,14 @@
     }
 
     /* Welcome text: fades in, holds, then the letters crumble and drift away */
-    /* Sits in the sky of the arched window, so it moves and scales with the picture (sizes in % of the image width) */
+    /* Curves along the stone just above the arched window; sizes in % of the image width so it moves and scales with the picture */
     .stage { container-type: inline-size; }
-    .intro { position: absolute; left: 36%; top: 14.5%; width: 28%; height: 12%; z-index: 8; display: grid; place-items: center; pointer-events: none; }
-    .intro h1 { margin: 0; text-align: center; white-space: nowrap; font: 400 2.05cqw/1.08 "Bebas Neue", Impact, sans-serif; letter-spacing: .06em;
+    .intro { position: absolute; inset: 0; z-index: 8; pointer-events: none; }
+    .intro h1 { position: absolute; inset: 0; margin: 0; white-space: nowrap; font: 400 2cqw/1 "Bebas Neue", Impact, sans-serif;
       color: #1d3aa8; -webkit-text-stroke: .03em #1d3aa8; paint-order: stroke fill; opacity: 0; }
-    .intro .w { display: inline-block; white-space: nowrap; }
-    .intro .l { display: inline-block; will-change: transform, opacity, filter; }
+    .intro .p { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+    .intro .l { display: inline-block; transform: translate(-50%, -50%); will-change: transform, opacity, filter; }
+    @media (orientation: portrait) { .intro h1 { font-size: 1.3cqw; } }   /* phones only show the middle of the arch */
     .dust { position: fixed; z-index: 8; width: 2px; height: 2px; margin: -1px 0 0 -1px; border-radius: 50%; pointer-events: none;
       background: #1d3aa8; }
 
@@ -107,7 +110,7 @@
   <main class="scene">
     <div class="stage" id="stage">
       <img src="/assets/jewish-study-table.jpg?v=6" srcset="/assets/jewish-study-table-1920.jpg?v=6 1920w, /assets/jewish-study-table.jpg?v=6 3840w" sizes="max(100vw, 178.52vh)" width="3840" height="2151" alt="A scholar's study in Jerusalem filled with objects from Jewish history, with the Old City and the Temple Mount seen through an arched window">
-    <div class="intro" id="intro" aria-hidden="true"><h1>Welcome to your history.<br>Start learning.</h1></div>
+    <div class="intro" id="intro" aria-hidden="true"><h1>Welcome to your history. Start learning.</h1></div>
     </div>
   </main>
   <div class="tip" id="tip" role="tooltip"><h2></h2><p></p><span class="go"></span></div>
@@ -541,9 +544,32 @@
     (async () => {
       const intro = document.getElementById('intro'), h1 = intro.querySelector('h1');
       const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      h1.innerHTML = h1.innerHTML.split('<br>').map(line => line.split(' ').map(word =>
-        '<span class="w">' + [...word].map(c => '<span class="l">' + c + '</span>').join('') + '</span>').join(' ')).join('<br>');
+      const text = h1.textContent;
+      h1.innerHTML = [...text].map(c => '<span class="p"><span class="l">' + (c === ' ' ? '&nbsp;' : c) + '</span></span>').join('');
       try { await Promise.race([document.fonts.load('40px "Bebas Neue"'), new Promise(r => setTimeout(r, 1500))]); } catch (e) {}
+      // Lay the letters along an ellipse that follows the stone just above the window frame
+      // (measured on the 2000 x 1120 view of the image: centre 980,400; radii 344 x 365)
+      const W = 2000, H = 1120, cx = 980, cy = 400, rx = 344, ry = 365, track = .06;
+      const pt = a => [cx + rx * Math.cos(a), cy - ry * Math.sin(a)];
+      const steps = 2000, arc = [0];             // arc length from the left end (a = PI) to the right (a = 0)
+      for (let i = 1; i <= steps; i++) {
+        const [x1, y1] = pt(Math.PI * (1 - (i - 1) / steps)), [x2, y2] = pt(Math.PI * (1 - i / steps));
+        arc.push(arc[i - 1] + Math.hypot(x2 - x1, y2 - y1));
+      }
+      const at = d => { let i = arc.findIndex(v => v >= d); if (i < 1) i = 1; const a = Math.PI * (1 - i / steps); return a; };
+      const scale = W / stage.offsetWidth;        // screen px -> image px
+      const ps = [...h1.querySelectorAll('.p')];
+      const fs = parseFloat(getComputedStyle(h1).fontSize);
+      const widths = ps.map(p => (p.firstChild.getBoundingClientRect().width + fs * track) * scale);
+      const total = widths.reduce((a, b) => a + b, 0);
+      let d = arc[steps] / 2 - total / 2;
+      ps.forEach((p, i) => {
+        const a = at(d + widths[i] / 2), [x, y] = pt(a);
+        const deg = Math.atan2(ry * Math.cos(a), rx * Math.sin(a)) * 180 / Math.PI;   // tangent of the curve
+        p.style.left = x / W * 100 + '%'; p.style.top = y / H * 100 + '%';
+        p.style.transform = `rotate(${deg}deg)`;
+        d += widths[i];
+      });
       await h1.animate([{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }],
         { duration: 1200, easing: 'ease-out', fill: 'forwards' }).finished;
       await new Promise(r => setTimeout(r, 2000));
