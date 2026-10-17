@@ -59,14 +59,25 @@
     }
     @keyframes halo { from { opacity: .5; transform: scale(.9); } to { opacity: 1; transform: scale(1.1); } }
 
+    /* Loose scorched page: a copy of its free right-hand edge, hinged on its left side, lifts in a soft breeze */
+    .flap { position: absolute; pointer-events: none; background-repeat: no-repeat; transform-origin: 0% 55%;
+      animation: breeze 5.5s ease-in-out infinite; will-change: transform; }
+    @keyframes breeze {
+      0%, 100% { transform: perspective(500px) rotateY(0deg) skewY(0deg) translateY(0); filter: brightness(1); }
+      22% { transform: perspective(500px) rotateY(-9deg) skewY(-1.6deg) translateY(-1px); filter: brightness(1.05); }
+      38% { transform: perspective(500px) rotateY(-4deg) skewY(-.6deg) translateY(0); filter: brightness(1.02); }
+      55% { transform: perspective(500px) rotateY(-12deg) skewY(-2.2deg) translateY(-1.5px); filter: brightness(1.07); }
+      75% { transform: perspective(500px) rotateY(-3deg) skewY(-.4deg) translateY(0); filter: brightness(1.01); }
+    }
+
     /* Welcome text: fades in, holds, then the letters crumble and drift away */
     .intro { position: fixed; inset: 0; z-index: 8; display: grid; place-items: center; pointer-events: none; padding: 0 16px; }
-    .intro h1 { margin: 0 0 12vh; text-align: center; font: 400 clamp(30px, 4.8vw, 72px)/1.15 "Kanisah", Georgia, serif; letter-spacing: .03em;
-      color: #1f3a9e; text-shadow: 0 0 22px rgba(255, 244, 214, .95), 0 0 6px rgba(255, 244, 214, .9), 0 2px 1px rgba(255, 248, 228, .7); opacity: 0; }
+    .intro h1 { margin: 0 0 14vh; text-align: center; font: 400 clamp(17px, 1.55vw, 24px)/1.5 "Kanisah", Georgia, serif; letter-spacing: .09em;
+      color: #1d3aa8; -webkit-text-stroke: .09em #1d3aa8; paint-order: stroke fill; opacity: 0; }
     .intro .w { display: inline-block; white-space: nowrap; }
     .intro .l { display: inline-block; will-change: transform, opacity, filter; }
-    .dust { position: fixed; z-index: 8; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 50%; pointer-events: none;
-      background: #2c4fc4; box-shadow: 0 0 6px rgba(255, 244, 214, .9); }
+    .dust { position: fixed; z-index: 8; width: 2px; height: 2px; margin: -1px 0 0 -1px; border-radius: 50%; pointer-events: none;
+      background: #1d3aa8; }
 
     /* White pop-up that follows the pointer */
     .tip { position: fixed; z-index: 10; left: 0; top: 0; width: max-content; max-width: min(270px, calc(100vw - 24px)); box-sizing: border-box;
@@ -83,7 +94,7 @@
     .back { position: fixed; top: 14px; left: 14px; z-index: 5; padding: 7px 12px; border-radius: 999px; font: 600 13px/1 system-ui, sans-serif;
       color: #f5e6c4; text-decoration: none; background: rgba(26, 15, 7, .55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
     .back:hover { background: rgba(26, 15, 7, .8); }
-    @media (prefers-reduced-motion: reduce) { .spot::before, .tip { transition: none; } .flame::before, .flame::after { animation: none; } }
+    @media (prefers-reduced-motion: reduce) { .spot::before, .tip { transition: none; } .flame::before, .flame::after, .flap { animation: none; } }
   </style>
 </head>
 <body>
@@ -504,6 +515,23 @@
       stage.insertBefore(f, stage.querySelector('.spot'));
     });
 
+    // Scorched page edge. Box and outline measured on the 2000 x 1120 view of the image.
+    (() => {
+      const W = 2000, H = 1120, box = [1786, 962, 1932, 1088];
+      const outline = [[1786, 973], [1840, 970], [1882, 969], [1912, 984], [1930, 996], [1912, 1006], [1866, 1010], [1850, 1015],
+                       [1872, 1040], [1866, 1060], [1838, 1072], [1806, 1082], [1786, 1086]];
+      const [x1, y1, x2, y2] = box, bw = x2 - x1, bh = y2 - y1;
+      const f = document.createElement('div');
+      f.className = 'flap';
+      f.style.cssText = `left:${x1 / W * 100}%;top:${y1 / H * 100}%;width:${bw / W * 100}%;height:${bh / H * 100}%;` +
+        `background-size:${W / bw * 100}% ${H / bh * 100}%;background-position:${x1 / (W - bw) * 100}% ${y1 / (H - bh) * 100}%;` +
+        `clip-path:polygon(${outline.map(([x, y]) => `${((x - x1) / bw * 100).toFixed(1)}% ${((y - y1) / bh * 100).toFixed(1)}%`).join(',')})`;
+      const img = stage.querySelector('img');
+      const setBg = () => { f.style.backgroundImage = `url("${img.currentSrc || img.src}")`; };
+      img.complete ? setBg() : img.addEventListener('load', setBg);
+      stage.insertBefore(f, stage.querySelector('.spot'));
+    })();
+
     // Welcome text: fade in (1.2s), hold (2s), then each letter breaks up and floats away
     (async () => {
       const intro = document.getElementById('intro'), h1 = intro.querySelector('h1');
@@ -525,11 +553,11 @@
           d.style.left = rnd(r.left, r.right) + 'px'; d.style.top = rnd(r.top, r.bottom) + 'px';
           document.body.appendChild(d);
           d.animate([{ opacity: 0, transform: 'none' }, { opacity: .9, offset: .15 },
-                     { opacity: 0, transform: `translate(${rnd(-70, 70)}px, ${rnd(-170, -50)}px) scale(${rnd(.3, .8)})` }],
+                     { opacity: 0, transform: `translate(${rnd(-30, 30)}px, ${rnd(-80, -25)}px) scale(${rnd(.4, .9)})` }],
             { duration: rnd(1300, 2200), delay: delay + rnd(0, 300), easing: 'ease-out', fill: 'forwards' }).finished.then(() => d.remove());
         }
         return l.animate([{ opacity: 1, transform: 'none', filter: 'blur(0px)' },
-                          { opacity: 0, transform: `translate(${rnd(-45, 45)}px, ${rnd(-140, -60)}px) rotate(${rnd(-35, 35)}deg) scale(.6)`, filter: 'blur(7px)' }],
+                          { opacity: 0, transform: `translate(${rnd(-18, 18)}px, ${rnd(-60, -25)}px) rotate(${rnd(-35, 35)}deg) scale(.6)`, filter: 'blur(3px)' }],
           { duration: rnd(1300, 1900), delay, easing: 'cubic-bezier(.35, .05, .65, 1)', fill: 'forwards' }).finished;
       });
       await Promise.all(runs);
