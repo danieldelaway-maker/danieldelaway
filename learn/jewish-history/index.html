@@ -10,13 +10,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&display=swap">
   <style>
-    /* Real Jerusalem stone (Western Wall close-up), softened with a warm wash so the cards read on top */
+    /* Soft parchment-coloured stone background */
     body { margin: 0; padding: 32px 16px 64px; font-family: "Frank Ruhl Libre", Georgia, serif; color: #3b2a14; min-height: 100vh; box-sizing: border-box;
-      background: linear-gradient(rgba(240, 222, 175, .38), rgba(226, 200, 140, .38)), url("/assets/jerusalem-stone.jpg") center / cover fixed, #d9c08c; }
-    @media (hover: none) { body { background-attachment: scroll; background-size: auto, 1400px auto; } }
-    .credit { margin-top: 40px; font-size: 12px; color: #4a3820; opacity: .8; }
+      background: #efe2c4; }
+    /* Fixed layer so the parchment stays put while scrolling, phones included */
+    body::before { content: ""; position: fixed; inset: 0; z-index: -1; background: url("/assets/parchment.jpg") center / cover no-repeat; }
     a { color: inherit; }
-    body > a, h1, .credit { text-shadow: 0 0 6px rgba(250, 238, 205, .95), 0 0 2px rgba(250, 238, 205, .95); }
+    body > a, h1 { text-shadow: 0 0 6px rgba(250, 238, 205, .95), 0 0 2px rgba(250, 238, 205, .95); }
     body > a { font-weight: 700; }
     h1 { font-weight: 700; font-size: clamp(34px, 6vw, 56px); margin: 18px 0 0; color: #3b2a14; }
 
@@ -68,7 +68,5 @@
     <li>Humour and culture</li>
     <li>Israel</li>
   </ul>
-
-  <p class="credit">Background: Western Wall stones by <a href="https://commons.wikimedia.org/wiki/File:Western_Wall_stones,_closeup.jpg">Danielrosehill</a>, <a href="https://creativecommons.org/licenses/by/4.0">CC BY 4.0</a></p>
 </body>
 </html>
