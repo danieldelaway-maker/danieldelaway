@@ -20,9 +20,12 @@
        wide screens crop a little top and bottom, tall phones scroll sideways. */
     :root { --r: 1.7852; }
     html, body { margin: 0; height: 100%; overflow: hidden; background: #1a0f07; }
-    /* Yad (Torah pointer) cursor on mouse devices; the click point is the fingertip */
+    /* Yad (Torah pointer) cursor on mouse devices; the click point is the fingertip.
+       Kept at 32px (sharp 64px copy for Retina): Chrome swaps bigger cursors for the arrow near the window's right and bottom edges. */
     @media (hover: hover) and (pointer: fine) {
-      body, .spot, .back { cursor: url("/assets/yad-cursor.png?v=3") 2 1, pointer; }
+      body, .spot, .back { cursor: url("/assets/yad-cursor.png?v=4") 1 1, pointer;
+        cursor: -webkit-image-set(url("/assets/yad-cursor.png?v=4") 1x, url("/assets/yad-cursor@2x.png?v=4") 2x) 1 1, pointer;
+        cursor: image-set(url("/assets/yad-cursor.png?v=4") 1x, url("/assets/yad-cursor@2x.png?v=4") 2x) 1 1, pointer; }
     }
     .scene { position: fixed; inset: 0; overflow: hidden; }
     /* Wide screens: trim at most ~1% off the top (the welcome text sits there) and the rest off the bottom */
