@@ -8,6 +8,9 @@
   <meta name="theme-color" content="#1a0f07">
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
   <link rel="preload" as="image" href="/assets/jewish-study-table.jpg?v=6" imagesrcset="/assets/jewish-study-table-1920.jpg?v=6 1920w, /assets/jewish-study-table.jpg?v=6 3840w" imagesizes="max(100vw, 178.52vh)">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap">
   <link rel="preload" href="/assets/fonts/kanisah.ttf" as="font" type="font/ttf" crossorigin>
   <style>
     /* Kanisah by Gunarta (freeware, fontspace.com/kanisah-font-f22290): Hebrew-style Latin letters */
@@ -72,8 +75,8 @@
 
     /* Welcome text: fades in, holds, then the letters crumble and drift away */
     .intro { position: fixed; inset: 0; z-index: 8; display: grid; place-items: center; pointer-events: none; padding: 0 16px; }
-    .intro h1 { margin: 0 0 14vh; text-align: center; font: 400 clamp(17px, 1.55vw, 24px)/1.5 "Kanisah", Georgia, serif; letter-spacing: .09em;
-      color: #1d3aa8; -webkit-text-stroke: .09em #1d3aa8; paint-order: stroke fill; opacity: 0; }
+    .intro h1 { margin: 0 0 14vh; text-align: center; font: 400 clamp(51px, 4.65vw, 72px)/1.1 "Bebas Neue", Impact, sans-serif; letter-spacing: .06em;
+      color: #1d3aa8; -webkit-text-stroke: .03em #1d3aa8; paint-order: stroke fill; opacity: 0; }
     .intro .w { display: inline-block; white-space: nowrap; }
     .intro .l { display: inline-block; will-change: transform, opacity, filter; }
     .dust { position: fixed; z-index: 8; width: 2px; height: 2px; margin: -1px 0 0 -1px; border-radius: 50%; pointer-events: none;
@@ -538,7 +541,7 @@
       const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
       h1.innerHTML = h1.innerHTML.split('<br>').map(line => line.split(' ').map(word =>
         '<span class="w">' + [...word].map(c => '<span class="l">' + c + '</span>').join('') + '</span>').join(' ')).join('<br>');
-      try { await Promise.race([document.fonts.load('40px Kanisah'), new Promise(r => setTimeout(r, 1500))]); } catch (e) {}
+      try { await Promise.race([document.fonts.load('40px "Bebas Neue"'), new Promise(r => setTimeout(r, 1500))]); } catch (e) {}
       await h1.animate([{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }],
         { duration: 1200, easing: 'ease-out', fill: 'forwards' }).finished;
       await new Promise(r => setTimeout(r, 2000));
