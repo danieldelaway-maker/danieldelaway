@@ -7,15 +7,15 @@
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#1a0f07">
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-  <link rel="preload" href="/assets/jewish-study-table.jpg" as="image">
+  <link rel="preload" as="image" href="/assets/jewish-study-table.jpg" imagesrcset="/assets/jewish-study-table-1472.jpg 1472w, /assets/jewish-study-table.jpg 2944w" imagesizes="max(100vw, 178.64vh)">
   <style>
-    /* Image is 1456 x 816. The stage keeps that shape and always fills the screen:
+    /* Image is 2944 x 1648. The stage keeps that shape and always fills the screen:
        wide screens crop a little top and bottom, tall phones scroll sideways. */
-    :root { --r: 1.7843; }
+    :root { --r: 1.7864; }
     html, body { margin: 0; height: 100%; overflow: hidden; background: #1a0f07; }
     .scene { position: fixed; inset: 0; overflow: hidden; }
     .stage { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-      width: max(100vw, calc(100dvh * var(--r))); aspect-ratio: 1456 / 816; }
+      width: max(100vw, calc(100dvh * var(--r))); aspect-ratio: 2944 / 1648; }
     .stage img { display: block; width: 100%; height: 100%; user-select: none; -webkit-user-drag: none; }
     /* Phones held upright: full height, swipe sideways along the table */
     @media (orientation: portrait) {
@@ -36,8 +36,8 @@
   <a class="back" href="/learn/jewish-history/">← Back</a>
   <main class="scene">
     <div class="stage">
-      <img src="/assets/jewish-study-table.jpg" width="1456" height="816" alt="A scholar's table in Jerusalem covered with objects from Jewish history, with the Old City seen through an arched window">
-      <!-- e.g. <a class="spot" href="..." style="left:33%;top:47%;width:9%;height:22%" aria-label="Kings and kingdoms"></a> -->
+      <img src="/assets/jewish-study-table.jpg" srcset="/assets/jewish-study-table-1472.jpg 1472w, /assets/jewish-study-table.jpg 2944w" sizes="max(100vw, 178.64vh)" width="2944" height="1648" alt="A scholar's table in Jerusalem covered with objects from Jewish history, with the Old City seen through an arched window">
+      <!-- e.g. <a class="spot" href="..." style="left:47%;top:46%;width:10%;height:11%" aria-label="Kings and kingdoms"></a> -->
     </div>
   </main>
   <script>
