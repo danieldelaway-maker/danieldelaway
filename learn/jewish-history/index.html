@@ -84,16 +84,14 @@
     /* Centred on the screen, big and heavy so it reads over the busy picture */
     .stage { container-type: inline-size; }
     .intro { position: fixed; inset: 0; z-index: 8; display: grid; place-items: center; pointer-events: none; padding: 0 16px; }
-    .intro .box { position: relative; margin: 0 0 6vh; transform: rotate(-1.2deg); padding: .55em 1.05em .5em; font-size: clamp(30px, 4.2vw, 66px); }
-    /* Scrap of parchment behind the words, cut into pieces so it can crumble away with them */
-    .intro .sheet { position: absolute; inset: 0; opacity: 0; filter: drop-shadow(0 10px 18px rgba(30, 16, 4, .5)); }
-    .intro .bit { position: absolute; background-repeat: no-repeat; will-change: transform, opacity, filter; }
+    /* Plain black box behind the words; it fades out as the letters crumble */
+    .intro .box { position: relative; margin: 0 0 6vh; padding: .5em .9em .45em; font-size: clamp(20px, 2.3vw, 36px); background: #000; opacity: 0; }
     .intro h1 { position: relative; margin: 0; text-align: center; font: 400 1em/.98 "Bebas Neue", Impact, sans-serif; letter-spacing: .06em;
-      color: #1d3aa8; -webkit-text-stroke: .03em #1d3aa8; paint-order: stroke fill; opacity: 0; }
+      color: #4f78ff; -webkit-text-stroke: .03em #4f78ff; paint-order: stroke fill; opacity: 0; }
     .intro .w { display: inline-block; white-space: nowrap; }
     .intro .l { display: inline-block; will-change: transform, opacity, filter; }
     .dust { position: fixed; z-index: 8; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 50%; pointer-events: none;
-      background: #1d3aa8; }
+      background: #4f78ff; }
 
     /* White pop-up that follows the pointer */
     .tip { position: fixed; z-index: 10; left: 0; top: 0; width: max-content; max-width: min(270px, calc(100vw - 24px)); box-sizing: border-box;
@@ -120,7 +118,7 @@
       <img src="/assets/jewish-study-table.jpg?v=6" srcset="/assets/jewish-study-table-1920.jpg?v=6 1920w, /assets/jewish-study-table.jpg?v=6 3840w" sizes="max(100vw, 178.52vh)" width="3840" height="2151" alt="A scholar's study in Jerusalem filled with objects from Jewish history, with the Old City and the Temple Mount seen through an arched window">
     </div>
   </main>
-  <div class="intro" id="intro" aria-hidden="true"><div class="box"><div class="sheet"></div><h1>Welcome to your history.<br>Start learning.</h1></div></div>
+  <div class="intro" id="intro" aria-hidden="true"><div class="box"><h1>Welcome to your history.<br>Start learning.</h1></div></div>
   <img class="yad" id="yad" src="/assets/yad-cursor@2x.png?v=4" width="64" height="64" alt="" aria-hidden="true">
   <div class="tip" id="tip" role="tooltip"><h2></h2><p></p><span class="go"></span></div>
 
@@ -558,45 +556,14 @@
       h1.innerHTML = h1.innerHTML.split('<br>').map(line => line.split(' ').map(word =>
         '<span class="w">' + [...word].map(c => '<span class="l">' + c + '</span>').join('') + '</span>').join(' ')).join('<br>');
       try { await Promise.race([document.fonts.load('40px "Bebas Neue"'), new Promise(r => setTimeout(r, 1500))]); } catch (e) {}
-      // Build the parchment: a grid of pieces, each showing its part of one sheet; outer pieces get torn edges
-      const sheet = intro.querySelector('.sheet'), C = 12, R = 5, bits = [];
-      const tex = 'url("/assets/intro-parchment.jpg")';
-      const burn = 'radial-gradient(ellipse 70% 64% at 50% 50%, rgba(70, 35, 8, 0) 50%, rgba(110, 62, 18, .38) 76%, rgba(60, 28, 6, .8) 92%, rgba(30, 12, 2, .95) 100%)';
-      const jag = () => (Math.random() < .25 ? 14 + Math.random() * 22 : 1 + Math.random() * 12).toFixed(1);
-      for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) {
-        const b = document.createElement('i');
-        b.className = 'bit';
-        b.style.cssText = `left:${c / C * 100}%;top:${r / R * 100}%;width:calc(${100 / C}% + 1px);height:calc(${100 / R}% + 1px);background-image:${burn},${tex}`;
-        b.dataset.c = c; b.dataset.r = r;
-        // torn outer edges: zig-zag the sides that face outwards
-        const top = r === 0, bot = r === R - 1, lef = c === 0, rig = c === C - 1;
-        const N = 6, st = 100 / N, pts = [];
-        for (let k = 0; k <= N; k++) pts.push([k * st, top ? +jag() : 0]);
-        for (let k = 1; k <= N; k++) pts.push([rig ? 100 - jag() : 100, k * st]);
-        for (let k = N - 1; k >= 0; k--) pts.push([k * st, bot ? 100 - jag() : 100]);
-        for (let k = N - 1; k >= 1; k--) pts.push([lef ? +jag() : 0, k * st]);
-        const poly = q => `polygon(${q.map(([x, y]) => `${x.toFixed(1)}% ${y.toFixed(1)}%`).join(',')})`;
-        b.style.clipPath = b.dataset.whole = poly(pts);
-        // when it breaks off, the piece cracks into an uneven flake: every corner pulled in towards the middle by a random amount
-        b.dataset.flake = poly(pts.map(([x, y]) => { const t = .1 + Math.random() * .38; return [x + (50 - x) * t, y + (50 - y) * t]; }));
-        sheet.appendChild(b); bits.push(b);
-      }
-      // every piece shows the same full-size sheet, offset to its own spot, so the seams don't show
-      const fit = () => { const w = sheet.offsetWidth, h = sheet.offsetHeight;
-        bits.forEach(b => { b.style.backgroundSize = `${w}px ${h}px`; b.style.backgroundPosition = `${-b.dataset.c * w / C}px ${-b.dataset.r * h / R}px`; }); };
-      fit(); addEventListener('resize', fit);
-      sheet.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 900, easing: 'ease-out', fill: 'forwards' });
+      const box = intro.querySelector('.box');
+      box.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 900, easing: 'ease-out', fill: 'forwards' });
       await h1.animate([{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }],
         { duration: 1200, easing: 'ease-out', fill: 'forwards' }).finished;
       await new Promise(r => setTimeout(r, 2000));
       if (calm) { await h1.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 800, fill: 'forwards' }).finished; intro.remove(); return; }
       const rnd = (a, b) => a + Math.random() * (b - a);
-      // the parchment flakes apart, piece by piece, a moment after the letters start to go
-      const flakes = bits.map(b => b.animate([
-        { opacity: 1, transform: 'none', filter: 'blur(0px) brightness(1)', clipPath: b.dataset.whole },
-        { opacity: 1, transform: `translate(0, -2px) rotate(${rnd(-6, 6)}deg)`, filter: 'blur(0px) brightness(.85)', clipPath: b.dataset.flake, offset: .12 },
-        { opacity: 0, transform: `translate(${rnd(-50, 50)}px, ${rnd(-150, -40)}px) rotate(${rnd(-70, 70)}deg) scale(${rnd(.35, .75)})`, filter: 'blur(3px) brightness(.55)', clipPath: b.dataset.flake }],
-        { duration: rnd(1200, 1900), delay: rnd(250, 1300), easing: 'cubic-bezier(.35, .05, .65, 1)', fill: 'forwards' }).finished);
+      const fadeBox = box.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 1400, delay: 500, easing: 'ease-in-out', fill: 'forwards' }).finished;
       const runs = [...h1.querySelectorAll('.l')].map(l => {
         const delay = rnd(0, 900), r = l.getBoundingClientRect();
         // a few specks of "dust" shed by each letter as it goes
@@ -613,7 +580,7 @@
                           { opacity: 0, transform: `translate(${rnd(-40, 40)}px, ${rnd(-140, -60)}px) rotate(${rnd(-35, 35)}deg) scale(.6)`, filter: 'blur(6px)' }],
           { duration: rnd(1300, 1900), delay, easing: 'cubic-bezier(.35, .05, .65, 1)', fill: 'forwards' }).finished;
       });
-      await Promise.all(runs.concat(flakes));
+      await Promise.all(runs.concat(fadeBox));
       intro.remove();
     })();
 
