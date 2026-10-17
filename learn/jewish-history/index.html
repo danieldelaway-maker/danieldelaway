@@ -20,12 +20,14 @@
        wide screens crop a little top and bottom, tall phones scroll sideways. */
     :root { --r: 1.7852; }
     html, body { margin: 0; height: 100%; overflow: hidden; background: #1a0f07; }
-    /* Yad (Torah pointer) cursor on mouse devices; the click point is the fingertip.
-       Kept at 32px (sharp 64px copy for Retina): Chrome swaps bigger cursors for the arrow near the window's right and bottom edges. */
+    /* Yad (Torah pointer) cursor on mouse devices: the real cursor is hidden and a 64px image follows the mouse
+       (a CSS cursor that big gets swapped for the arrow by Chrome near the window's right and bottom edges).
+       The click point is the fingertip, at the image's top-left corner. */
+    .yad { position: fixed; left: 0; top: 0; z-index: 20; width: 64px; height: 64px; margin: -1px 0 0 -2px; pointer-events: none;
+      opacity: 0; transition: opacity .15s; will-change: transform; }
+    .yad.on { opacity: 1; }
     @media (hover: hover) and (pointer: fine) {
-      body, .spot, .back { cursor: url("/assets/yad-cursor.png?v=4") 1 1, pointer;
-        cursor: -webkit-image-set(url("/assets/yad-cursor.png?v=4") 1x, url("/assets/yad-cursor@2x.png?v=4") 2x) 1 1, pointer;
-        cursor: image-set(url("/assets/yad-cursor.png?v=4") 1x, url("/assets/yad-cursor@2x.png?v=4") 2x) 1 1, pointer; }
+      body.yadded, body.yadded * { cursor: none !important; }
     }
     .scene { position: fixed; inset: 0; overflow: hidden; }
     /* Wide screens: trim at most ~1% off the top (the welcome text sits there) and the rest off the bottom */
@@ -121,6 +123,7 @@
     </div>
   </main>
   <div class="intro" id="intro" aria-hidden="true"><div class="box"><div class="veil"></div><h1>Welcome to your history.<br>Start learning.</h1></div></div>
+  <img class="yad" id="yad" src="/assets/yad-cursor@2x.png?v=4" width="64" height="64" alt="" aria-hidden="true">
   <div class="tip" id="tip" role="tooltip"><h2></h2><p></p><span class="go"></span></div>
 
   <script>
@@ -582,6 +585,14 @@
       await Promise.all(runs);
       intro.remove();
     })();
+
+    // Yad follows the mouse (mouse devices only)
+    if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      const yad = document.getElementById('yad');
+      document.body.classList.add('yadded');
+      addEventListener('pointermove', e => { yad.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`; yad.classList.add('on'); }, { passive: true });
+      document.addEventListener('mouseleave', () => yad.classList.remove('on'));
+    } else document.getElementById('yad').remove();
 
     // On narrow screens the image is wider than the screen: start in the middle of the table
     const scene = document.querySelector('.scene');
