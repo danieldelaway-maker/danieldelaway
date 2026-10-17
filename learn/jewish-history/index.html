@@ -567,7 +567,7 @@
       const intro = document.getElementById('intro'), box = intro.querySelector('.box');
       try { await Promise.race([document.fonts.load('40px "Bebas Neue"'), new Promise(r => setTimeout(r, 1500))]); } catch (e) {}
       box.style.opacity = 1;
-      await new Promise(r => setTimeout(r, 3000));
+      await new Promise(r => setTimeout(r, 2000));
       const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
       await box.animate(calm
         ? [{ opacity: 1 }, { opacity: 0 }]
