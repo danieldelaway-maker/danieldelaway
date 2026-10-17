@@ -40,6 +40,34 @@
       mix-blend-mode: screen; transition: opacity .25s ease; }
     .spot:hover::before, .spot:focus-visible::before, .spot.on::before { opacity: 1; }
 
+    /* Candle flames: a soft halo and a flickering tongue laid over each painted flame */
+    .flame { position: absolute; pointer-events: none; }
+    .flame::before { content: ""; position: absolute; left: -110%; right: -110%; top: -40%; bottom: -55%; border-radius: 50%;
+      background: radial-gradient(closest-side, rgba(255, 200, 110, .38), rgba(255, 170, 70, .14) 55%, rgba(255, 150, 50, 0));
+      mix-blend-mode: screen; animation: halo var(--d2, 2.6s) ease-in-out infinite alternate; }
+    .flame::after { content: ""; position: absolute; inset: 0; border-radius: 50% 50% 46% 46% / 62% 62% 38% 38%;
+      background: radial-gradient(ellipse 50% 60% at 50% 72%, rgba(255, 252, 230, .95), rgba(255, 214, 120, .7) 45%, rgba(255, 150, 40, 0) 100%);
+      mix-blend-mode: screen; transform-origin: 50% 100%; animation: flicker var(--d, 1.3s) ease-in-out infinite; animation-delay: var(--delay, 0s); }
+    @keyframes flicker {
+      0%   { transform: scale(1, 1) skewX(0deg); opacity: .8; }
+      15%  { transform: scale(.88, 1.16) skewX(5deg); opacity: 1; }
+      32%  { transform: scale(1.06, .9) skewX(-3deg); opacity: .65; }
+      50%  { transform: scale(.9, 1.22) skewX(-6deg); opacity: .95; }
+      68%  { transform: scale(1.04, .94) skewX(3deg); opacity: .7; }
+      84%  { transform: scale(.94, 1.1) skewX(-2deg); opacity: .9; }
+      100% { transform: scale(1, 1) skewX(0deg); opacity: .8; }
+    }
+    @keyframes halo { from { opacity: .5; transform: scale(.9); } to { opacity: 1; transform: scale(1.1); } }
+
+    /* Welcome text: fades in, holds, then the letters crumble and drift away */
+    .intro { position: fixed; inset: 0; z-index: 8; display: grid; place-items: center; pointer-events: none; padding: 0 16px; }
+    .intro h1 { margin: 0 0 12vh; text-align: center; font: 400 clamp(30px, 4.8vw, 72px)/1.15 "Kanisah", Georgia, serif; letter-spacing: .03em;
+      color: #1f3a9e; text-shadow: 0 0 22px rgba(255, 244, 214, .95), 0 0 6px rgba(255, 244, 214, .9), 0 2px 1px rgba(255, 248, 228, .7); opacity: 0; }
+    .intro .w { display: inline-block; white-space: nowrap; }
+    .intro .l { display: inline-block; will-change: transform, opacity, filter; }
+    .dust { position: fixed; z-index: 8; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 50%; pointer-events: none;
+      background: #2c4fc4; box-shadow: 0 0 6px rgba(255, 244, 214, .9); }
+
     /* White pop-up that follows the pointer */
     .tip { position: fixed; z-index: 10; left: 0; top: 0; width: max-content; max-width: min(270px, calc(100vw - 24px)); box-sizing: border-box;
       padding: 12px 14px 11px; border-radius: 12px; background: #fff; color: #2a1d10; pointer-events: none;
@@ -55,7 +83,7 @@
     .back { position: fixed; top: 14px; left: 14px; z-index: 5; padding: 7px 12px; border-radius: 999px; font: 600 13px/1 system-ui, sans-serif;
       color: #f5e6c4; text-decoration: none; background: rgba(26, 15, 7, .55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
     .back:hover { background: rgba(26, 15, 7, .8); }
-    @media (prefers-reduced-motion: reduce) { .spot::before, .tip { transition: none; } }
+    @media (prefers-reduced-motion: reduce) { .spot::before, .tip { transition: none; } .flame::before, .flame::after { animation: none; } }
   </style>
 </head>
 <body>
@@ -65,6 +93,7 @@
       <img src="/assets/jewish-study-table.jpg?v=6" srcset="/assets/jewish-study-table-1920.jpg?v=6 1920w, /assets/jewish-study-table.jpg?v=6 3840w" sizes="max(100vw, 178.52vh)" width="3840" height="2151" alt="A scholar's study in Jerusalem filled with objects from Jewish history, with the Old City and the Temple Mount seen through an arched window">
     </div>
   </main>
+  <div class="intro" id="intro" aria-hidden="true"><h1>Welcome to your history.<br>Start learning.</h1></div>
   <div class="tip" id="tip" role="tooltip"><h2></h2><p></p><span class="go"></span></div>
 
   <script>
@@ -314,17 +343,6 @@
       ]
       },
       {
-      "slug": "timeline",
-      "title": "Timeline",
-      "text": "A long parchment scroll: four thousand years of Jewish history, from Abraham to today.",
-      "box": [
-      84.0,
-      69.46,
-      13.75,
-      7.14
-      ]
-      },
-      {
       "slug": "prophets",
       "title": "Prophets",
       "text": "Elijah's cup, set out at every Passover Seder. Isaiah, Jeremiah, Elijah and the other prophets.",
@@ -334,6 +352,18 @@
       5.5,
       17.14
       ]
+      },
+      {
+      "slug": "timeline",
+      "title": "Timeline",
+      "text": "A long parchment scroll: four thousand years of Jewish history, from Abraham to today.",
+      "box": [
+      82.75,
+      73.48,
+      15.0,
+      5.71
+      ],
+      "rot": 23.6
       },
       {
       "slug": "languages",
@@ -411,17 +441,6 @@
       4.6,
       9.11
       ]
-      },
-      {
-      "slug": "timeline",
-      "title": "Timeline",
-      "text": "A long parchment scroll: four thousand years of Jewish history, from Abraham to today.",
-      "box": [
-      92.25,
-      76.61,
-      5.5,
-      7.14
-      ]
       }
       ];
 
@@ -435,7 +454,7 @@
       a.href = '/learn/jewish-history/' + s.slug + '/';
       a.setAttribute('aria-label', s.title + ': ' + s.text);
       const [l, t, w, h] = s.box;
-      a.style.cssText = `left:${l}%;top:${t}%;width:${w}%;height:${h}%`;
+      a.style.cssText = `left:${l}%;top:${t}%;width:${w}%;height:${h}%` + (s.rot ? `;transform:rotate(${s.rot}deg)` : '');
       if (!touch) {
         a.addEventListener('mouseenter', e => show(a, s, e.clientX, e.clientY));
         a.addEventListener('mousemove', e => place(e.clientX, e.clientY));
@@ -475,6 +494,47 @@
     // Tapping anywhere else closes the pop-up
     document.addEventListener('click', e => { if (touch && !e.target.closest('.spot')) hide(); });
     document.querySelector('.scene').addEventListener('scroll', () => { if (touch) hide(); }, { passive: true });
+
+    // Flames: [left, top, width, height] in % of the image, each with its own rhythm so they don't flicker in step
+    const FLAMES = [[20.75, 37.41, 1.01, 3.75], [75.39, 40.71, 0.72, 2.68], [75.12, 45.09, 0.77, 2.86], [82.85, 41.96, 0.6, 2.23], [86.12, 62.05, 0.77, 2.86], [76.12, 70.18, 0.96, 3.57]];
+    FLAMES.forEach(([l, t, w, h], i) => {
+      const f = document.createElement('div');
+      f.className = 'flame';
+      f.style.cssText = `left:${l}%;top:${t}%;width:${w}%;height:${h}%;--d:${(1.1 + Math.random() * .7).toFixed(2)}s;--d2:${(2.2 + Math.random()).toFixed(2)}s;--delay:-${(Math.random() * 2).toFixed(2)}s`;
+      stage.insertBefore(f, stage.querySelector('.spot'));
+    });
+
+    // Welcome text: fade in (1.2s), hold (2s), then each letter breaks up and floats away
+    (async () => {
+      const intro = document.getElementById('intro'), h1 = intro.querySelector('h1');
+      const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      h1.innerHTML = h1.innerHTML.split('<br>').map(line => line.split(' ').map(word =>
+        '<span class="w">' + [...word].map(c => '<span class="l">' + c + '</span>').join('') + '</span>').join(' ')).join('<br>');
+      try { await Promise.race([document.fonts.load('40px Kanisah'), new Promise(r => setTimeout(r, 1500))]); } catch (e) {}
+      await h1.animate([{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }],
+        { duration: 1200, easing: 'ease-out', fill: 'forwards' }).finished;
+      await new Promise(r => setTimeout(r, 2000));
+      if (calm) { await h1.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 800, fill: 'forwards' }).finished; intro.remove(); return; }
+      const rnd = (a, b) => a + Math.random() * (b - a);
+      const runs = [...h1.querySelectorAll('.l')].map(l => {
+        const delay = rnd(0, 900), r = l.getBoundingClientRect();
+        // a few specks of "dust" shed by each letter as it goes
+        for (let k = 0; k < 3; k++) {
+          const d = document.createElement('i');
+          d.className = 'dust';
+          d.style.left = rnd(r.left, r.right) + 'px'; d.style.top = rnd(r.top, r.bottom) + 'px';
+          document.body.appendChild(d);
+          d.animate([{ opacity: 0, transform: 'none' }, { opacity: .9, offset: .15 },
+                     { opacity: 0, transform: `translate(${rnd(-70, 70)}px, ${rnd(-170, -50)}px) scale(${rnd(.3, .8)})` }],
+            { duration: rnd(1300, 2200), delay: delay + rnd(0, 300), easing: 'ease-out', fill: 'forwards' }).finished.then(() => d.remove());
+        }
+        return l.animate([{ opacity: 1, transform: 'none', filter: 'blur(0px)' },
+                          { opacity: 0, transform: `translate(${rnd(-45, 45)}px, ${rnd(-140, -60)}px) rotate(${rnd(-35, 35)}deg) scale(.6)`, filter: 'blur(7px)' }],
+          { duration: rnd(1300, 1900), delay, easing: 'cubic-bezier(.35, .05, .65, 1)', fill: 'forwards' }).finished;
+      });
+      await Promise.all(runs);
+      intro.remove();
+    })();
 
     // On narrow screens the image is wider than the screen: start in the middle of the table
     const scene = document.querySelector('.scene');
