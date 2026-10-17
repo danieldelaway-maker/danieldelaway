@@ -74,8 +74,10 @@
     }
 
     /* Welcome text: fades in, holds, then the letters crumble and drift away */
-    .intro { position: fixed; inset: 0; z-index: 8; display: grid; place-items: center; pointer-events: none; padding: 0 16px; }
-    .intro h1 { margin: 0 0 14vh; text-align: center; font: 400 clamp(51px, 4.65vw, 72px)/1.1 "Bebas Neue", Impact, sans-serif; letter-spacing: .06em;
+    /* Sits in the sky of the arched window, so it moves and scales with the picture (sizes in % of the image width) */
+    .stage { container-type: inline-size; }
+    .intro { position: absolute; left: 36%; top: 14.5%; width: 28%; height: 12%; z-index: 8; display: grid; place-items: center; pointer-events: none; }
+    .intro h1 { margin: 0; text-align: center; white-space: nowrap; font: 400 2.05cqw/1.08 "Bebas Neue", Impact, sans-serif; letter-spacing: .06em;
       color: #1d3aa8; -webkit-text-stroke: .03em #1d3aa8; paint-order: stroke fill; opacity: 0; }
     .intro .w { display: inline-block; white-space: nowrap; }
     .intro .l { display: inline-block; will-change: transform, opacity, filter; }
@@ -105,9 +107,9 @@
   <main class="scene">
     <div class="stage" id="stage">
       <img src="/assets/jewish-study-table.jpg?v=6" srcset="/assets/jewish-study-table-1920.jpg?v=6 1920w, /assets/jewish-study-table.jpg?v=6 3840w" sizes="max(100vw, 178.52vh)" width="3840" height="2151" alt="A scholar's study in Jerusalem filled with objects from Jewish history, with the Old City and the Temple Mount seen through an arched window">
+    <div class="intro" id="intro" aria-hidden="true"><h1>Welcome to your history.<br>Start learning.</h1></div>
     </div>
   </main>
-  <div class="intro" id="intro" aria-hidden="true"><h1>Welcome to your history.<br>Start learning.</h1></div>
   <div class="tip" id="tip" role="tooltip"><h2></h2><p></p><span class="go"></span></div>
 
   <script>
