@@ -82,7 +82,13 @@
     /* Centred on the screen, big and heavy so it reads over the busy picture */
     .stage { container-type: inline-size; }
     .intro { position: fixed; inset: 0; z-index: 8; display: grid; place-items: center; pointer-events: none; padding: 0 16px; }
-    .intro h1 { margin: 0 0 6vh; text-align: center; font: 400 clamp(52px, 8.5vw, 140px)/.98 "Bebas Neue", Impact, sans-serif; letter-spacing: .06em;
+    .intro .box { position: relative; margin: 0 0 6vh; }
+    /* Soft grey haze behind the words: blurs the busy picture, fading out at the edges */
+    .intro .veil { position: absolute; inset: -9vh -15vw; border-radius: 50%; opacity: 0;
+      background: radial-gradient(closest-side, rgba(214, 211, 206, .82), rgba(214, 211, 206, .62) 62%, rgba(214, 211, 206, 0));
+      -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+      -webkit-mask: radial-gradient(closest-side, #000 62%, transparent); mask: radial-gradient(closest-side, #000 62%, transparent); }
+    .intro h1 { position: relative; margin: 0; text-align: center; font: 400 clamp(52px, 8.5vw, 140px)/.98 "Bebas Neue", Impact, sans-serif; letter-spacing: .06em;
       color: #1d3aa8; -webkit-text-stroke: .04em #1d3aa8; paint-order: stroke fill; opacity: 0; }
     .intro .w { display: inline-block; white-space: nowrap; }
     .intro .l { display: inline-block; will-change: transform, opacity, filter; }
@@ -114,7 +120,7 @@
       <img src="/assets/jewish-study-table.jpg?v=6" srcset="/assets/jewish-study-table-1920.jpg?v=6 1920w, /assets/jewish-study-table.jpg?v=6 3840w" sizes="max(100vw, 178.52vh)" width="3840" height="2151" alt="A scholar's study in Jerusalem filled with objects from Jewish history, with the Old City and the Temple Mount seen through an arched window">
     </div>
   </main>
-  <div class="intro" id="intro" aria-hidden="true"><h1>Welcome to your history.<br>Start learning.</h1></div>
+  <div class="intro" id="intro" aria-hidden="true"><div class="box"><div class="veil"></div><h1>Welcome to your history.<br>Start learning.</h1></div></div>
   <div class="tip" id="tip" role="tooltip"><h2></h2><p></p><span class="go"></span></div>
 
   <script>
@@ -549,11 +555,14 @@
       h1.innerHTML = h1.innerHTML.split('<br>').map(line => line.split(' ').map(word =>
         '<span class="w">' + [...word].map(c => '<span class="l">' + c + '</span>').join('') + '</span>').join(' ')).join('<br>');
       try { await Promise.race([document.fonts.load('40px "Bebas Neue"'), new Promise(r => setTimeout(r, 1500))]); } catch (e) {}
+      const veil = intro.querySelector('.veil');
+      veil.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 1000, easing: 'ease-out', fill: 'forwards' });
       await h1.animate([{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }],
         { duration: 1200, easing: 'ease-out', fill: 'forwards' }).finished;
       await new Promise(r => setTimeout(r, 2000));
       if (calm) { await h1.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 800, fill: 'forwards' }).finished; intro.remove(); return; }
       const rnd = (a, b) => a + Math.random() * (b - a);
+      veil.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 1800, delay: 400, easing: 'ease-in-out', fill: 'forwards' });
       const runs = [...h1.querySelectorAll('.l')].map(l => {
         const delay = rnd(0, 900), r = l.getBoundingClientRect();
         // a few specks of "dust" shed by each letter as it goes
