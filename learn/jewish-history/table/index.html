@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Jewish History · The Table</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#1a0f07">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="/assets/jewish-study-table.jpg" as="image">
+  <style>
+    /* Image is 1456 x 816. The stage keeps that shape and always fills the screen:
+       wide screens crop a little top and bottom, tall phones scroll sideways. */
+    :root { --r: 1.7843; }
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #1a0f07; }
+    .scene { position: fixed; inset: 0; overflow: hidden; }
+    .stage { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      width: max(100vw, calc(100dvh * var(--r))); aspect-ratio: 1456 / 816; }
+    .stage img { display: block; width: 100%; height: 100%; user-select: none; -webkit-user-drag: none; }
+    /* Phones held upright: full height, swipe sideways along the table */
+    @media (orientation: portrait) {
+      .scene { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+      .scene::-webkit-scrollbar { display: none; }
+      .stage { left: 0; transform: translateY(-50%); }
+    }
+
+    /* Click zones go here, positioned in % of the image so they stay on their object at any size */
+    .spot { position: absolute; display: block; border-radius: 12px; }
+
+    .back { position: fixed; top: 14px; left: 14px; z-index: 5; padding: 7px 12px; border-radius: 999px; font: 600 13px/1 system-ui, sans-serif;
+      color: #f5e6c4; text-decoration: none; background: rgba(26, 15, 7, .55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+    .back:hover { background: rgba(26, 15, 7, .8); }
+  </style>
+</head>
+<body>
+  <a class="back" href="/learn/jewish-history/">← Back</a>
+  <main class="scene">
+    <div class="stage">
+      <img src="/assets/jewish-study-table.jpg" width="1456" height="816" alt="A scholar's table in Jerusalem covered with objects from Jewish history, with the Old City seen through an arched window">
+      <!-- e.g. <a class="spot" href="..." style="left:33%;top:47%;width:9%;height:22%" aria-label="Kings and kingdoms"></a> -->
+    </div>
+  </main>
+  <script>
+    // On narrow screens the image is wider than the screen: start in the middle of the table
+    const scene = document.querySelector('.scene');
+    const centre = () => { scene.scrollLeft = (scene.scrollWidth - scene.clientWidth) / 2; };
+    centre(); addEventListener('orientationchange', () => setTimeout(centre, 300));
+  </script>
+</body>
+</html>
