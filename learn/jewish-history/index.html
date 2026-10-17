@@ -79,15 +79,14 @@
     }
 
     /* Welcome text: fades in, holds, then the letters crumble and drift away */
-    /* Curves along the stone just above the arched window; sizes in % of the image width so it moves and scales with the picture */
+    /* Centred on the screen, big and heavy so it reads over the busy picture */
     .stage { container-type: inline-size; }
-    .intro { position: absolute; inset: 0; z-index: 8; pointer-events: none; }
-    .intro h1 { position: absolute; inset: 0; margin: 0; white-space: nowrap; font: 400 2cqw/1 "Bebas Neue", Impact, sans-serif;
-      color: #1d3aa8; -webkit-text-stroke: .03em #1d3aa8; paint-order: stroke fill; opacity: 0; }
-    .intro .p { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
-    .intro .l { display: inline-block; transform: translate(-50%, -50%); will-change: transform, opacity, filter; }
-    @media (orientation: portrait) { .intro h1 { font-size: 1.3cqw; } }   /* phones only show the middle of the arch */
-    .dust { position: fixed; z-index: 8; width: 2px; height: 2px; margin: -1px 0 0 -1px; border-radius: 50%; pointer-events: none;
+    .intro { position: fixed; inset: 0; z-index: 8; display: grid; place-items: center; pointer-events: none; padding: 0 16px; }
+    .intro h1 { margin: 0 0 6vh; text-align: center; font: 400 clamp(52px, 8.5vw, 140px)/.98 "Bebas Neue", Impact, sans-serif; letter-spacing: .06em;
+      color: #1d3aa8; -webkit-text-stroke: .04em #1d3aa8; paint-order: stroke fill; opacity: 0; }
+    .intro .w { display: inline-block; white-space: nowrap; }
+    .intro .l { display: inline-block; will-change: transform, opacity, filter; }
+    .dust { position: fixed; z-index: 8; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 50%; pointer-events: none;
       background: #1d3aa8; }
 
     /* White pop-up that follows the pointer */
@@ -113,9 +112,9 @@
   <main class="scene">
     <div class="stage" id="stage">
       <img src="/assets/jewish-study-table.jpg?v=6" srcset="/assets/jewish-study-table-1920.jpg?v=6 1920w, /assets/jewish-study-table.jpg?v=6 3840w" sizes="max(100vw, 178.52vh)" width="3840" height="2151" alt="A scholar's study in Jerusalem filled with objects from Jewish history, with the Old City and the Temple Mount seen through an arched window">
-    <div class="intro" id="intro" aria-hidden="true"><h1>Welcome to your history. Start learning.</h1></div>
     </div>
   </main>
+  <div class="intro" id="intro" aria-hidden="true"><h1>Welcome to your history.<br>Start learning.</h1></div>
   <div class="tip" id="tip" role="tooltip"><h2></h2><p></p><span class="go"></span></div>
 
   <script>
@@ -547,32 +546,9 @@
     (async () => {
       const intro = document.getElementById('intro'), h1 = intro.querySelector('h1');
       const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const text = h1.textContent;
-      h1.innerHTML = [...text].map(c => '<span class="p"><span class="l">' + (c === ' ' ? '&nbsp;' : c) + '</span></span>').join('');
+      h1.innerHTML = h1.innerHTML.split('<br>').map(line => line.split(' ').map(word =>
+        '<span class="w">' + [...word].map(c => '<span class="l">' + c + '</span>').join('') + '</span>').join(' ')).join('<br>');
       try { await Promise.race([document.fonts.load('40px "Bebas Neue"'), new Promise(r => setTimeout(r, 1500))]); } catch (e) {}
-      // Lay the letters along an ellipse that follows the stone just above the window frame
-      // (measured on the 2000 x 1120 view of the image: centre 980,400; radii 344 x 365)
-      const W = 2000, H = 1120, cx = 980, cy = 400, rx = 344, ry = 365, track = .06;
-      const pt = a => [cx + rx * Math.cos(a), cy - ry * Math.sin(a)];
-      const steps = 2000, arc = [0];             // arc length from the left end (a = PI) to the right (a = 0)
-      for (let i = 1; i <= steps; i++) {
-        const [x1, y1] = pt(Math.PI * (1 - (i - 1) / steps)), [x2, y2] = pt(Math.PI * (1 - i / steps));
-        arc.push(arc[i - 1] + Math.hypot(x2 - x1, y2 - y1));
-      }
-      const at = d => { let i = arc.findIndex(v => v >= d); if (i < 1) i = 1; const a = Math.PI * (1 - i / steps); return a; };
-      const scale = W / stage.offsetWidth;        // screen px -> image px
-      const ps = [...h1.querySelectorAll('.p')];
-      const fs = parseFloat(getComputedStyle(h1).fontSize);
-      const widths = ps.map(p => (p.firstChild.getBoundingClientRect().width + fs * track) * scale);
-      const total = widths.reduce((a, b) => a + b, 0);
-      let d = arc[steps] / 2 - total / 2;
-      ps.forEach((p, i) => {
-        const a = at(d + widths[i] / 2), [x, y] = pt(a);
-        const deg = Math.atan2(ry * Math.cos(a), rx * Math.sin(a)) * 180 / Math.PI;   // tangent of the curve
-        p.style.left = x / W * 100 + '%'; p.style.top = y / H * 100 + '%';
-        p.style.transform = `rotate(${deg}deg)`;
-        d += widths[i];
-      });
       await h1.animate([{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }],
         { duration: 1200, easing: 'ease-out', fill: 'forwards' }).finished;
       await new Promise(r => setTimeout(r, 2000));
@@ -587,11 +563,11 @@
           d.style.left = rnd(r.left, r.right) + 'px'; d.style.top = rnd(r.top, r.bottom) + 'px';
           document.body.appendChild(d);
           d.animate([{ opacity: 0, transform: 'none' }, { opacity: .9, offset: .15 },
-                     { opacity: 0, transform: `translate(${rnd(-30, 30)}px, ${rnd(-80, -25)}px) scale(${rnd(.4, .9)})` }],
+                     { opacity: 0, transform: `translate(${rnd(-70, 70)}px, ${rnd(-170, -50)}px) scale(${rnd(.4, .9)})` }],
             { duration: rnd(1300, 2200), delay: delay + rnd(0, 300), easing: 'ease-out', fill: 'forwards' }).finished.then(() => d.remove());
         }
         return l.animate([{ opacity: 1, transform: 'none', filter: 'blur(0px)' },
-                          { opacity: 0, transform: `translate(${rnd(-18, 18)}px, ${rnd(-60, -25)}px) rotate(${rnd(-35, 35)}deg) scale(.6)`, filter: 'blur(3px)' }],
+                          { opacity: 0, transform: `translate(${rnd(-40, 40)}px, ${rnd(-140, -60)}px) rotate(${rnd(-35, 35)}deg) scale(.6)`, filter: 'blur(6px)' }],
           { duration: rnd(1300, 1900), delay, easing: 'cubic-bezier(.35, .05, .65, 1)', fill: 'forwards' }).finished;
       });
       await Promise.all(runs);
