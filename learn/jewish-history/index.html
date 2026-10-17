@@ -2,74 +2,480 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Jewish History</title>
   <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#1a0f07">
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&display=swap">
+  <link rel="preload" as="image" href="/assets/jewish-study-table.jpg?v=6" imagesrcset="/assets/jewish-study-table-1920.jpg?v=6 1920w, /assets/jewish-study-table.jpg?v=6 3840w" imagesizes="max(100vw, 178.52vh)">
   <link rel="preload" href="/assets/fonts/kanisah.ttf" as="font" type="font/ttf" crossorigin>
   <style>
     /* Kanisah by Gunarta (freeware, fontspace.com/kanisah-font-f22290): Hebrew-style Latin letters */
     @font-face { font-family: "Kanisah"; src: url("/assets/fonts/kanisah.ttf") format("truetype"); font-display: swap; }
-    /* Soft parchment-coloured stone background */
-    body { margin: 0; padding: 32px 16px 64px; font-family: "Frank Ruhl Libre", Georgia, serif; color: #3b2a14; min-height: 100vh; box-sizing: border-box;
-      background: #efe2c4; }
-    /* Fixed layer so the parchment stays put while scrolling, phones included */
-    body::before { content: ""; position: fixed; inset: 0; z-index: -1; background: url("/assets/parchment.jpg") center / cover no-repeat; }
-    a { color: inherit; }
-    body > a, h1 { text-shadow: 0 0 6px rgba(250, 238, 205, .95), 0 0 2px rgba(250, 238, 205, .95); }
-    body > a { font-weight: 700; }
-    h1 { font-family: "Kanisah", "Frank Ruhl Libre", serif; letter-spacing: .02em; font-weight: 400; font-size: clamp(34px, 6vw, 56px); margin: 18px 0 0; color: #3b2a14; }
 
-    /* Papyrus cards: woven fibres, warm cream, darkened edges */
-    .cards { list-style: none; margin: 28px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 18px; }
-    .cards li { position: relative; height: 230px; display: flex; align-items: flex-end; padding: 16px 16px 18px; box-sizing: border-box;
-      font-size: 19px; font-weight: 700; line-height: 1.15; color: #3b2a14; border-radius: 3px;
-      background-color: #f3e3b8;
-      background-image:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='h'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.003 .09' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .32 0 0 0 0 .12 0 0 0 .6 -.18'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23h)'/%3E%3C/svg%3E"),
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='v'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.09 .003' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .32 0 0 0 0 .12 0 0 0 .3 -.08'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23v)'/%3E%3C/svg%3E"),
-        linear-gradient(160deg, #faefcf 0%, #efdcab 100%);
-      box-shadow: inset 0 0 28px rgba(122, 82, 26, .35), 0 6px 14px -6px rgba(70, 45, 10, .45); }
+    /* Image is 3840 x 2151. The stage keeps that shape and always fills the screen:
+       wide screens crop a little top and bottom, tall phones scroll sideways. */
+    :root { --r: 1.7852; }
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #1a0f07; }
+    .scene { position: fixed; inset: 0; overflow: hidden; }
+    .stage { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      width: max(100vw, calc(100dvh * var(--r))); aspect-ratio: 3840 / 2151; }
+    .stage img { display: block; width: 100%; height: 100%; user-select: none; -webkit-user-drag: none; }
+    /* Phones held upright: full height, swipe sideways along the table */
+    @media (orientation: portrait) {
+      .scene { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+      .scene::-webkit-scrollbar { display: none; }
+      .stage { left: 0; transform: translateY(-50%); }
+    }
+
+    /* Click zones: positioned in % of the image so they stay on their object at any size */
+    .spot { position: absolute; display: block; border-radius: 45%; outline: none; -webkit-tap-highlight-color: transparent; }
+    .spot::before { content: ""; position: absolute; inset: -8%; border-radius: 50%; pointer-events: none; opacity: 0;
+      background: radial-gradient(closest-side, rgba(255, 240, 200, .5), rgba(255, 214, 150, .3) 60%, rgba(255, 200, 120, 0) 100%);
+      filter: blur(4px);
+      mix-blend-mode: screen; transition: opacity .25s ease; }
+    .spot:hover::before, .spot:focus-visible::before, .spot.on::before { opacity: 1; }
+
+    /* White pop-up that follows the pointer */
+    .tip { position: fixed; z-index: 10; left: 0; top: 0; width: max-content; max-width: min(270px, calc(100vw - 24px)); box-sizing: border-box;
+      padding: 12px 14px 11px; border-radius: 12px; background: #fff; color: #2a1d10; pointer-events: none;
+      box-shadow: 0 10px 30px -8px rgba(0, 0, 0, .55); font: 400 13.5px/1.4 system-ui, -apple-system, sans-serif;
+      opacity: 0; transform: translateY(4px); transition: opacity .15s ease, transform .15s ease; }
+    .tip.show { opacity: 1; transform: none; }
+    .tip h2 { margin: 0 0 4px; font: 400 21px/1.1 "Kanisah", Georgia, serif; letter-spacing: .02em; color: #3b2a14; }
+    .tip p { margin: 0; }
+    .tip .go { display: block; margin-top: 8px; padding-top: 7px; border-top: 1px solid #eadfcb; font-size: 12px; font-weight: 600; color: #8a6420; }
+    .tip .tap { display: none; font-weight: 400; color: #9a8a70; }
+    @media (hover: none) { .tip .tap { display: inline; } }
+
+    .back { position: fixed; top: 14px; left: 14px; z-index: 5; padding: 7px 12px; border-radius: 999px; font: 600 13px/1 system-ui, sans-serif;
+      color: #f5e6c4; text-decoration: none; background: rgba(26, 15, 7, .55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+    .back:hover { background: rgba(26, 15, 7, .8); }
+    @media (prefers-reduced-motion: reduce) { .spot::before, .tip { transition: none; } }
   </style>
 </head>
 <body>
-  <a href="/learn/">← Back</a>
-  <h1>Jewish History</h1>
+  <a class="back" href="/learn/">← Back</a>
+  <main class="scene">
+    <div class="stage" id="stage">
+      <img src="/assets/jewish-study-table.jpg?v=6" srcset="/assets/jewish-study-table-1920.jpg?v=6 1920w, /assets/jewish-study-table.jpg?v=6 3840w" sizes="max(100vw, 178.52vh)" width="3840" height="2151" alt="A scholar's study in Jerusalem filled with objects from Jewish history, with the Old City and the Temple Mount seen through an arched window">
+    </div>
+  </main>
+  <div class="tip" id="tip" role="tooltip"><h2></h2><p></p><span class="go"></span></div>
 
-  <ul class="cards">
-    <li>Timeline</li>
-    <li>Key figures</li>
-    <li>Kings and kingdoms</li>
-    <li>Prophets</li>
-    <li>Rabbis and sages</li>
-    <li>Big ideas</li>
-    <li>Books and writings</li>
-    <li>Laws and customs</li>
-    <li>Holidays</li>
-    <li>The Jewish calendar</li>
-    <li>Rituals and life events</li>
-    <li>Mysticism and symbols</li>
-    <li>Movements</li>
-    <li>Languages</li>
-    <li>Food</li>
-    <li>Clothing and dress</li>
-    <li>Objects and items</li>
-    <li>Artefacts and finds</li>
-    <li>The Temples</li>
-    <li>Places</li>
-    <li>Great Jewish cities</li>
-    <li>Synagogues</li>
-    <li>Communities around the world</li>
-    <li>Revolts and battles</li>
-    <li>Expulsions</li>
-    <li>Massacres and exterminations</li>
-    <li>The Holocaust</li>
-    <li>Contributions</li>
-    <li>Humour and culture</li>
-    <li>Israel</li>
-  </ul>
+  <script>
+    // Each object: topic page, title, pop-up text, and its box as [left, top, width, height] in % of the image.
+    // Listed biggest first so smaller objects sit on top where boxes overlap.
+    const SPOTS = [
+      {
+      "slug": "books-and-writings",
+      "title": "Books and writings",
+      "text": "Torah scrolls. The Torah, the Talmud and the books and writers that followed.",
+      "box": [
+      6.75,
+      62.5,
+      26.85,
+      22.77
+      ]
+      },
+      {
+      "slug": "clothing-and-dress",
+      "title": "Clothing and dress",
+      "text": "A prayer shawl and kippah. What is worn, and why.",
+      "box": [
+      57.75,
+      72.14,
+      20.65,
+      25.0
+      ]
+      },
+      {
+      "slug": "holidays",
+      "title": "Holidays",
+      "text": "A ram's horn, blown on Rosh Hashanah. Passover, Yom Kippur, Hanukkah, Purim and more.",
+      "box": [
+      37.25,
+      69.64,
+      23.35,
+      17.68
+      ]
+      },
+      {
+      "slug": "kings-and-kingdoms",
+      "title": "Kings and kingdoms",
+      "text": "A royal crown. Saul, David, Solomon and the kingdoms of Israel and Judah.",
+      "box": [
+      2.6,
+      48.66,
+      14.65,
+      21.43
+      ]
+      },
+      {
+      "slug": "revolts-and-battles",
+      "title": "Revolts and battles",
+      "text": "A sling and stones, like David's. The Maccabees, Masada, Bar Kokhba and other revolts.",
+      "box": [
+      47.5,
+      78.75,
+      15.9,
+      18.39
+      ]
+      },
+      {
+      "slug": "contributions",
+      "title": "Contributions",
+      "text": "A microscope. Jewish thinkers, scientists, writers and artists who shaped the world.",
+      "box": [
+      86.4,
+      33.93,
+      8.5,
+      27.86
+      ]
+      },
+      {
+      "slug": "artefacts-and-finds",
+      "title": "Artefacts and finds",
+      "text": "A clay jar of scrolls, like the Dead Sea Scrolls. What archaeology has uncovered.",
+      "box": [
+      4.9,
+      28.75,
+      10.0,
+      21.25
+      ]
+      },
+      {
+      "slug": "big-ideas",
+      "title": "Big ideas",
+      "text": "A glowing lamp, for the ideas that lit up the world: one God, the covenant, the Sabbath.",
+      "box": [
+      71.6,
+      32.32,
+      8.0,
+      25.89
+      ]
+      },
+      {
+      "slug": "movements",
+      "title": "Movements",
+      "text": "A bundle of old pamphlets. Hasidism, the Enlightenment, Reform, Orthodox and more.",
+      "box": [
+      76.5,
+      75.71,
+      15.9,
+      12.86
+      ]
+      },
+      {
+      "slug": "massacres-and-exterminations",
+      "title": "Massacres and exterminations",
+      "text": "A scorched page. The Crusade massacres, pogroms and other attacks.",
+      "box": [
+      78.0,
+      88.21,
+      18.4,
+      11.07
+      ]
+      },
+      {
+      "slug": "the-jewish-calendar",
+      "title": "The Jewish calendar",
+      "text": "A moon-phase disc. The lunar Hebrew calendar and how the holidays are set.",
+      "box": [
+      72.4,
+      7.59,
+      10.0,
+      19.38
+      ]
+      },
+      {
+      "slug": "key-figures",
+      "title": "Key figures",
+      "text": "A shepherd's staff, like the one Moses carried. The people who shaped the story.",
+      "box": [
+      2.5,
+      7.14,
+      4.9,
+      37.95
+      ]
+      },
+      {
+      "slug": "rabbis-and-sages",
+      "title": "Rabbis and sages",
+      "text": "Spectacles on an open book. Hillel, Rabbi Akiva, Rashi, Maimonides and the sages.",
+      "box": [
+      64.25,
+      61.43,
+      14.75,
+      11.07
+      ]
+      },
+      {
+      "slug": "the-temples",
+      "title": "The Temples",
+      "text": "A model of the Second Temple. The First and Second Temples, and how each fell.",
+      "box": [
+      23.6,
+      53.12,
+      11.5,
+      14.02
+      ]
+      },
+      {
+      "slug": "synagogues",
+      "title": "Synagogues",
+      "text": "A Torah ark, where the scrolls are kept. Synagogues and how they developed.",
+      "box": [
+      84.9,
+      9.38,
+      5.2,
+      30.98
+      ]
+      },
+      {
+      "slug": "food",
+      "title": "Food",
+      "text": "Braided challah for Shabbat. The dishes of Jewish kitchens around the world.",
+      "box": [
+      39.25,
+      59.11,
+      14.85,
+      10.36
+      ]
+      },
+      {
+      "slug": "communities-around-the-world",
+      "title": "Communities around the world",
+      "text": "A globe. Ashkenazi, Sephardi, Mizrahi, Ethiopian and other communities.",
+      "box": [
+      79.4,
+      37.95,
+      8.7,
+      17.59
+      ]
+      },
+      {
+      "slug": "laws-and-customs",
+      "title": "Laws and customs",
+      "text": "The two tablets of the Ten Commandments. Jewish law and everyday customs.",
+      "box": [
+      32.25,
+      67.14,
+      10.65,
+      13.21
+      ]
+      },
+      {
+      "slug": "kings-and-kingdoms",
+      "title": "Kings and kingdoms",
+      "text": "King David's harp. Saul, David, Solomon and the kingdoms of Israel and Judah.",
+      "box": [
+      13.9,
+      45.09,
+      7.1,
+      19.2
+      ]
+      },
+      {
+      "slug": "great-jewish-cities",
+      "title": "Great Jewish cities",
+      "text": "A model of a Jerusalem city gate. Jerusalem, Toledo, Vilna, Baghdad and other great centres.",
+      "box": [
+      35.1,
+      53.75,
+      10.8,
+      11.25
+      ]
+      },
+      {
+      "slug": "mysticism-and-symbols",
+      "title": "Mysticism and symbols",
+      "text": "The Star of David. Kabbalah, the Zohar and the symbols of Jewish life.",
+      "box": [
+      8.1,
+      4.91,
+      5.5,
+      21.16
+      ]
+      },
+      {
+      "slug": "places",
+      "title": "Places",
+      "text": "Rolled maps. The places where Jewish history happened.",
+      "box": [
+      0.0,
+      56.96,
+      7.9,
+      12.5
+      ]
+      },
+      {
+      "slug": "timeline",
+      "title": "Timeline",
+      "text": "A long parchment scroll: four thousand years of Jewish history, from Abraham to today.",
+      "box": [
+      84.0,
+      69.46,
+      13.75,
+      7.14
+      ]
+      },
+      {
+      "slug": "prophets",
+      "title": "Prophets",
+      "text": "Elijah's cup, set out at every Passover Seder. Isaiah, Jeremiah, Elijah and the other prophets.",
+      "box": [
+      55.0,
+      55.36,
+      5.5,
+      17.14
+      ]
+      },
+      {
+      "slug": "languages",
+      "title": "Languages",
+      "text": "A quill and inkwell. Hebrew, Yiddish, Ladino and Aramaic.",
+      "box": [
+      79.75,
+      54.64,
+      3.65,
+      20.18
+      ]
+      },
+      {
+      "slug": "humour-and-culture",
+      "title": "Humour and culture",
+      "text": "A violin. Klezmer, Yiddish theatre and Jewish comedy.",
+      "box": [
+      67.9,
+      43.57,
+      4.2,
+      16.07
+      ]
+      },
+      {
+      "slug": "expulsions",
+      "title": "Expulsions",
+      "text": "An old house key, like those Spanish Jews kept after 1492. Expulsions from England, France, Spain and beyond.",
+      "box": [
+      27.9,
+      81.96,
+      8.7,
+      7.5
+      ]
+      },
+      {
+      "slug": "objects-and-items",
+      "title": "Objects and items",
+      "text": "A mezuzah, fixed to the doorposts of Jewish homes. Everyday objects and what they mean.",
+      "box": [
+      62.9,
+      12.68,
+      3.7,
+      15.71
+      ]
+      },
+      {
+      "slug": "israel",
+      "title": "Israel",
+      "text": "A pomegranate and an olive branch. From Zionism to 1948 to today.",
+      "box": [
+      75.1,
+      54.91,
+      4.9,
+      11.34
+      ]
+      },
+      {
+      "slug": "rituals-and-life-events",
+      "title": "Rituals and life events",
+      "text": "A kiddush cup for blessing the wine. Bar and bat mitzvahs, weddings, mourning and more.",
+      "box": [
+      60.25,
+      60.0,
+      3.85,
+      11.16
+      ]
+      },
+      {
+      "slug": "the-holocaust",
+      "title": "The Holocaust",
+      "text": "A memorial candle. The murder of six million Jews, and how they are remembered.",
+      "box": [
+      84.25,
+      62.05,
+      4.6,
+      9.11
+      ]
+      },
+      {
+      "slug": "timeline",
+      "title": "Timeline",
+      "text": "A long parchment scroll: four thousand years of Jewish history, from Abraham to today.",
+      "box": [
+      92.25,
+      76.61,
+      5.5,
+      7.14
+      ]
+      }
+      ];
+
+    const stage = document.getElementById('stage'), tip = document.getElementById('tip');
+    const touch = matchMedia('(hover: none)').matches;
+    let active = null, armed = null;
+
+    SPOTS.forEach(s => {
+      const a = document.createElement('a');
+      a.className = 'spot';
+      a.href = '/learn/jewish-history/' + s.slug + '/';
+      a.setAttribute('aria-label', s.title + ': ' + s.text);
+      const [l, t, w, h] = s.box;
+      a.style.cssText = `left:${l}%;top:${t}%;width:${w}%;height:${h}%`;
+      if (!touch) {
+        a.addEventListener('mouseenter', e => show(a, s, e.clientX, e.clientY));
+        a.addEventListener('mousemove', e => place(e.clientX, e.clientY));
+        a.addEventListener('mouseleave', hide);
+        a.addEventListener('focus', () => { const r = a.getBoundingClientRect(); show(a, s, r.left + r.width / 2, r.top + r.height / 2); });
+        a.addEventListener('blur', hide);
+      }
+      // Phones: first tap shows the pop-up, second tap opens the page
+      a.addEventListener('click', e => {
+        if (!touch || armed === a) return;
+        e.preventDefault();
+        const r = a.getBoundingClientRect();
+        show(a, s, r.left + r.width / 2, r.top + r.height / 2);
+        armed = a;
+      });
+      stage.appendChild(a);
+    });
+
+    function show(a, s, x, y) {
+      if (active) active.classList.remove('on');
+      active = a; a.classList.add('on');
+      tip.querySelector('h2').textContent = s.title;
+      tip.querySelector('p').textContent = s.text;
+      tip.querySelector('.go').innerHTML = 'Opens: ' + s.title + ' →<span class="tap"> · tap again to open</span>';
+      tip.classList.add('show');
+      place(x, y);
+    }
+    function hide() { if (active) active.classList.remove('on'); active = armed = null; tip.classList.remove('show'); }
+    function place(x, y) {
+      const w = tip.offsetWidth, h = tip.offsetHeight, pad = 12, gap = 18;
+      let left = x + gap, top = y + gap;
+      if (left + w > innerWidth - pad) left = x - w - gap;
+      if (top + h > innerHeight - pad) top = y - h - gap;
+      tip.style.left = Math.max(pad, left) + 'px';
+      tip.style.top = Math.max(pad, top) + 'px';
+    }
+    // Tapping anywhere else closes the pop-up
+    document.addEventListener('click', e => { if (touch && !e.target.closest('.spot')) hide(); });
+    document.querySelector('.scene').addEventListener('scroll', () => { if (touch) hide(); }, { passive: true });
+
+    // On narrow screens the image is wider than the screen: start in the middle of the table
+    const scene = document.querySelector('.scene');
+    const centre = () => { scene.scrollLeft = (scene.scrollWidth - scene.clientWidth) / 2; };
+    centre(); addEventListener('orientationchange', () => setTimeout(centre, 300));
+  </script>
 </body>
 </html>
