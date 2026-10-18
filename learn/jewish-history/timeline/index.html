@@ -153,6 +153,16 @@
       h1 { font-size: 26px; }
     }
 
+    /* Read more */
+    .readmore { margin-top: 12px; padding: 7px 18px 8px; font-size: 16px; line-height: 1; border: 1.5px solid rgba(58, 38, 18, .75); border-radius: 999px;
+      background: rgba(248, 236, 208, .6); color: var(--ink); cursor: pointer; transition: background .2s; }
+    .readmore:hover { background: rgba(58, 38, 18, .1); }
+    .pop.expanded { width: min(980px, calc(100vw - 32px)); }
+    .pop.expanded.has-img { grid-template-columns: 300px 1fr; }
+    .pop.expanded figure { position: sticky; top: 0; }
+    .more h3 { margin: 18px 0 6px; font-size: 14px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    .more p { margin: 0 0 10px; font-size: 17px; line-height: 1.55; }
+
     /* ---------- Phones ---------- */
     /* Upright phones get a prompt to turn sideways: the timeline only works in landscape */
     .rotate { display: none; position: fixed; inset: 0; z-index: 60; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
@@ -192,7 +202,9 @@
       .pop.on.has-img { grid-template-columns: 200px 1fr; gap: 0 16px; }
       .pop figure img { width: 200px; height: 150px; }
       .pop h2 { font-size: 21px; }
-      .pop p { font-size: 15px; }
+      .pop p, .more p { font-size: 15px; }
+      .readmore { margin-top: 8px; font-size: 14px; padding: 5px 14px 6px; }
+      .pop.expanded.has-img { grid-template-columns: 200px 1fr; }
       .loader svg { width: 240px; }
     }
 
@@ -288,7 +300,7 @@
 
   <div class="mini" id="mini"></div>
   <div class="tip" id="tip" aria-hidden="true"></div>
-  <div class="pop" id="pop"><button class="x" aria-label="Close">×</button><figure><img alt=""><figcaption></figcaption></figure><div class="txt"><div class="y"></div><h2></h2><p></p></div></div>
+  <div class="pop" id="pop"><button class="x" aria-label="Close">×</button><figure><img alt=""><figcaption></figcaption></figure><div class="txt"><div class="y"></div><h2></h2><p class="sum"></p><div class="more" id="more" hidden></div><button class="readmore" id="readmore" type="button" aria-expanded="false" aria-controls="more">Read more</button></div></div>
 
   <script>
     // Years: negative = BCE. c: circa. e: end year (draws a bar). p: 1 always shown, 2 shown when room, 3 only when zoomed in.
@@ -402,7 +414,7 @@
       { y: -134, p: 3, t: "John Hyrcanus expands the kingdom", d: "Simon is murdered by his son-in-law, and his son John Hyrcanus takes power. Over thirty years he conquers Idumea to the south, Samaria to the north and land east of the Jordan. He destroys the Samaritan temple on Mount Gerizim and forces the Idumeans to convert to Judaism. Judea becomes a regional power." },
       { y: -104, p: 3, t: "Aristobulus takes the crown", d: "John Hyrcanus's son Aristobulus I becomes the first Hasmonean to call himself king, not just High Priest. He imprisons his mother and three brothers to secure power. His reign lasts only a year, but he conquers much of the Galilee. Many Jews are unhappy that priests from a non-Davidic family have made themselves kings." },
       { y: -88, c: 1, p: 3, t: "Alexander Jannaeus's civil war", d: "King Alexander Jannaeus, a warlike ruler, clashes with the Pharisees. When he officiates at Sukkot, the crowd pelts him with citrons, and he responds with a massacre. A six-year civil war follows, and the Pharisees even ask a Seleucid king for help. Josephus says Jannaeus crucified 800 of his opponents. He still expands the kingdom to its largest size." },
-      { y: -76, e: -67, p: 2, t: "Queen Salome Alexandra", d: "After Jannaeus dies, his widow Salome Alexandra rules for nine years, the last woman to reign over an independent Jewish state. She makes peace with the Pharisees, and her brother, the sage Shimon ben Shetach, sets up schools and reforms the law. The Talmud remembers her reign as a time of peace and plenty, when rain fell only on Sabbath nights." },
+      { y: -76, e: -67, p: 2, t: "Queen Salome Alexandra", d: "After Jannaeus dies, his widow Salome Alexandra rules for nine years, the last woman to reign over an independent Jewish state. She makes peace with the Pharisees, and her brother, the sage Shimon ben Shetach, sets up schools and reforms the law. The Talmud remembers her reign as a time of peace and plenty, when rain fell only on Wednesday and Sabbath nights." },
       { y: -67, p: 3, t: "Hasmonean civil war", d: "When Salome Alexandra dies, her sons Hyrcanus II and Aristobulus II fight a bitter civil war for the throne. Hyrcanus is backed by the Idumean adviser Antipater, Herod's father, and an Arab king. Both brothers appeal to the Roman general Pompey for support. Their quarrel hands Rome the chance to take over Judea in 63 BCE." },
       { y: -63, p: 2, t: "Rome takes Jerusalem", d: "Two Hasmonean brothers, Hyrcanus and Aristobulus, fight a civil war over the throne, and both ask Rome for help. The Roman general Pompey marches in and besieges the Temple Mount for three months. When it falls he walks into the Holy of Holies, which only the High Priest was allowed to enter, shocking the Jewish people. Judea loses its independence and becomes a Roman client state." },
       { y: -40, e: -37, p: 3, t: "Last Hasmonean king", d: "With help from the Parthian Empire, Antigonus II Mattathias, the last of the Maccabee family, seizes Jerusalem and becomes king and High Priest. Rome responds by naming Herod king of Judea. After a five-month siege, Herod and the Romans take Jerusalem in 37 BCE, and Antigonus is executed. His coins are the first to show the Temple menorah." },
@@ -453,7 +465,7 @@
       { y: 895, p: 3, t: "The Masoretes", d: "In Tiberias, generations of scholars called Masoretes have worked out an exact system of vowel points, accents and notes to preserve the precise reading of the Hebrew Bible. In 895 Moses ben Asher completes the Cairo Codex of the Prophets, one of the oldest dated Hebrew Bible manuscripts. His son Aaron later adds the vowels to the Aleppo Codex." },
       { y: 905, c: 1, p: 3, t: "Kairouan's scholars", d: "Kairouan, in today's Tunisia, becomes a great centre of Jewish learning and trade, linking Babylonia with Spain and Europe. Isaac Israeli, a Jewish doctor to the Fatimid caliphs, writes medical books later used in European universities for centuries. Soon after, the city's academies are led by Rabbi Hushiel and his son Rabbenu Chananel." },
       { y: 928, p: 2, t: "Saadia Gaon", d: "Saadia ben Joseph, born in Egypt, becomes Gaon, or head, of the great academy of Sura in Babylonia. He translates the Bible into Arabic, writes the first organised Jewish prayer book and the first major work of Jewish philosophy, The Book of Beliefs and Opinions. He also leads the fight against the Karaites. He is often called the father of medieval Jewish scholarship." },
-      { y: 930, c: 1, p: 3, t: "Aleppo Codex", d: "In Tiberias, the scribe Shlomo ben Buya'a writes the text and the scholar Aaron ben Asher adds the vowels and cantillation marks. The result is the most accurate manuscript of the Hebrew Bible ever made, later used by Maimonides as his standard. It was kept for centuries in the Great Synagogue of Aleppo, Syria. In riots in 1947 about a third of it went missing, and the rest is now in the Israel Museum." },
+      { y: 930, c: 1, p: 3, t: "Aleppo Codex", d: "In Tiberias, the scribe Shlomo ben Buya'a writes the text and the scholar Aaron ben Asher adds the vowels and cantillation marks. The result is the most accurate manuscript of the Hebrew Bible ever made, later used by Maimonides as his standard. It was kept for centuries in the Great Synagogue of Aleppo, Syria. In riots in 1947 about 40 percent of it went missing, and the rest is now in the Israel Museum." },
       { y: 950, c: 1, p: 2, t: "Golden Age in Spain", d: "Under Muslim rule in Spain, called al-Andalus, Jews rise to high positions as doctors, advisers and even viziers. Poets like Judah Halevi and Solomon ibn Gabirol write Hebrew poetry still sung in synagogues today. Jewish thinkers translate Greek and Arabic science and philosophy. The golden age fades in the 12th century as stricter Muslim and then Christian rulers take over." },
       { y: 1000, c: 1, p: 3, t: "Rabbenu Gershom's decrees", d: "Rabbenu Gershom of Mainz, called the \"Light of the Exile\", is the first great rabbi of Germany. His famous decrees ban a man from having more than one wife and from divorcing his wife against her will. He also forbids reading other people's letters. Ashkenazi Jews still follow these rulings a thousand years later." },
       { y: 1012, p: 3, t: "Al-Hakim's persecution", d: "The Fatimid caliph al-Hakim, ruler of Egypt and the Land of Israel, turns against Jews and Christians. He orders synagogues and churches destroyed, including the Church of the Holy Sepulchre, and forces Jews to wear heavy wooden calves around their necks. A few years later he reverses course and allows those forced to convert to return to their faith." },
@@ -463,10 +475,10 @@
       { y: 1099, p: 2, t: "Crusaders take Jerusalem", d: "The armies of the First Crusade storm Jerusalem and massacre its Muslim and Jewish inhabitants. Jews who take refuge in their main synagogue are burned alive inside it. Survivors are sold as slaves, and Jews are banned from living in the city. Jewish communities in Egypt raise money to ransom captives and holy books." },
       { y: 1138, p: 2, t: "Maimonides is born", d: "Rabbi Moses ben Maimon, known as Maimonides or the Rambam, is born in Córdoba, Spain. His family flees persecution and he settles in Egypt, where he becomes doctor to the sultan's court. He writes the Mishneh Torah, a complete code of Jewish law, and the Guide for the Perplexed, which reconciles faith with Aristotle's philosophy. People said: \"From Moses to Moses, there was none like Moses.\"" },
       { y: 1144, p: 3, t: "First blood libel", d: "When a boy named William is found dead in Norwich, England, local Jews are falsely accused of killing him in a mock crucifixion. A monk writes a book spreading the story, and William is treated as a saint. This lie, that Jews murder Christian children for religious rituals, spreads across Europe. Over the following centuries it leads to countless trials, massacres and expulsions." },
-      { y: 1168, p: 3, t: "Maimonides reaches Egypt", d: "Fleeing the fanatical Almohads who have taken over Spain and North Africa, Maimonides and his family settle in Fustat, old Cairo, after a short stay in the Land of Israel. When his brother David drowns at sea with the family fortune, Maimonides becomes a doctor to support them. He completes his Commentary on the Mishnah here and becomes leader of Egyptian Jewry." },
+      { y: 1168, p: 3, t: "Maimonides reaches Egypt", d: "Fleeing the fanatical Almohads who have taken over Spain and North Africa, Maimonides and his family settle in Fustat, old Cairo, after a short stay in the Land of Israel. When his brother David later drowns at sea with the family fortune, Maimonides becomes a doctor to support them. He completes his Commentary on the Mishnah here and becomes leader of Egyptian Jewry." },
       { y: 1171, p: 3, t: "Blois blood libel", d: "In Blois, France, a servant claims to have seen a Jew throw a child's body into the river, though no body is ever found. Count Theobald has more than 30 Jews burned alive. Rabbenu Tam, the great sage, declares the day, 20 Sivan, a fast day. It is the first blood libel in continental Europe to end in executions." },
       { y: 1173, p: 3, t: "Benjamin of Tudela's travels", d: "Benjamin, a Jewish traveller from Tudela in Spain, returns from an eight-year journey through Europe, the Middle East and beyond. His book describes around 300 cities and the Jewish communities in each, from Rome and Constantinople to Baghdad. It is one of the most valuable records of medieval Jewish life and of the medieval world in general." },
-      { y: 1190, p: 2, t: "York massacre", d: "Anti-Jewish riots spread across England around the coronation of Richard I. In York, about 150 Jews take refuge in the royal castle's wooden tower. Surrounded by a mob and with no hope of escape, many take their own lives and the rest are killed when they come out. Every year since 1978 a plaque and daffodils at Clifford's Tower remember them." },
+      { y: 1190, p: 2, t: "York massacre", d: "Anti-Jewish riots spread across England around the coronation of Richard I. In York, about 150 Jews take refuge in the royal castle's wooden tower. Surrounded by a mob and with no hope of escape, many take their own lives and the rest are killed when they come out. Today a plaque and daffodils at Clifford's Tower remember them." },
       { y: 1215, p: 3, t: "Jewish badge", d: "The Fourth Lateran Council, a great gathering of the Catholic Church, orders Jews and Muslims to wear clothing that sets them apart from Christians. In different countries this becomes a yellow or red badge, a patch shaped like the stone tablets, or a pointed hat. The marking makes Jews easy targets for abuse. The Nazis later revived the idea with the yellow star." },
       { y: 1242, p: 2, t: "Talmud burned in Paris", d: "After a public trial of the Talmud in Paris in 1240, where Rabbi Yechiel of Paris defends it, the Church condemns it as blasphemous. In June 1242, twenty-four wagonloads of handwritten Talmud volumes, thousands of books, are burned in a public square. With every copy written by hand, this is a devastating loss to Jewish learning in France." },
       { y: 1263, p: 3, t: "Barcelona Disputation", d: "King James I of Aragon orders Rabbi Moses ben Nachman, known as Nachmanides or Ramban, to debate a Jewish convert to Christianity in front of the royal court. Nachmanides argues so well that the king gives him a prize of 300 coins. But the Dominicans are furious, and Nachmanides is forced into exile. He settles in the Land of Israel." },
@@ -484,7 +496,7 @@
       { y: 1475, p: 3, t: "First Hebrew printed book", d: "Just twenty years after Gutenberg, Jewish printers in Italy begin printing in Hebrew. In February 1475, Abraham ben Garton prints Rashi's commentary on the Torah in Reggio di Calabria, the first dated Hebrew printed book. Soon after, the Soncino family produces the first complete printed Hebrew Bible in 1488. Printing makes Jewish books far cheaper and helps spread learning across the diaspora." },
       { y: 1478, p: 2, t: "Spanish Inquisition", d: "Ferdinand and Isabella set up the Spanish Inquisition to root out conversos, Jews who had converted to Christianity, suspected of secretly practising Judaism. Thousands are tortured, and many are burned alive at public ceremonies called autos-da-fé. The Inquisition's first Grand Inquisitor, Tomás de Torquemada, pushes for the expulsion of 1492. It lasts until 1834." },
       { y: 1492, p: 1, t: "Expelled from Spain", d: "Months after conquering Granada, King Ferdinand and Queen Isabella order every Jew to convert or leave Spain within four months. Up to 200,000 people leave, ending over a thousand years of Jewish life in Spain. Many go to Portugal, North Africa, Italy and the Ottoman Empire, where Sultan Bayezid II welcomes them. Their descendants are known as Sephardic Jews, from Sepharad, Hebrew for Spain." },
-      { y: 1497, p: 3, t: "Forced conversion in Portugal", d: "Many Jews expelled from Spain had fled to neighbouring Portugal. To marry the Spanish princess, King Manuel I agrees to rid his country of Jews, but he doesn't want to lose them. Instead of letting them leave, he has them forcibly baptised, including children taken from their parents. Many keep practising Judaism in secret for generations, and in 1506 a mob in Lisbon kills hundreds of these New Christians." },
+      { y: 1497, p: 3, t: "Forced conversion in Portugal", d: "Many Jews expelled from Spain had fled to neighbouring Portugal. To marry the Spanish princess, King Manuel I agrees to rid his country of Jews, but he doesn't want to lose them. Instead of letting them leave, he has them forcibly baptised, including children taken from their parents. Many keep practising Judaism in secret for generations, and in 1506 a mob in Lisbon kills over a thousand of these New Christians." },
       { y: 1516, p: 2, t: "First ghetto, Venice", d: "The Venetian government orders all the city's Jews to live on a small island in the Cannaregio district, an area once used as a copper foundry, or getto. Gates are locked at night and Christian guards, paid for by the Jews, watch over them. The word ghetto spreads across Europe for any walled Jewish quarter. Because space was so tight, the buildings are among the tallest in old Venice." },
       { y: 1524, p: 3, t: "David Reubeni", d: "A mysterious man named David Reubeni arrives in Venice and Rome, claiming to be a prince of a Jewish kingdom of lost tribes in Arabia. He meets the Pope and the King of Portugal, proposing a Jewish army to fight the Ottomans. He inspires a young converso, Solomon Molcho, to return to Judaism. Both are later arrested, and Molcho is burned at the stake." },
       { y: 1543, p: 2, t: "Luther turns on the Jews", d: "Martin Luther, who had hoped Jews would convert to his reformed Christianity, publishes On the Jews and Their Lies. He calls for synagogues and Jewish schools to be burned, homes destroyed, prayer books taken away and rabbis forbidden to teach. His words are largely forgotten for centuries, then eagerly republished by the Nazis." },
@@ -555,7 +567,7 @@
       { y: 1947, p: 3, t: "Dead Sea Scrolls found", d: "Bedouin shepherds searching for a lost goat find clay jars of ancient scrolls in a cave at Qumran, near the Dead Sea. Over the next ten years, fragments of about 900 manuscripts are found in eleven caves. Some are over 2,000 years old, a thousand years older than any Hebrew Bible known before. They include every book of the Hebrew Bible except Esther, and a complete scroll of Isaiah." },
       { y: 1947, p: 2, t: "UN partition vote", d: "On 29 November 1947 the UN General Assembly votes 33 to 13 to divide Palestine into a Jewish state and an Arab state, with Jerusalem under international control. Jews dance in the streets. The Arab leadership rejects the plan, and fighting breaks out the next day. The ship Exodus 1947, full of Holocaust survivors turned back by Britain, had helped win world sympathy." },
       { y: 1948, p: 1, t: "State of Israel", d: "On 14 May 1948, the day the British mandate ends, David Ben-Gurion reads Israel's Declaration of Independence in the Tel Aviv Museum. It promises equal rights for all citizens and opens the country to Jewish immigration. The next day, the armies of Egypt, Jordan, Syria, Lebanon and Iraq invade. Israel wins its War of Independence at a cost of about 6,000 lives, one percent of its Jewish population." },
-      { y: 1949, e: 1950, p: 3, t: "Operation Magic Carpet", d: "Almost the entire Jewish community of Yemen, around 49,000 people, is flown to Israel on about 380 flights by American and British planes. Many had walked for weeks across the desert to reach the British camp at Aden. Most had never seen an aeroplane, and some recalled the verse from Isaiah about being carried \"on eagles' wings\". An ancient community that had lived in Yemen for over 2,000 years moved almost entirely to Israel." },
+      { y: 1949, e: 1950, p: 3, t: "Operation Magic Carpet", d: "Almost the entire Jewish community of Yemen, around 49,000 people, is flown to Israel on about 380 flights by American and British planes. Many had walked for weeks across the desert to reach the British camp at Aden. Most had never seen an aeroplane, and some recalled the verse from Exodus about being carried \"on eagles' wings\". An ancient community that had lived in Yemen for over 2,000 years moved almost entirely to Israel." },
       { y: 1950, p: 2, t: "Law of Return", d: "The Knesset passes the Law of Return, giving every Jew in the world the right to move to Israel and become a citizen. In its first few years Israel's population doubles as survivors from Europe and nearly the whole Jewish communities of Iraq, Yemen, Libya and later Morocco arrive. Many live for years in tent camps called ma'abarot." },
       { y: 1951, p: 3, t: "Exodus from Iraq", d: "After years of growing persecution in Iraq, including the Farhud massacre of 1941, the government allows Jews to leave if they give up their citizenship and property. In Operation Ezra and Nehemiah, about 120,000 Iraqi Jews are flown to Israel. A community going back to the Babylonian exile 2,500 years earlier almost disappears in two years." },
       { y: 1953, p: 3, t: "Yad Vashem founded", d: "The Knesset establishes Yad Vashem in Jerusalem as Israel's official memorial to the victims of the Holocaust. Its name comes from Isaiah: \"a memorial and a name\". It collects the names and stories of the six million and honours non-Jews who risked their lives to save Jews as Righteous Among the Nations. Over 28,000 have been recognised." },
@@ -1101,7 +1113,8 @@
     function open(e) {
       pop.querySelector(".y").textContent = when(e);
       pop.querySelector("h2").textContent = e.t;
-      pop.querySelector("p").textContent = e.d;
+      pop.querySelector(".sum").textContent = e.d;
+      collapse(); current = e;
       // Every event has an image from Wikimedia Commons, credited underneath with a link to its source page
       const im = IMAGES[e.t], fig = pop.querySelector("figure");
       fig.hidden = !im; pop.classList.toggle("has-img", !!im);
@@ -1113,6 +1126,25 @@
       pop.classList.add("on");
     }
     pop.querySelector(".x").onclick = () => pop.classList.remove("on");
+
+    // ---------- Read more: a longer write-up for every event, loaded from details.json the first time it's needed ----------
+    const more = $("#more"), readBtn = $("#readmore");
+    let current = null, details = null;
+    const loadDetails = () => details || (details = fetch("details.json").then(r => r.json()).catch(() => { details = null; return {}; }));
+    addEventListener("load", () => setTimeout(loadDetails, 3000));
+    const esc = t => t.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    const paras = t => t.split(/\n\n+/).map(x => `<p>${esc(x.trim())}</p>`).join("");
+    function collapse() { pop.classList.remove("expanded"); more.hidden = true; more.innerHTML = ""; readBtn.textContent = "Read more"; readBtn.setAttribute("aria-expanded", "false"); }
+    readBtn.onclick = async () => {
+      if (pop.classList.contains("expanded")) { collapse(); return; }
+      const e = current; readBtn.textContent = "Loading…";
+      const d = (await loadDetails())[e.t];
+      if (e !== current) return;
+      if (!d) { readBtn.textContent = "Read more"; return; }
+      more.innerHTML = `<h3>The background</h3>${paras(d.background)}<h3>What happened</h3>${paras(d.happened)}<h3>Why it matters</h3>${paras(d.matters)}`;
+      more.hidden = false; pop.classList.add("expanded"); pop.scrollTop = 0;
+      readBtn.textContent = "Show less"; readBtn.setAttribute("aria-expanded", "true");
+    };
 
     function resize() {
       const keep = W ? { mid: x0 + W / k / 2, span: W / k } : null;
