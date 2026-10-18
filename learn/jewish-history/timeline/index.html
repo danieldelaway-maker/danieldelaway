@@ -49,8 +49,8 @@
     .stage { position: fixed; left: 0; right: 0; top: 0; bottom: 0; overflow: hidden; touch-action: none; cursor: grab; }
     .stage.dragging { cursor: grabbing; }
     .axis { position: absolute; left: 0; right: 0; height: 2px; background: var(--line); opacity: .8; }
-    .era { position: absolute; height: 30px; overflow: hidden; white-space: nowrap; border-left: 1px solid var(--line);
-      font-size: 14px; letter-spacing: .06em; text-transform: uppercase; line-height: 30px; }
+    .era { position: absolute; height: 28px; overflow: hidden; white-space: nowrap; box-shadow: inset 1px 0 0 rgba(58, 38, 18, .45);
+      font-size: 14px; letter-spacing: .06em; text-transform: uppercase; line-height: 28px; font-size: 13px; }
     .era b { position: absolute; top: 0; font-weight: 600; }
     .tick { position: absolute; width: 1px; height: 8px; background: var(--line); opacity: .7; }
     .tlabel { position: absolute; font-size: 14px; color: var(--muted); transform: translateX(-50%); white-space: nowrap; }
@@ -236,18 +236,22 @@
       EVENTS.forEach(e => { e.card.style.width = e.w + "px"; e.card.style.boxSizing = "border-box"; });
     }
 
-    const LANE = 74, BAND = 30;
+    // Eras get their own ribbon just above the overview strip, so no line or stem ever runs through a name
+    const LANE = 74, BAND = 4, ERA_H = 28;
     function draw() {
       const axisY = Math.round(H * .5);
       axis.style.top = axisY - 1 + "px";
+      const headBottom = topBar.getBoundingClientRect().bottom + 10, miniTop = mini.getBoundingClientRect().top;
+      const eraTop = miniTop - 10 - ERA_H;
 
       eraEls.forEach((el, i) => {
         const [a, b] = ERAS[i], l = X(a), r = X(b);
         if (r < 0 || l > W) { el.style.display = "none"; return; }
-        el.style.display = ""; el.style.left = l + "px"; el.style.width = (r - l) + "px"; el.style.top = axisY - BAND / 2 + "px";
-        const lab = el.firstChild, lw = lab.offsetWidth;
-        lab.style.visibility = (r - l) > lw + 12 ? "" : "hidden";
-        lab.style.left = Math.min(Math.max(8, -l + 8), r - l - lw - 8) + "px";
+        el.style.display = ""; el.style.left = l + "px"; el.style.width = (r - l) + "px"; el.style.top = eraTop + "px";
+        // Centre the name in the part of the era that's on screen
+        const lab = el.firstChild, lw = lab.offsetWidth, mid = (Math.max(l, 0) + Math.min(r, W)) / 2 - l;
+        lab.style.visibility = (r - l) > lw + 16 ? "" : "hidden";
+        lab.style.left = Math.min(Math.max(8, mid - lw / 2), r - l - lw - 8) + "px";
       });
 
       // Ticks: pick the smallest step that keeps labels ~110px apart
@@ -263,12 +267,11 @@
       }
       for (; n < tickPool.length; n++) tickPool[n][0].style.display = tickPool[n][1].style.display = "none";
 
-      // Lanes: above the axis and below the tick labels. Bigger events claim space first.
-      // Keep the lanes on the parchment: between the header and the overview strip
-      const headBottom = topBar.getBoundingClientRect().bottom + 10, miniTop = mini.getBoundingClientRect().top - 10;
+      // Lanes: above the axis and below the tick labels, kept clear of the header and the era ribbon.
+      // Bigger events claim space first.
       const above = Math.max(1, Math.min(5, Math.floor((axisY - BAND / 2 - 14 - headBottom) / LANE)));
       const belowTop = axisY + BAND / 2 + 40;
-      const below = Math.max(1, Math.min(5, Math.floor((miniTop - belowTop) / LANE)));
+      const below = Math.max(1, Math.min(5, Math.floor((eraTop - 10 - belowTop) / LANE)));
       const lanes = [];
       for (let i = 0; i < Math.max(above, below); i++) { if (i < above) lanes.push({ up: 1, i, used: [] }); if (i < below) lanes.push({ up: 0, i, used: [] }); }
       const order = EVENTS.slice().sort((a, b) => a.p - b.p || a.y - b.y);
