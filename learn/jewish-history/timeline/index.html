@@ -32,10 +32,18 @@
     .back:hover { opacity: 1; }
     h1 { font-family: "Kanisah", "EB Garamond", serif; font-weight: 400; font-size: 34px; margin: 0; letter-spacing: .02em; }
     .spacer { flex: 1; }
-    .zoom { display: flex; gap: 6px; }
     button { font: inherit; color: var(--ink); border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
-    .zoom button { width: 34px; height: 34px; font-size: 20px; line-height: 1; padding: 0; }
-    .zoom button.fit { width: auto; padding: 0 10px; font-size: 15px; }
+    /* Zoom controls: one ink-ruled bar, like a label stamped on the parchment */
+    .zoom { display: flex; align-items: stretch; padding: 3px; border: 1.5px solid rgba(58, 38, 18, .75); border-radius: 999px;
+      background: rgba(248, 236, 208, .35); box-shadow: inset 0 0 0 1px rgba(255, 246, 225, .45), 0 1px 0 rgba(255, 246, 225, .5); }
+    .zoom button { display: grid; place-items: center; width: 42px; height: 36px; padding: 0; border: 0; border-radius: 999px;
+      background: transparent; color: var(--ink); transition: background .2s, transform .15s; }
+    .zoom button + button { position: relative; }
+    .zoom button + button::before { content: ""; position: absolute; left: 0; top: 9px; bottom: 9px; width: 1px; background: rgba(58, 38, 18, .35); }
+    .zoom button:hover { background: rgba(58, 38, 18, .1); }
+    .zoom button:active { transform: scale(.92); }
+    .zoom button:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+    .zoom svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 
     /* ---------- Timeline ---------- */
     .stage { position: fixed; left: 0; right: 0; top: 0; bottom: 0; overflow: hidden; touch-action: none; cursor: grab; }
@@ -86,7 +94,11 @@
     <a class="back" href="/learn/jewish-history/">← Back</a>
     <h1>Timeline</h1>
     <span class="spacer"></span>
-    <div class="zoom"><button id="zout" aria-label="Zoom out">−</button><button id="zin" aria-label="Zoom in">+</button><button id="zfit" class="fit">All</button></div>
+    <div class="zoom">
+      <button id="zout" aria-label="Zoom out" title="Zoom out"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3 20 20M7.8 10.5h5.4"/></svg></button>
+      <button id="zin" aria-label="Zoom in" title="Zoom in"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3 20 20M7.8 10.5h5.4M10.5 7.8v5.4"/></svg></button>
+      <button id="zfit" aria-label="Show the whole timeline" title="Show the whole timeline"><svg viewBox="0 0 24 24"><path d="M3 6v12M21 6v12M6.5 12h11M9 9l-2.5 3L9 15M15 9l2.5 3L15 15"/></svg></button>
+    </div>
   </div>
 
   <div class="mini" id="mini"></div>
