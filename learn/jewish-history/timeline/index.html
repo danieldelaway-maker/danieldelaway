@@ -86,7 +86,6 @@
     .card.p1 .t { font-size: 19px; font-weight: 600; }
     .card.flip { text-align: right; }
     /* Labels sit above the lines; a soft parchment halo hides any line that has to pass behind one */
-    .card { z-index: 2; text-shadow: 0 0 2px #e6d3ad, 0 0 4px #e6d3ad, 0 0 6px #e6d3ad, 0 0 8px #e6d3ad; }
     .stem, .dot, .range { z-index: 1; }
     .card:hover { outline: 2px solid var(--line); outline-offset: 1px; }
 
@@ -827,12 +826,20 @@
         e.lane = lanes.find(L => L.used.every(([a, b]) => r < a || l > b) && L.stems.every(sx => sx < l || sx > r)
           && (e.p === 1 || inner(L).every(M => M.used.every(([a, b]) => x + 3 < a || x - 3 > b))));
         if (!e.lane) { hide(e); continue; }
-        e.lane.used.push([l, r]);
-        inner(e.lane).forEach(M => M.stems.push(x));
         const L = e.lane, top = L.up ? axisY - BAND / 2 - 14 - L.i * LANE - e.h : belowTop + L.i * LANE;
+        // Cards nearer the axis that this event's line has to pass (only major events may do this)
+        const crossed = inner(L).flatMap(M => M.used.filter(([a, b]) => x + 3 >= a && x - 3 <= b));
+        L.used.push([l, r, top, top + e.h]);
+        inner(L).forEach(M => M.stems.push(x));
         Object.assign(e.card.style, { display: "", left: (flip ? x - e.w + 1 : x - 1) + "px", top: top + "px" });
         e.card.classList.toggle("flip", flip);
-        Object.assign(e.stem.style, { display: "", left: x + "px", top: (L.up ? top + e.h : axisY) + "px", height: (L.up ? axisY - top - e.h : top - axisY) + "px" });
+        const sTop = L.up ? top + e.h : axisY, sH = L.up ? axisY - top - e.h : top - axisY;
+        // Break the line where it passes behind another label, so it never runs through the text
+        const gaps = crossed.map(([, , t, b]) => [Math.max(0, t - 4 - sTop), Math.min(sH, b + 4 - sTop)]).sort((a, b) => a[0] - b[0]);
+        let bg = "", at = 0;
+        gaps.forEach(([g0, g1]) => { bg += `var(--line) ${at}px ${g0}px, transparent ${g0}px ${g1}px, `; at = g1; });
+        Object.assign(e.stem.style, { display: "", left: x + "px", top: sTop + "px", height: sH + "px",
+          background: gaps.length ? `linear-gradient(to bottom, ${bg}var(--line) ${at}px)` : "" });
         Object.assign(e.dot.style, { display: "", left: x + (e.e ? 0 : 0) + "px", top: axisY + "px", width: e.e ? Math.max(9, xe - x) + "px" : "" });
       }
       drawMini();
