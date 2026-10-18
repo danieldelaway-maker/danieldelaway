@@ -18,62 +18,16 @@
       -webkit-font-smoothing: antialiased; user-select: none; -webkit-user-select: none; }
     a { color: inherit; }
 
-    /* ---------- Backgrounds (temporary picker: ?bg=1..5) ---------- */
-    .backdrop { position: fixed; inset: 0; pointer-events: none; }
-    .backdrop canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: none; }
-    .rollers { display: none; }
-
-    /* 1 · Torah scroll: aged parchment between two wooden rollers */
-    body.bg-1 { --base: #e8d6ae; --ink: #3a2612; --muted: #7a5a36; --line: #6b4a26; --card: transparent; --card-line: transparent; --pop: #fbf1da; }
-    .bg-1 .backdrop { background:
+    /* ---------- Background: plain parchment (swap .backdrop for a custom image later) ---------- */
+    body { --base: #e8d6ae; --ink: #3a2612; --muted: #7a5a36; --line: #6b4a26; --card: transparent; --card-line: transparent; --pop: #fbf1da; }
+    .backdrop { position: fixed; inset: 0; pointer-events: none; background:
       url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .35 0 0 0 0 .22 0 0 0 0 .08 0 0 0 .28 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
       url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='900'><filter id='m'><feTurbulence type='fractalNoise' baseFrequency='.006' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .45 0 0 0 0 .3 0 0 0 0 .12 0 0 0 .35 0'/></filter><rect width='100%' height='100%' filter='url(%23m)'/></svg>"),
       radial-gradient(ellipse at center, #efdfbb 40%, #d7bd8a 100%); }
-    .bg-1 .rollers { display: block; }
-    .roller { position: fixed; top: -10px; bottom: -10px; width: 44px; z-index: 6; pointer-events: none;
-      background: linear-gradient(90deg, #2a170a, #6b4220 22%, #a9733f 45%, #7a4b24 70%, #2a170a);
-      box-shadow: 0 0 18px rgba(40, 20, 5, .55); }
-    .roller.l { left: 0; } .roller.r { right: 0; }
-    .roller::before, .roller::after { content: ""; position: absolute; left: -6px; right: -6px; height: 34px; border-radius: 8px;
-      background: linear-gradient(90deg, #3b230f, #c99a5b 45%, #5a3518); }
-    .roller::before { top: 0; } .roller::after { bottom: 0; }
-    .bg-1 .stage { left: 44px; right: 44px; }
-
-    /* 2 · Jerusalem stone: Herodian-style blocks with drafted margins */
-    body.bg-2 { --base: #d8c49a; --ink: #33240f; --muted: #6e5634; --line: #5b4425; --card: rgba(250, 242, 222, .86); --card-line: rgba(110, 86, 52, .45); --pop: #faf2de; }
-    .bg-2 .backdrop { background:
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .3 0 0 0 0 .22 0 0 0 0 .1 0 0 0 .32 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='480' height='200'><g stroke='%23a48a60' stroke-width='3'><rect x='0' y='0' width='200' height='100' fill='%23e0cda4'/><rect x='200' y='0' width='160' height='100' fill='%23d6c094'/><rect x='360' y='0' width='120' height='100' fill='%23e3d3ad'/><rect x='0' y='100' width='100' height='100' fill='%23d3bd90'/><rect x='100' y='100' width='220' height='100' fill='%23e1cfa7'/><rect x='320' y='100' width='160' height='100' fill='%23d9c59b'/></g><g fill='%23000' fill-opacity='.05'><rect x='10' y='10' width='180' height='80'/><rect x='210' y='10' width='140' height='80'/><rect x='370' y='10' width='100' height='80'/><rect x='10' y='110' width='80' height='80'/><rect x='110' y='110' width='200' height='80'/><rect x='330' y='110' width='140' height='80'/></g></svg>"),
-      #d8c49a;
-      box-shadow: inset 0 0 160px rgba(80, 55, 20, .35); }
-
-    /* 3 · Desert night: stars over the dunes ("count the stars", Genesis 15) */
-    body.bg-3 { --base: #0b1024; --ink: #f2e6c8; --muted: #b9ab8a; --line: #c9a961; --card: rgba(9, 13, 32, .72); --card-line: rgba(201, 169, 97, .5); --pop: #121935; }
-    .bg-3 .backdrop { background: linear-gradient(#050817 0%, #0d1530 55%, #2a2340 82%, #4a3426 100%); }
-    .bg-3 .backdrop canvas { display: block; }
-
-    /* 4 · Study table: dark wood under candlelight, events on paper slips */
-    body.bg-4 { --base: #2c1a0d; --ink: #f1e2c2; --muted: #cdb48a; --line: #d9b77a; --card: #ecdcb6; --card-ink: #33220f; --card-muted: #7a5a36; --card-line: rgba(0, 0, 0, .25); --pop: #f2e4c2; --pop-ink: #33220f; }
-    .bg-4 .backdrop { background:
-      radial-gradient(ellipse 55% 45% at 18% 12%, rgba(255, 190, 100, .28), transparent 70%),
-      radial-gradient(ellipse 45% 40% at 85% 20%, rgba(255, 170, 80, .18), transparent 70%),
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='400'><filter id='w'><feTurbulence type='fractalNoise' baseFrequency='.0025 .11' numOctaves='4' seed='4' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .1 0 0 0 0 .05 0 0 0 0 .01 0 0 0 .7 0'/></filter><rect width='100%' height='100%' filter='url(%23w)'/></svg>"),
-      linear-gradient(#4a2c15, #3a2210);
-      box-shadow: inset 0 0 220px rgba(0, 0, 0, .7); }
-    .bg-4 .card { box-shadow: 0 3px 8px rgba(0, 0, 0, .45); transform: rotate(var(--tilt, 0deg)); }
-
-    /* 5 · Museum gallery: clean warm wall under spotlights */
-    body.bg-5 { --base: #f3efe7; --ink: #1d1a16; --muted: #6f675b; --line: #2a2520; --card: #fff; --card-line: rgba(0, 0, 0, .12); --pop: #fff; }
-    .bg-5 .backdrop { background:
-      radial-gradient(ellipse 30% 55% at 20% -5%, rgba(255, 244, 220, .9), transparent 70%),
-      radial-gradient(ellipse 30% 55% at 50% -5%, rgba(255, 244, 220, .9), transparent 70%),
-      radial-gradient(ellipse 30% 55% at 80% -5%, rgba(255, 244, 220, .9), transparent 70%),
-      linear-gradient(#ece6da, #f6f2ea 30%, #e9e3d7); }
-    .bg-5 .card { box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }
+    button { background: rgba(255, 248, 230, .5); }
 
     /* ---------- Header and controls ---------- */
     .top { position: fixed; top: 0; left: 0; right: 0; z-index: 8; display: flex; align-items: center; gap: 18px; padding: 14px 20px; pointer-events: none; }
-    .bg-1 .top { left: 44px; right: 44px; }
     .top > * { pointer-events: auto; }
     .back { text-decoration: none; font-size: 17px; opacity: .8; }
     .back:hover { opacity: 1; }
@@ -81,17 +35,9 @@
     .hint { font-size: 15px; color: var(--muted); font-style: italic; }
     .spacer { flex: 1; }
     .zoom { display: flex; gap: 6px; }
-    button { font: inherit; color: var(--ink); background: var(--card, transparent); border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
-    .bg-1 button { background: rgba(255, 248, 230, .5); }
+    button { font: inherit; color: var(--ink); border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
     .zoom button { width: 34px; height: 34px; font-size: 20px; line-height: 1; padding: 0; }
     .zoom button.fit { width: auto; padding: 0 10px; font-size: 15px; }
-    .bg-4 .zoom button { color: var(--card-ink); }
-
-    .picker { position: fixed; left: 50%; top: 60px; transform: translateX(-50%); z-index: 8; display: flex; gap: 4px; align-items: center;
-      font-size: 14px; padding: 4px; border-radius: 8px; background: rgba(0, 0, 0, .55); color: #fff; }
-    .picker span { padding: 0 8px; opacity: .8; }
-    .picker button { color: #fff; background: transparent; border: 1px solid rgba(255, 255, 255, .25); padding: 4px 10px; font-size: 14px; }
-    .picker button.on { background: #fff; color: #111; }
 
     /* ---------- Timeline ---------- */
     .stage { position: fixed; left: 0; right: 0; top: 0; bottom: 0; overflow: hidden; touch-action: none; cursor: grab; }
@@ -106,8 +52,8 @@
     .dot { position: absolute; width: 9px; height: 9px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--line); }
     .range { position: absolute; height: 6px; margin-top: -3px; border-radius: 3px; background: var(--line); opacity: .55; }
     .card { position: absolute; max-width: 210px; padding: 6px 10px 7px; border-radius: 4px; cursor: pointer;
-      background: var(--card); border: 1px solid var(--card-line); color: var(--card-ink, var(--ink)); }
-    .card .y { font-size: 13px; color: var(--card-muted, var(--muted)); letter-spacing: .03em; }
+      background: var(--card); border: 1px solid var(--card-line); color: var(--ink); }
+    .card .y { font-size: 13px; color: var(--muted); letter-spacing: .03em; }
     .card .t { font-size: 17px; line-height: 1.15; }
     .card.p1 .t { font-size: 19px; font-weight: 600; }
     .card:hover { outline: 2px solid var(--line); outline-offset: 1px; }
@@ -115,13 +61,12 @@
     /* Overview strip */
     .mini { position: fixed; left: 20px; right: 20px; bottom: 14px; height: 26px; z-index: 7; border-radius: 4px; overflow: hidden; cursor: pointer;
       border: 1px solid var(--line); touch-action: none; }
-    .bg-1 .mini { left: 64px; right: 64px; }
     .mini i { position: absolute; top: 0; bottom: 0; }
     .mini .win { position: absolute; top: -1px; bottom: -1px; border: 2px solid var(--ink); border-radius: 3px; background: rgba(255, 255, 255, .12); }
 
     /* Event detail */
     .pop { position: fixed; left: 50%; bottom: 56px; transform: translateX(-50%); z-index: 9; width: min(520px, calc(100vw - 32px)); box-sizing: border-box;
-      padding: 16px 20px 18px; border-radius: 8px; background: var(--pop); color: var(--pop-ink, var(--ink)); border: 1px solid var(--line);
+      padding: 16px 20px 18px; border-radius: 8px; background: var(--pop); color: var(--ink); border: 1px solid var(--line);
       box-shadow: 0 10px 40px rgba(0, 0, 0, .35); display: none; user-select: text; -webkit-user-select: text; }
     .pop.on { display: block; }
     .pop .y { font-size: 15px; opacity: .7; }
@@ -132,19 +77,11 @@
     @media (max-width: 700px) {
       .hint { display: none; }
       h1 { font-size: 26px; }
-      .picker { top: 58px; font-size: 12px; }
-      .picker span { display: none; }
-      .picker button { padding: 4px 7px; font-size: 12px; }
-      .bg-1 .stage { left: 22px; right: 22px; }
-      .roller { width: 22px; }
-      .bg-1 .top { left: 22px; right: 22px; }
-      .bg-1 .mini { left: 36px; right: 36px; }
     }
   </style>
 </head>
-<body class="bg-1">
-  <div class="backdrop"><canvas id="sky"></canvas></div>
-  <div class="rollers"><div class="roller l"></div><div class="roller r"></div></div>
+<body>
+  <div class="backdrop"></div>
 
   <div class="stage" id="stage"></div>
 
@@ -156,7 +93,6 @@
     <div class="zoom"><button id="zout" aria-label="Zoom out">−</button><button id="zin" aria-label="Zoom in">+</button><button id="zfit" class="fit">All</button></div>
   </div>
 
-  <div class="picker" id="picker"><span>Background</span></div>
   <div class="mini" id="mini"></div>
   <div class="pop" id="pop"><button class="x" aria-label="Close">×</button><div class="y"></div><h2></h2><p></p></div>
 
@@ -277,9 +213,8 @@
       el.innerHTML = `<b>${name}</b>`; stage.appendChild(el); return el;
     });
     const tickPool = [];
-    EVENTS.forEach((e, i) => {
+    EVENTS.forEach(e => {
       e.card = document.createElement("div"); e.card.className = `card p${e.p}`;
-      e.card.style.setProperty("--tilt", `${((i * 37) % 5 - 2) * .6}deg`);
       e.card.innerHTML = `<div class="y">${when(e)}</div><div class="t">${e.t}</div>`;
       e.stem = document.createElement("div"); e.stem.className = "stem";
       e.dot = document.createElement("div"); e.dot.className = e.e ? "range" : "dot";
@@ -408,45 +343,15 @@
     }
     pop.querySelector(".x").onclick = () => pop.classList.remove("on");
 
-    // Night sky: stars and dune silhouettes, drawn to fit the window
-    function drawSky() {
-      const c = $("#sky"), dpr = devicePixelRatio || 1, w = innerWidth, h = innerHeight;
-      c.width = w * dpr; c.height = h * dpr; const g = c.getContext("2d"); g.scale(dpr, dpr);
-      let s = 7; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
-      for (let i = 0; i < w * h / 2200; i++) {
-        const x = rnd() * w, y = rnd() * h * .8, r = rnd() < .06 ? 1.6 : rnd() * 1.1 + .2;
-        g.fillStyle = `rgba(255, ${235 + rnd() * 20 | 0}, ${200 + rnd() * 55 | 0}, ${.35 + rnd() * .65})`;
-        g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
-      }
-      [["#1a1420", .86, .05], ["#120d16", .92, .035]].forEach(([col, base, amp], j) => {
-        g.fillStyle = col; g.beginPath(); g.moveTo(0, h);
-        for (let x = 0; x <= w + 40; x += 40) g.lineTo(x, h * base - Math.sin(x / (230 + j * 90) + j * 2) * h * amp - Math.sin(x / 97) * h * amp * .3);
-        g.lineTo(w, h); g.fill();
-      });
-    }
-
-    // Background picker (temporary, for choosing a look)
-    const NAMES = ["Torah scroll", "Jerusalem stone", "Desert night", "Study table", "Museum gallery"];
-    const picker = $("#picker");
-    NAMES.forEach((name, i) => { const b = document.createElement("button"); b.textContent = `${i + 1} ${name}`; b.onclick = () => setBg(i + 1); picker.appendChild(b); });
-    function setBg(n) {
-      document.body.className = `bg-${n}`;
-      [...picker.querySelectorAll("button")].forEach((b, i) => b.classList.toggle("on", i === n - 1));
-      history.replaceState(null, "", `?bg=${n}`);
-      if (n === 3) drawSky();
-      resize();
-    }
-
     function resize() {
       const keep = W ? { mid: x0 + W / k / 2, span: W / k } : null;
       W = stage.clientWidth; H = stage.clientHeight;
       if (keep) { k = W / keep.span; x0 = keep.mid - keep.span / 2; } else { k = minK(); x0 = START; }
       clamp(); draw();
     }
-    addEventListener("resize", () => { if (document.body.classList.contains("bg-3")) drawSky(); resize(); });
+    addEventListener("resize", resize);
 
-    setBg(Math.min(5, Math.max(1, +new URLSearchParams(location.search).get("bg") || 1)));
-    measure(); draw();
+    resize(); measure(); draw();
     document.fonts.ready.then(() => { measure(); draw(); });
   </script>
 </body>
