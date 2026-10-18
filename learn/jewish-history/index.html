@@ -93,6 +93,15 @@
       75% { transform: perspective(500px) rotateY(-3deg) skewY(-.4deg) translateY(0); filter: brightness(1.01); }
     }
 
+    /* Birds: drawn inside the window's sky only, so they pass behind the window bars and the skyline.
+       The mask (assets/sky-mask.png) covers x 600-1360, y 60-320 of the 2000 x 1120 view. */
+    .sky { position: absolute; left: 30%; top: 5.357%; width: 38%; height: 23.214%; pointer-events: none; overflow: hidden; container-type: size;
+      -webkit-mask: url("/assets/sky-mask.png?v=2") 0 0 / 100% 100% no-repeat; mask: url("/assets/sky-mask.png?v=2") 0 0 / 100% 100% no-repeat; }
+    .bird { position: absolute; left: 0; top: 0; width: 3.1cqw; height: 1.55cqw; will-change: transform; }
+    .bird svg { display: block; width: 100%; height: 100%; overflow: visible; transform-origin: 50% 40%; animation: flap var(--f, .42s) ease-in-out infinite alternate; }
+    @keyframes flap { from { transform: scaleY(1); } to { transform: scaleY(-.35); } }
+    @media (prefers-reduced-motion: reduce) { .sky { display: none; } }
+
     /* Welcome text */
     /* Centred on the screen, big and heavy so it reads over the busy picture */
     .stage { container-type: inline-size; }
@@ -560,6 +569,38 @@
       const setBg = () => { f.style.backgroundImage = `url("${img.currentSrc || img.src}")`; };
       img.complete ? setBg() : img.addEventListener('load', setBg);
       stage.insertBefore(f, stage.querySelector('.spot'));
+    })();
+
+    // A small flock crosses the window's sky every 30 seconds, first time just after the welcome box goes
+    (() => {
+      const sky = document.createElement('div');
+      sky.className = 'sky';
+      stage.insertBefore(sky, stage.querySelector('.flame'));
+      const wing = '<svg viewBox="0 0 20 10" aria-hidden="true"><path d="M0 3 Q5 0 10 5 Q15 0 20 3 Q15 2.4 10 7 Q5 2.4 0 3Z" fill="#2c211a"/></svg>';
+      const rnd = (a, b) => a + Math.random() * (b - a);
+      function flock() {
+        const n = 6 + Math.floor(Math.random() * 4), ltr = Math.random() < .6;
+        const alt = rnd(28, 52), dur = rnd(9000, 12000);          // altitude in % of the sky box, crossing time
+        for (let i = 0; i < n; i++) {
+          const b = document.createElement('div');
+          b.className = 'bird';
+          b.innerHTML = wing;
+          b.firstChild.style.setProperty('--f', rnd(.32, .5).toFixed(2) + 's');
+          b.firstChild.style.animationDelay = -rnd(0, .5).toFixed(2) + 's';
+          sky.appendChild(b);
+          // loose V: each bird trails the leader a little and sits a little higher or lower
+          const back = i * rnd(2.2, 3.4), side = (i % 2 ? 1 : -1) * Math.ceil(i / 2) * rnd(3, 5.5);
+          const y0 = alt + side * .9, wob = rnd(2, 5), sc = rnd(.75, 1.15);
+          const x0 = ltr ? -12 - back : 112 + back, x1 = ltr ? 112 - back : -12 + back;
+          const flip = ltr ? 1 : -1;
+          b.animate([
+            { transform: `translate(${x0}cqw, 0) translate(0, ${y0}cqh) scale(${flip * sc}, ${sc})` },
+            { transform: `translate(${(x0 + x1) / 2}cqw, 0) translate(0, ${y0 - wob}cqh) scale(${flip * sc}, ${sc})` },
+            { transform: `translate(${x1}cqw, 0) translate(0, ${y0 + wob / 2}cqh) scale(${flip * sc}, ${sc})` }
+          ], { duration: dur, delay: i * rnd(40, 160), easing: 'linear', fill: 'both' }).finished.then(() => b.remove());
+        }
+      }
+      setTimeout(() => { flock(); setInterval(flock, 30000); }, 4000);
     })();
 
     // Welcome text: shows at once, holds, then the whole box tips back until it's flat and edge-on, and is gone
