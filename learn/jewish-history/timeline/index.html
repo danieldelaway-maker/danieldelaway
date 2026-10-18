@@ -71,6 +71,7 @@
     .card .y { font-size: 13px; color: var(--muted); letter-spacing: .03em; }
     .card .t { font-size: 17px; line-height: 1.15; }
     .card.p1 .t { font-size: 19px; font-weight: 600; }
+    .card.flip { text-align: right; }
     .card:hover { outline: 2px solid var(--line); outline-offset: 1px; }
 
     /* Overview strip */
@@ -199,14 +200,36 @@
       { y: 1947, p: 3, t: "Dead Sea Scrolls found", d: "Shepherds find ancient scrolls in caves at Qumran, some over 2,000 years old." },
       { y: 1948, p: 1, t: "State of Israel", d: "David Ben-Gurion declares independence on 14 May. Five Arab armies invade the next day." },
       { y: 1949, e: 1950, p: 3, t: "Operation Magic Carpet", d: "Almost the whole Jewish community of Yemen is airlifted to Israel." },
+      { y: 1956, p: 3, t: "Suez Crisis", d: "Israel captures the Sinai with Britain and France, then withdraws under US and Soviet pressure." },
       { y: 1961, p: 3, t: "Eichmann trial", d: "Holocaust organiser Adolf Eichmann is tried in Jerusalem." },
       { y: 1967, p: 1, t: "Six-Day War", d: "Israel defeats three armies, and Jerusalem is reunited under Jewish rule." },
+      { y: 1972, p: 2, t: "Munich massacre", d: "Palestinian terrorists murder 11 Israeli athletes and coaches at the Munich Olympics." },
       { y: 1973, p: 2, t: "Yom Kippur War", d: "Egypt and Syria launch a surprise attack on the holiest day of the year." },
       { y: 1976, p: 3, t: "Entebbe raid", d: "Israeli commandos rescue hostages from a hijacked plane in Uganda." },
+      { y: 1977, p: 3, t: "Sadat visits Jerusalem", d: "Egypt's president Anwar Sadat flies to Jerusalem and speaks to the Knesset." },
       { y: 1979, p: 3, t: "Peace with Egypt", d: "Israel and Egypt sign a peace treaty." },
+      { y: 1981, p: 3, t: "Osirak strike", d: "Israeli jets destroy Iraq's nuclear reactor near Baghdad." },
+      { y: 1982, p: 3, t: "First Lebanon War", d: "Israel invades Lebanon to drive out the PLO." },
+      { y: 1984, e: 1985, p: 3, t: "Operation Moses", d: "Around 8,000 Ethiopian Jews are secretly airlifted to Israel from Sudan." },
+      { y: 1987, p: 3, t: "First Intifada", d: "A Palestinian uprising begins in Gaza and the West Bank and lasts until 1993." },
       { y: 1989, e: 1991, p: 2, t: "Soviet aliyah", d: "Hundreds of thousands of Soviet Jews move to Israel as the USSR collapses." },
       { y: 1991, p: 3, t: "Operation Solomon", d: "In 36 hours, Israel airlifts over 14,000 Ethiopian Jews." },
-      { y: 2023, p: 2, t: "7 October attack", d: "Hamas attacks southern Israel. It is the deadliest day for Jews since the Holocaust." }
+      { y: 1993, p: 2, t: "Oslo Accords", d: "Israel and the PLO sign a peace framework on the White House lawn." },
+      { y: 1994, p: 3, t: "Peace with Jordan", d: "Israel and Jordan sign a peace treaty." },
+      { y: 1995, p: 2, t: "Rabin assassinated", d: "Prime Minister Yitzhak Rabin is shot dead by a Jewish extremist after a peace rally in Tel Aviv." },
+      { y: 2000, p: 2, t: "Second Intifada", d: "Years of suicide bombings and fighting begin. Over 1,000 Israelis are killed by 2005." },
+      { y: 2005, p: 2, t: "Gaza disengagement", d: "Israel pulls all its soldiers and about 8,000 settlers out of Gaza." },
+      { y: 2005, p: 3, t: "Holocaust Remembrance Day", d: "The UN names 27 January, the day Auschwitz was liberated, as International Holocaust Remembrance Day." },
+      { y: 2006, p: 3, t: "Second Lebanon War", d: "A 34-day war with Hezbollah after it kills and kidnaps soldiers on the border." },
+      { y: 2011, p: 3, t: "Gilad Shalit freed", d: "A soldier held by Hamas for five years is exchanged for 1,027 prisoners." },
+      { y: 2014, p: 3, t: "Gaza war", d: "A 50-day war with Hamas after the kidnapping and murder of three Israeli teenagers." },
+      { y: 2018, p: 2, t: "Pittsburgh synagogue attack", d: "A gunman kills 11 worshippers at the Tree of Life synagogue, the deadliest antisemitic attack in US history." },
+      { y: 2018, p: 3, t: "US embassy in Jerusalem", d: "The United States moves its embassy to Jerusalem." },
+      { y: 2020, p: 2, t: "Abraham Accords", d: "Israel makes peace with the UAE and Bahrain, then Morocco and Sudan." },
+      { y: 2023, p: 1, t: "7 October attack", d: "Hamas attacks southern Israel, murdering about 1,200 people and taking 251 hostages. It is the deadliest day for Jews since the Holocaust." },
+      { y: 2023, e: 2025, p: 3, t: "War in Gaza", d: "Israel goes to war against Hamas in Gaza, while also fighting Hezbollah in Lebanon." },
+      { y: 2025, p: 3, t: "Twelve-Day War with Iran", d: "In June, Israel and the US strike Iran's nuclear sites. Iran fires hundreds of missiles at Israel." },
+      { y: 2025, p: 2, t: "Hostages come home", d: "Under a ceasefire, the last 20 living hostages return to Israel on 13 October." }
     ];
 
     const $ = s => document.querySelector(s);
@@ -297,6 +320,7 @@
         e.lane.used.push([l, r]);
         const L = e.lane, top = L.up ? axisY - BAND / 2 - 14 - L.i * LANE - e.h : belowTop + L.i * LANE;
         Object.assign(e.card.style, { display: "", left: (flip ? x - e.w + 1 : x - 1) + "px", top: top + "px" });
+        e.card.classList.toggle("flip", flip);
         Object.assign(e.stem.style, { display: "", left: x + "px", top: (L.up ? top + e.h : axisY) + "px", height: (L.up ? axisY - top - e.h : top - axisY) + "px" });
         Object.assign(e.dot.style, { display: "", left: x + (e.e ? 0 : 0) + "px", top: axisY + "px", width: e.e ? Math.max(9, xe - x) + "px" : "" });
       }
