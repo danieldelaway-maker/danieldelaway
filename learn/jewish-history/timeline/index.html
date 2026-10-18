@@ -6,13 +6,448 @@
   <title>Timeline · Jewish History</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap">
   <style>
-    body { margin: 0; padding: 32px 16px; font-family: system-ui, -apple-system, sans-serif; background: #fff; color: #111; }
+    /* Kanisah by Gunarta (freeware, fontspace.com/kanisah-font-f22290): Hebrew-style Latin letters */
+    @font-face { font-family: "Kanisah"; src: url("/assets/fonts/kanisah.ttf") format("truetype"); font-display: swap; }
+
+    html, body { margin: 0; height: 100%; overflow: hidden; }
+    body { font-family: "EB Garamond", Georgia, serif; color: var(--ink); background: var(--base);
+      -webkit-font-smoothing: antialiased; user-select: none; -webkit-user-select: none; }
     a { color: inherit; }
+
+    /* ---------- Backgrounds (temporary picker: ?bg=1..5) ---------- */
+    .backdrop { position: fixed; inset: 0; pointer-events: none; }
+    .backdrop canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: none; }
+    .rollers { display: none; }
+
+    /* 1 · Torah scroll: aged parchment between two wooden rollers */
+    body.bg-1 { --base: #e8d6ae; --ink: #3a2612; --muted: #7a5a36; --line: #6b4a26; --card: transparent; --card-line: transparent; --pop: #fbf1da; }
+    .bg-1 .backdrop { background:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .35 0 0 0 0 .22 0 0 0 0 .08 0 0 0 .28 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='900'><filter id='m'><feTurbulence type='fractalNoise' baseFrequency='.006' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .45 0 0 0 0 .3 0 0 0 0 .12 0 0 0 .35 0'/></filter><rect width='100%' height='100%' filter='url(%23m)'/></svg>"),
+      radial-gradient(ellipse at center, #efdfbb 40%, #d7bd8a 100%); }
+    .bg-1 .rollers { display: block; }
+    .roller { position: fixed; top: -10px; bottom: -10px; width: 44px; z-index: 6; pointer-events: none;
+      background: linear-gradient(90deg, #2a170a, #6b4220 22%, #a9733f 45%, #7a4b24 70%, #2a170a);
+      box-shadow: 0 0 18px rgba(40, 20, 5, .55); }
+    .roller.l { left: 0; } .roller.r { right: 0; }
+    .roller::before, .roller::after { content: ""; position: absolute; left: -6px; right: -6px; height: 34px; border-radius: 8px;
+      background: linear-gradient(90deg, #3b230f, #c99a5b 45%, #5a3518); }
+    .roller::before { top: 0; } .roller::after { bottom: 0; }
+    .bg-1 .stage { left: 44px; right: 44px; }
+
+    /* 2 · Jerusalem stone: Herodian-style blocks with drafted margins */
+    body.bg-2 { --base: #d8c49a; --ink: #33240f; --muted: #6e5634; --line: #5b4425; --card: rgba(250, 242, 222, .86); --card-line: rgba(110, 86, 52, .45); --pop: #faf2de; }
+    .bg-2 .backdrop { background:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .3 0 0 0 0 .22 0 0 0 0 .1 0 0 0 .32 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='480' height='200'><g stroke='%23a48a60' stroke-width='3'><rect x='0' y='0' width='200' height='100' fill='%23e0cda4'/><rect x='200' y='0' width='160' height='100' fill='%23d6c094'/><rect x='360' y='0' width='120' height='100' fill='%23e3d3ad'/><rect x='0' y='100' width='100' height='100' fill='%23d3bd90'/><rect x='100' y='100' width='220' height='100' fill='%23e1cfa7'/><rect x='320' y='100' width='160' height='100' fill='%23d9c59b'/></g><g fill='%23000' fill-opacity='.05'><rect x='10' y='10' width='180' height='80'/><rect x='210' y='10' width='140' height='80'/><rect x='370' y='10' width='100' height='80'/><rect x='10' y='110' width='80' height='80'/><rect x='110' y='110' width='200' height='80'/><rect x='330' y='110' width='140' height='80'/></g></svg>"),
+      #d8c49a;
+      box-shadow: inset 0 0 160px rgba(80, 55, 20, .35); }
+
+    /* 3 · Desert night: stars over the dunes ("count the stars", Genesis 15) */
+    body.bg-3 { --base: #0b1024; --ink: #f2e6c8; --muted: #b9ab8a; --line: #c9a961; --card: rgba(9, 13, 32, .72); --card-line: rgba(201, 169, 97, .5); --pop: #121935; }
+    .bg-3 .backdrop { background: linear-gradient(#050817 0%, #0d1530 55%, #2a2340 82%, #4a3426 100%); }
+    .bg-3 .backdrop canvas { display: block; }
+
+    /* 4 · Study table: dark wood under candlelight, events on paper slips */
+    body.bg-4 { --base: #2c1a0d; --ink: #f1e2c2; --muted: #cdb48a; --line: #d9b77a; --card: #ecdcb6; --card-ink: #33220f; --card-muted: #7a5a36; --card-line: rgba(0, 0, 0, .25); --pop: #f2e4c2; --pop-ink: #33220f; }
+    .bg-4 .backdrop { background:
+      radial-gradient(ellipse 55% 45% at 18% 12%, rgba(255, 190, 100, .28), transparent 70%),
+      radial-gradient(ellipse 45% 40% at 85% 20%, rgba(255, 170, 80, .18), transparent 70%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='400'><filter id='w'><feTurbulence type='fractalNoise' baseFrequency='.0025 .11' numOctaves='4' seed='4' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .1 0 0 0 0 .05 0 0 0 0 .01 0 0 0 .7 0'/></filter><rect width='100%' height='100%' filter='url(%23w)'/></svg>"),
+      linear-gradient(#4a2c15, #3a2210);
+      box-shadow: inset 0 0 220px rgba(0, 0, 0, .7); }
+    .bg-4 .card { box-shadow: 0 3px 8px rgba(0, 0, 0, .45); transform: rotate(var(--tilt, 0deg)); }
+
+    /* 5 · Museum gallery: clean warm wall under spotlights */
+    body.bg-5 { --base: #f3efe7; --ink: #1d1a16; --muted: #6f675b; --line: #2a2520; --card: #fff; --card-line: rgba(0, 0, 0, .12); --pop: #fff; }
+    .bg-5 .backdrop { background:
+      radial-gradient(ellipse 30% 55% at 20% -5%, rgba(255, 244, 220, .9), transparent 70%),
+      radial-gradient(ellipse 30% 55% at 50% -5%, rgba(255, 244, 220, .9), transparent 70%),
+      radial-gradient(ellipse 30% 55% at 80% -5%, rgba(255, 244, 220, .9), transparent 70%),
+      linear-gradient(#ece6da, #f6f2ea 30%, #e9e3d7); }
+    .bg-5 .card { box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }
+
+    /* ---------- Header and controls ---------- */
+    .top { position: fixed; top: 0; left: 0; right: 0; z-index: 8; display: flex; align-items: center; gap: 18px; padding: 14px 20px; pointer-events: none; }
+    .bg-1 .top { left: 44px; right: 44px; }
+    .top > * { pointer-events: auto; }
+    .back { text-decoration: none; font-size: 17px; opacity: .8; }
+    .back:hover { opacity: 1; }
+    h1 { font-family: "Kanisah", "EB Garamond", serif; font-weight: 400; font-size: 34px; margin: 0; letter-spacing: .02em; }
+    .hint { font-size: 15px; color: var(--muted); font-style: italic; }
+    .spacer { flex: 1; }
+    .zoom { display: flex; gap: 6px; }
+    button { font: inherit; color: var(--ink); background: var(--card, transparent); border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
+    .bg-1 button { background: rgba(255, 248, 230, .5); }
+    .zoom button { width: 34px; height: 34px; font-size: 20px; line-height: 1; padding: 0; }
+    .zoom button.fit { width: auto; padding: 0 10px; font-size: 15px; }
+    .bg-4 .zoom button { color: var(--card-ink); }
+
+    .picker { position: fixed; left: 50%; top: 60px; transform: translateX(-50%); z-index: 8; display: flex; gap: 4px; align-items: center;
+      font-size: 14px; padding: 4px; border-radius: 8px; background: rgba(0, 0, 0, .55); color: #fff; }
+    .picker span { padding: 0 8px; opacity: .8; }
+    .picker button { color: #fff; background: transparent; border: 1px solid rgba(255, 255, 255, .25); padding: 4px 10px; font-size: 14px; }
+    .picker button.on { background: #fff; color: #111; }
+
+    /* ---------- Timeline ---------- */
+    .stage { position: fixed; left: 0; right: 0; top: 0; bottom: 0; overflow: hidden; touch-action: none; cursor: grab; }
+    .stage.dragging { cursor: grabbing; }
+    .axis { position: absolute; left: 0; right: 0; height: 2px; background: var(--line); opacity: .8; }
+    .era { position: absolute; height: 30px; overflow: hidden; white-space: nowrap; border-left: 1px solid var(--line);
+      font-size: 14px; letter-spacing: .06em; text-transform: uppercase; line-height: 30px; }
+    .era b { position: absolute; top: 0; font-weight: 600; }
+    .tick { position: absolute; width: 1px; height: 8px; background: var(--line); opacity: .7; }
+    .tlabel { position: absolute; font-size: 14px; color: var(--muted); transform: translateX(-50%); white-space: nowrap; }
+    .stem { position: absolute; width: 1px; background: var(--line); opacity: .65; }
+    .dot { position: absolute; width: 9px; height: 9px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--line); }
+    .range { position: absolute; height: 6px; margin-top: -3px; border-radius: 3px; background: var(--line); opacity: .55; }
+    .card { position: absolute; max-width: 210px; padding: 6px 10px 7px; border-radius: 4px; cursor: pointer;
+      background: var(--card); border: 1px solid var(--card-line); color: var(--card-ink, var(--ink)); }
+    .card .y { font-size: 13px; color: var(--card-muted, var(--muted)); letter-spacing: .03em; }
+    .card .t { font-size: 17px; line-height: 1.15; }
+    .card.p1 .t { font-size: 19px; font-weight: 600; }
+    .card:hover { outline: 2px solid var(--line); outline-offset: 1px; }
+
+    /* Overview strip */
+    .mini { position: fixed; left: 20px; right: 20px; bottom: 14px; height: 26px; z-index: 7; border-radius: 4px; overflow: hidden; cursor: pointer;
+      border: 1px solid var(--line); touch-action: none; }
+    .bg-1 .mini { left: 64px; right: 64px; }
+    .mini i { position: absolute; top: 0; bottom: 0; }
+    .mini .win { position: absolute; top: -1px; bottom: -1px; border: 2px solid var(--ink); border-radius: 3px; background: rgba(255, 255, 255, .12); }
+
+    /* Event detail */
+    .pop { position: fixed; left: 50%; bottom: 56px; transform: translateX(-50%); z-index: 9; width: min(520px, calc(100vw - 32px)); box-sizing: border-box;
+      padding: 16px 20px 18px; border-radius: 8px; background: var(--pop); color: var(--pop-ink, var(--ink)); border: 1px solid var(--line);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, .35); display: none; user-select: text; -webkit-user-select: text; }
+    .pop.on { display: block; }
+    .pop .y { font-size: 15px; opacity: .7; }
+    .pop h2 { font-size: 26px; margin: 2px 0 8px; font-weight: 600; line-height: 1.1; }
+    .pop p { margin: 0; font-size: 18px; line-height: 1.4; }
+    .pop .x { position: absolute; top: 8px; right: 10px; border: 0; background: none; font-size: 24px; color: inherit; }
+
+    @media (max-width: 700px) {
+      .hint { display: none; }
+      h1 { font-size: 26px; }
+      .picker { top: 58px; font-size: 12px; }
+      .picker span { display: none; }
+      .picker button { padding: 4px 7px; font-size: 12px; }
+      .bg-1 .stage { left: 22px; right: 22px; }
+      .roller { width: 22px; }
+      .bg-1 .top { left: 22px; right: 22px; }
+      .bg-1 .mini { left: 36px; right: 36px; }
+    }
   </style>
 </head>
-<body>
-  <a href="/learn/jewish-history/">← Back</a>
-  <h1>Timeline</h1>
+<body class="bg-1">
+  <div class="backdrop"><canvas id="sky"></canvas></div>
+  <div class="rollers"><div class="roller l"></div><div class="roller r"></div></div>
+
+  <div class="stage" id="stage"></div>
+
+  <div class="top">
+    <a class="back" href="/learn/jewish-history/">← Back</a>
+    <h1>Timeline</h1>
+    <span class="hint">Scroll or pinch to zoom · drag to move · tap an event</span>
+    <span class="spacer"></span>
+    <div class="zoom"><button id="zout" aria-label="Zoom out">−</button><button id="zin" aria-label="Zoom in">+</button><button id="zfit" class="fit">All</button></div>
+  </div>
+
+  <div class="picker" id="picker"><span>Background</span></div>
+  <div class="mini" id="mini"></div>
+  <div class="pop" id="pop"><button class="x" aria-label="Close">×</button><div class="y"></div><h2></h2><p></p></div>
+
+  <script>
+    // Years: negative = BCE. c: circa. e: end year (draws a bar). p: 1 always shown, 2 shown when room, 3 only when zoomed in.
+    const START = -2000, END = 2030;
+
+    const ERAS = [
+      [-1800, -1600, "Patriarchs"], [-1600, -1280, "Egypt"], [-1280, -1200, "Wilderness"], [-1200, -1050, "Judges"],
+      [-1050, -930, "United Kingdom"], [-930, -586, "Two Kingdoms"], [-586, -538, "Exile"], [-538, -332, "Persian Period"],
+      [-332, -167, "Greek Period"], [-167, -63, "Hasmoneans"], [-63, 70, "Roman Rule"], [70, 640, "Mishnah & Talmud"],
+      [640, 1096, "Geonim & Golden Age"], [1096, 1492, "Medieval Europe"], [1492, 1789, "Early Modern"], [1789, 1881, "Emancipation"],
+      [1881, 1933, "Migration & Zionism"], [1933, 1945, "Holocaust"], [1948, END, "State of Israel"]
+    ];
+
+    const EVENTS = [
+      { y: -1800, c: 1, p: 1, t: "Abraham's covenant", d: "Abraham leaves Mesopotamia for Canaan. Tradition sees his covenant with God as the start of the Jewish people." },
+      { y: -1650, c: 1, p: 2, t: "Jacob's family goes to Egypt", d: "Facing famine, Jacob and his sons settle in Egypt, where Joseph has risen to power." },
+      { y: -1280, c: 1, p: 1, t: "The Exodus", d: "Moses leads the Israelites out of slavery in Egypt. Remembered every year at Passover." },
+      { y: -1270, c: 1, p: 2, t: "Torah given at Sinai", d: "At Mount Sinai the Israelites receive the Ten Commandments and the Torah. Remembered at Shavuot." },
+      { y: -1208, p: 2, t: "Merneptah Stele", d: "An Egyptian victory stone names \"Israel\". It's the oldest known mention of Israel outside the Bible." },
+      { y: -1200, c: 1, p: 3, t: "Joshua enters Canaan", d: "After forty years in the wilderness, the tribes cross the Jordan into the land." },
+      { y: -1050, c: 1, p: 2, t: "Saul, the first king", d: "The tribes ask for a king, and the prophet Samuel anoints Saul." },
+      { y: -1000, c: 1, p: 1, t: "David takes Jerusalem", d: "King David captures Jerusalem and makes it his capital." },
+      { y: -957, c: 1, p: 1, t: "First Temple built", d: "King Solomon completes the Temple in Jerusalem." },
+      { y: -930, c: 1, p: 1, t: "The kingdom splits", d: "After Solomon dies, the kingdom divides: Israel in the north, Judah in the south." },
+      { y: -870, c: 1, p: 3, t: "Elijah the prophet", d: "Elijah challenges King Ahab and the worship of Baal in the northern kingdom." },
+      { y: -740, c: 1, p: 3, t: "Isaiah's prophecies", d: "Isaiah begins prophesying in Jerusalem, including his vision of swords beaten into ploughshares." },
+      { y: -722, p: 1, t: "Assyria destroys Israel", d: "Assyria conquers the northern kingdom and deports its people. They become the \"ten lost tribes\"." },
+      { y: -701, p: 2, t: "Siege of Jerusalem", d: "Sennacherib of Assyria besieges Jerusalem. King Hezekiah's water tunnel helps the city hold out." },
+      { y: -622, p: 3, t: "Josiah's reforms", d: "A Torah scroll is found in the Temple, and King Josiah leads a religious revival." },
+      { y: -586, p: 1, t: "First Temple destroyed", d: "Babylon destroys Jerusalem and the Temple and exiles much of Judah. Mourned on Tisha B'Av." },
+      { y: -538, p: 1, t: "Cyrus lets the exiles return", d: "Persia's King Cyrus allows the Jews to go home and rebuild the Temple." },
+      { y: -516, p: 1, t: "Second Temple dedicated", d: "The rebuilt Temple is dedicated in Jerusalem." },
+      { y: -480, c: 1, p: 3, t: "The story of Esther", d: "In Persia, Queen Esther saves the Jews from Haman's plot. Celebrated at Purim." },
+      { y: -458, c: 1, p: 2, t: "Ezra reads the Torah", d: "Ezra the scribe brings the Torah back to Jerusalem and reads it to the people." },
+      { y: -332, p: 2, t: "Alexander the Great", d: "Alexander conquers the land, and Greek culture spreads across it." },
+      { y: -250, c: 1, p: 3, t: "The Septuagint", d: "In Alexandria the Torah is translated into Greek, the first major translation of the Bible." },
+      { y: -167, p: 2, t: "Maccabean revolt", d: "King Antiochus IV bans Judaism. The Maccabees rise up against him." },
+      { y: -164, p: 1, t: "Temple rededicated", d: "The Maccabees retake Jerusalem and rededicate the Temple. Celebrated at Hanukkah." },
+      { y: -63, p: 2, t: "Rome takes Jerusalem", d: "The Roman general Pompey captures Jerusalem, and Judea falls under Roman control." },
+      { y: -37, p: 2, t: "Herod the Great", d: "Herod becomes king of Judea under Rome. He later rebuilds the Temple on a huge scale, including the Western Wall." },
+      { y: -30, c: 1, p: 3, t: "Hillel and Shammai", d: "Two great sages whose schools shape Jewish law for centuries." },
+      { y: 66, e: 73, p: 2, t: "Great Revolt", d: "Judea revolts against Rome. The revolt ends with the fall of Masada in 73 CE." },
+      { y: 70, p: 1, t: "Second Temple destroyed", d: "Rome destroys Jerusalem and the Temple. Judaism carries on through prayer, study and the synagogue." },
+      { y: 132, e: 135, p: 1, t: "Bar Kokhba revolt", d: "A last great revolt against Rome is crushed. Jews are banned from Jerusalem." },
+      { y: 200, c: 1, p: 1, t: "The Mishnah", d: "Rabbi Judah the Prince writes down the Oral Law as the Mishnah." },
+      { y: 400, c: 1, p: 3, t: "Jerusalem Talmud", d: "The sages of the Galilee complete the Jerusalem Talmud." },
+      { y: 500, c: 1, p: 1, t: "Babylonian Talmud", d: "The Babylonian Talmud is completed. It becomes the core text of Jewish law and study." },
+      { y: 638, p: 2, t: "Jews return to Jerusalem", d: "After the Arab conquest, Jews are allowed to live in Jerusalem again." },
+      { y: 930, c: 1, p: 3, t: "Aleppo Codex", d: "The most accurate early manuscript of the Hebrew Bible is written in Tiberias." },
+      { y: 950, c: 1, p: 2, t: "Golden Age in Spain", d: "Under Muslim rule in Spain, Jewish poetry, philosophy and science flourish." },
+      { y: 1040, p: 2, t: "Rashi is born", d: "Rashi of Troyes writes the commentary on the Torah and Talmud that is still studied everywhere." },
+      { y: 1096, p: 2, t: "First Crusade", d: "Crusaders massacre the Jewish communities of the Rhineland." },
+      { y: 1138, p: 2, t: "Maimonides is born", d: "The philosopher, doctor and legal scholar who writes the Mishneh Torah and the Guide for the Perplexed." },
+      { y: 1144, p: 3, t: "First blood libel", d: "In Norwich, England, Jews are falsely accused of ritual murder. The lie spreads across Europe." },
+      { y: 1215, p: 3, t: "Jewish badge", d: "The Church orders Jews to wear clothing that marks them out." },
+      { y: 1290, p: 2, t: "Expelled from England", d: "Edward I expels all Jews from England. They're not formally readmitted until 1656." },
+      { y: 1306, p: 3, t: "Expelled from France", d: "Philip IV expels the Jews of France and seizes their property." },
+      { y: 1348, p: 2, t: "Black Death massacres", d: "Jews are blamed for the plague, and hundreds of communities are destroyed." },
+      { y: 1391, p: 3, t: "Riots in Spain", d: "Mobs attack Jewish communities across Spain, and many Jews are forced to convert." },
+      { y: 1475, p: 3, t: "First Hebrew printed book", d: "Rashi's commentary on the Torah is printed in Reggio di Calabria, Italy." },
+      { y: 1492, p: 1, t: "Expelled from Spain", d: "Ferdinand and Isabella expel every Jew who won't convert. Many go to the Ottoman Empire." },
+      { y: 1497, p: 3, t: "Forced conversion in Portugal", d: "The Jews of Portugal are forcibly converted." },
+      { y: 1516, p: 2, t: "First ghetto, Venice", d: "Venice walls its Jews into the Ghetto, giving the word to the world." },
+      { y: 1565, p: 2, t: "Shulchan Aruch printed", d: "Joseph Karo's code of Jewish law is printed. It is still the standard guide." },
+      { y: 1570, p: 3, t: "Luria in Safed", d: "Isaac Luria arrives in Safed, which becomes the centre of Kabbalah." },
+      { y: 1648, p: 2, t: "Khmelnytsky massacres", d: "Cossack uprisings in Ukraine destroy hundreds of Jewish communities." },
+      { y: 1654, p: 2, t: "First Jews in America", d: "23 Jews from Brazil arrive in New Amsterdam, later New York." },
+      { y: 1665, p: 3, t: "Shabbetai Tzvi", d: "A self-proclaimed messiah wins a huge following, then converts to Islam in 1666." },
+      { y: 1740, c: 1, p: 2, t: "Hasidism begins", d: "The Baal Shem Tov teaches joyful, heartfelt devotion in Eastern Europe." },
+      { y: 1783, p: 3, t: "The Haskalah", d: "Moses Mendelssohn publishes \"Jerusalem\", and the Jewish Enlightenment gathers pace." },
+      { y: 1791, p: 2, t: "Citizenship in France", d: "France becomes the first European country to grant Jews full citizenship." },
+      { y: 1840, p: 3, t: "Damascus affair", d: "A blood libel in Damascus leads to an international Jewish campaign for justice." },
+      { y: 1860, p: 3, t: "Outside the Old City walls", d: "Mishkenot Sha'ananim becomes the first Jewish neighbourhood outside Jerusalem's walls." },
+      { y: 1881, p: 2, t: "Pogroms in Russia", d: "Waves of violence push millions of Jews to emigrate, mostly to America." },
+      { y: 1882, p: 3, t: "First Aliyah", d: "The first modern wave of Jewish immigrants to the Land of Israel." },
+      { y: 1894, p: 2, t: "Dreyfus affair", d: "A Jewish officer is falsely convicted of treason in France." },
+      { y: 1897, p: 1, t: "First Zionist Congress", d: "Theodor Herzl gathers the Zionist movement in Basel to seek a Jewish homeland." },
+      { y: 1909, p: 3, t: "Tel Aviv founded", d: "Families draw lots for plots on the sand dunes outside Jaffa." },
+      { y: 1917, p: 2, t: "Balfour Declaration", d: "Britain backs \"a national home for the Jewish people\" in Palestine." },
+      { y: 1933, p: 2, t: "Nazis take power", d: "Hitler becomes chancellor of Germany, and persecution of Jews begins at once." },
+      { y: 1938, p: 3, t: "Kristallnacht", d: "Synagogues, shops and homes are attacked across Germany and Austria." },
+      { y: 1941, e: 1945, p: 1, t: "The Holocaust", d: "Nazi Germany and its collaborators murder six million Jews." },
+      { y: 1943, p: 3, t: "Warsaw Ghetto Uprising", d: "Jewish fighters hold out against the Germans for nearly a month." },
+      { y: 1947, p: 3, t: "Dead Sea Scrolls found", d: "Shepherds find ancient scrolls in caves at Qumran, some over 2,000 years old." },
+      { y: 1948, p: 1, t: "State of Israel", d: "David Ben-Gurion declares independence on 14 May. Five Arab armies invade the next day." },
+      { y: 1949, e: 1950, p: 3, t: "Operation Magic Carpet", d: "Almost the whole Jewish community of Yemen is airlifted to Israel." },
+      { y: 1961, p: 3, t: "Eichmann trial", d: "Holocaust organiser Adolf Eichmann is tried in Jerusalem." },
+      { y: 1967, p: 1, t: "Six-Day War", d: "Israel defeats three armies, and Jerusalem is reunited under Jewish rule." },
+      { y: 1973, p: 2, t: "Yom Kippur War", d: "Egypt and Syria launch a surprise attack on the holiest day of the year." },
+      { y: 1976, p: 3, t: "Entebbe raid", d: "Israeli commandos rescue hostages from a hijacked plane in Uganda." },
+      { y: 1979, p: 3, t: "Peace with Egypt", d: "Israel and Egypt sign a peace treaty." },
+      { y: 1989, e: 1991, p: 2, t: "Soviet aliyah", d: "Hundreds of thousands of Soviet Jews move to Israel as the USSR collapses." },
+      { y: 1991, p: 3, t: "Operation Solomon", d: "In 36 hours, Israel airlifts over 14,000 Ethiopian Jews." },
+      { y: 2023, p: 2, t: "7 October attack", d: "Hamas attacks southern Israel. It is the deadliest day for Jews since the Holocaust." }
+    ];
+
+    const $ = s => document.querySelector(s);
+    const stage = $("#stage"), mini = $("#mini"), pop = $("#pop");
+    const fmt = y => y < 0 ? `${-y} BCE` : y < 1000 ? `${y} CE` : `${y}`;
+    const when = e => (e.c ? "c. " : "") + (e.e ? `${fmt(e.y).replace(/ (BCE|CE)$/, (e.y < 0) === (e.e < 0) ? "" : " $1")}–${fmt(e.e)}` : fmt(e.y));
+
+    let W = 0, H = 0, k = 1, x0 = START;
+    const minK = () => W / (END - START);
+    const X = y => (y - x0) * k;
+    function clamp() {
+      k = Math.max(minK(), Math.min(400, k));
+      x0 = Math.max(START, Math.min(END - W / k, x0));
+    }
+    function zoomAt(px, f) { const y = x0 + px / k; k *= f; clamp(); x0 = y - px / k; clamp(); }
+
+    // Build every element once; draw() only moves and shows/hides them.
+    const axis = document.createElement("div"); axis.className = "axis"; stage.appendChild(axis);
+    const eraEls = ERAS.map(([a, b, name], i) => {
+      const el = document.createElement("div"); el.className = "era";
+      el.style.background = `hsla(${[32, 12, 200, 95, 45, 270][i % 6]}, 45%, 50%, .22)`;
+      el.innerHTML = `<b>${name}</b>`; stage.appendChild(el); return el;
+    });
+    const tickPool = [];
+    EVENTS.forEach((e, i) => {
+      e.card = document.createElement("div"); e.card.className = `card p${e.p}`;
+      e.card.style.setProperty("--tilt", `${((i * 37) % 5 - 2) * .6}deg`);
+      e.card.innerHTML = `<div class="y">${when(e)}</div><div class="t">${e.t}</div>`;
+      e.stem = document.createElement("div"); e.stem.className = "stem";
+      e.dot = document.createElement("div"); e.dot.className = e.e ? "range" : "dot";
+      stage.append(e.stem, e.dot, e.card);
+      e.card.addEventListener("click", ev => { if (!moved) open(e); ev.stopPropagation(); });
+    });
+    // Measure at the left edge so cards near the right side don't get squeezed, then fix the width
+    function measure() {
+      EVENTS.forEach(e => { Object.assign(e.card.style, { display: "", left: "0px", width: "" }); });
+      EVENTS.forEach(e => { e.w = Math.ceil(e.card.getBoundingClientRect().width); e.h = e.card.offsetHeight; });
+      EVENTS.forEach(e => { e.card.style.width = e.w + "px"; e.card.style.boxSizing = "border-box"; });
+    }
+
+    const LANE = 74, BAND = 30;
+    function draw() {
+      const axisY = Math.round(H * .5);
+      axis.style.top = axisY - 1 + "px";
+
+      eraEls.forEach((el, i) => {
+        const [a, b] = ERAS[i], l = X(a), r = X(b);
+        if (r < 0 || l > W) { el.style.display = "none"; return; }
+        el.style.display = ""; el.style.left = l + "px"; el.style.width = (r - l) + "px"; el.style.top = axisY - BAND / 2 + "px";
+        const lab = el.firstChild, lw = lab.offsetWidth;
+        lab.style.visibility = (r - l) > lw + 12 ? "" : "hidden";
+        lab.style.left = Math.min(Math.max(8, -l + 8), r - l - lw - 8) + "px";
+      });
+
+      // Ticks: pick the smallest step that keeps labels ~110px apart
+      const step = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000].find(s => s * k >= 110) || 1000;
+      let n = 0;
+      for (let t = Math.ceil(x0 / step) * step; t <= x0 + W / k; t += step, n++) {
+        if (!tickPool[n]) { const a = document.createElement("div"), b = document.createElement("div"); a.className = "tick"; b.className = "tlabel"; stage.append(a, b); tickPool[n] = [a, b]; }
+        const [a, b] = tickPool[n], x = X(t);
+        a.style.display = b.style.display = "";
+        a.style.left = x + "px"; a.style.top = axisY + BAND / 2 + "px";
+        b.style.left = x + "px"; b.style.top = axisY + BAND / 2 + 9 + "px";
+        b.textContent = t === 0 ? "BCE | CE" : fmt(t);
+      }
+      for (; n < tickPool.length; n++) tickPool[n][0].style.display = tickPool[n][1].style.display = "none";
+
+      // Lanes: above the axis and below the tick labels. Bigger events claim space first.
+      const above = Math.max(1, Math.min(5, Math.floor((axisY - BAND / 2 - 110) / LANE)));
+      const belowTop = axisY + BAND / 2 + 40;
+      const below = Math.max(1, Math.min(5, Math.floor((H - belowTop - 60) / LANE)));
+      const lanes = [];
+      for (let i = 0; i < Math.max(above, below); i++) { if (i < above) lanes.push({ up: 1, i, used: [] }); if (i < below) lanes.push({ up: 0, i, used: [] }); }
+      const order = EVENTS.slice().sort((a, b) => a.p - b.p || a.y - b.y);
+      for (const e of order) {
+        const x = X(e.y), xe = e.e ? X(e.e) : x;
+        e.lane = null;
+        if (e.p === 3 && k < 2) { hide(e); continue; }
+        if (xe < 0 || x > W) { hide(e); continue; }
+        const flip = x + e.w > W - 6, l = flip ? x - e.w - 14 : x - 4, r = flip ? x + 4 : x + e.w + 14;
+        e.lane = lanes.find(L => L.used.every(([a, b]) => r < a || l > b));
+        if (!e.lane) { hide(e); continue; }
+        e.lane.used.push([l, r]);
+        const L = e.lane, top = L.up ? axisY - BAND / 2 - 14 - L.i * LANE - e.h : belowTop + L.i * LANE;
+        Object.assign(e.card.style, { display: "", left: (flip ? x - e.w + 1 : x - 1) + "px", top: top + "px" });
+        Object.assign(e.stem.style, { display: "", left: x + "px", top: (L.up ? top + e.h : axisY) + "px", height: (L.up ? axisY - top - e.h : top - axisY) + "px" });
+        Object.assign(e.dot.style, { display: "", left: x + (e.e ? 0 : 0) + "px", top: axisY + "px", width: e.e ? Math.max(9, xe - x) + "px" : "" });
+      }
+      drawMini();
+    }
+    function hide(e) { e.card.style.display = e.stem.style.display = e.dot.style.display = "none"; }
+
+    // Overview strip
+    const miniWin = document.createElement("div"); miniWin.className = "win";
+    ERAS.forEach(([a, b], i) => { const el = document.createElement("i"); el.style.left = (a - START) / (END - START) * 100 + "%"; el.style.width = (b - a) / (END - START) * 100 + "%"; el.style.background = eraEls[i].style.background; mini.appendChild(el); });
+    mini.appendChild(miniWin);
+    function drawMini() { miniWin.style.left = (x0 - START) / (END - START) * 100 + "%"; miniWin.style.width = Math.max(.6, (W / k) / (END - START) * 100) + "%"; }
+    function miniJump(ev) { const r = mini.getBoundingClientRect(), y = START + (ev.clientX - r.left) / r.width * (END - START); x0 = y - W / k / 2; clamp(); draw(); }
+    mini.addEventListener("pointerdown", ev => { mini.setPointerCapture(ev.pointerId); miniJump(ev); mini.onpointermove = miniJump; });
+    mini.addEventListener("pointerup", () => { mini.onpointermove = null; });
+
+    // Zoom and pan
+    stage.addEventListener("wheel", ev => {
+      ev.preventDefault();
+      const px = ev.clientX - stage.getBoundingClientRect().left;
+      if (ev.ctrlKey) zoomAt(px, Math.exp(-ev.deltaY * .012));
+      else if (Math.abs(ev.deltaX) > Math.abs(ev.deltaY)) { x0 += ev.deltaX / k; clamp(); }
+      else zoomAt(px, Math.exp(-ev.deltaY * .0018));
+      draw();
+    }, { passive: false });
+
+    const pts = new Map(); let moved = false, pinch = null;
+    stage.addEventListener("pointerdown", ev => {
+      pts.set(ev.pointerId, { x: ev.clientX, y: ev.clientY }); moved = false;
+      if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch = Math.abs(a.x - b.x); }
+    });
+    addEventListener("pointermove", ev => {
+      if (!pts.has(ev.pointerId)) return;
+      const p = pts.get(ev.pointerId), dx = ev.clientX - p.x;
+      if (Math.abs(dx) > 3 || Math.abs(ev.clientY - p.y) > 3) { moved = true; stage.classList.add("dragging"); }
+      if (pts.size === 1) { if (moved) { x0 -= dx / k; clamp(); p.x = ev.clientX; p.y = ev.clientY; draw(); } }
+      else if (pts.size === 2) {
+        p.x = ev.clientX; p.y = ev.clientY;
+        const [a, b] = [...pts.values()], d = Math.abs(a.x - b.x), mid = (a.x + b.x) / 2 - stage.getBoundingClientRect().left;
+        if (pinch && d > 10) zoomAt(mid, d / pinch); pinch = d; draw();
+      }
+    });
+    const up = ev => { pts.delete(ev.pointerId); if (pts.size < 2) pinch = null; if (!pts.size) stage.classList.remove("dragging"); };
+    addEventListener("pointerup", up); addEventListener("pointercancel", up);
+    stage.addEventListener("click", () => { if (!moved) pop.classList.remove("on"); });
+
+    function animateZoom(f) {
+      const target = Math.max(minK(), Math.min(400, k * f)), from = k, t0 = performance.now();
+      const stepFn = now => { const t = Math.min(1, (now - t0) / 280), e = 1 - Math.pow(1 - t, 3); zoomAt(W / 2, from * Math.pow(target / from, e) / k); draw(); if (t < 1) requestAnimationFrame(stepFn); };
+      requestAnimationFrame(stepFn);
+    }
+    $("#zin").onclick = () => animateZoom(2);
+    $("#zout").onclick = () => animateZoom(.5);
+    $("#zfit").onclick = () => animateZoom(minK() / k);
+    addEventListener("keydown", ev => {
+      if (ev.key === "+" || ev.key === "=") animateZoom(2);
+      else if (ev.key === "-") animateZoom(.5);
+      else if (ev.key === "0") animateZoom(minK() / k);
+      else if (ev.key === "ArrowRight" || ev.key === "ArrowLeft") { x0 += (ev.key === "ArrowRight" ? 1 : -1) * W * .25 / k; clamp(); draw(); }
+      else if (ev.key === "Escape") pop.classList.remove("on");
+    });
+
+    function open(e) {
+      pop.querySelector(".y").textContent = when(e);
+      pop.querySelector("h2").textContent = e.t;
+      pop.querySelector("p").textContent = e.d;
+      pop.classList.add("on");
+    }
+    pop.querySelector(".x").onclick = () => pop.classList.remove("on");
+
+    // Night sky: stars and dune silhouettes, drawn to fit the window
+    function drawSky() {
+      const c = $("#sky"), dpr = devicePixelRatio || 1, w = innerWidth, h = innerHeight;
+      c.width = w * dpr; c.height = h * dpr; const g = c.getContext("2d"); g.scale(dpr, dpr);
+      let s = 7; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+      for (let i = 0; i < w * h / 2200; i++) {
+        const x = rnd() * w, y = rnd() * h * .8, r = rnd() < .06 ? 1.6 : rnd() * 1.1 + .2;
+        g.fillStyle = `rgba(255, ${235 + rnd() * 20 | 0}, ${200 + rnd() * 55 | 0}, ${.35 + rnd() * .65})`;
+        g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
+      }
+      [["#1a1420", .86, .05], ["#120d16", .92, .035]].forEach(([col, base, amp], j) => {
+        g.fillStyle = col; g.beginPath(); g.moveTo(0, h);
+        for (let x = 0; x <= w + 40; x += 40) g.lineTo(x, h * base - Math.sin(x / (230 + j * 90) + j * 2) * h * amp - Math.sin(x / 97) * h * amp * .3);
+        g.lineTo(w, h); g.fill();
+      });
+    }
+
+    // Background picker (temporary, for choosing a look)
+    const NAMES = ["Torah scroll", "Jerusalem stone", "Desert night", "Study table", "Museum gallery"];
+    const picker = $("#picker");
+    NAMES.forEach((name, i) => { const b = document.createElement("button"); b.textContent = `${i + 1} ${name}`; b.onclick = () => setBg(i + 1); picker.appendChild(b); });
+    function setBg(n) {
+      document.body.className = `bg-${n}`;
+      [...picker.querySelectorAll("button")].forEach((b, i) => b.classList.toggle("on", i === n - 1));
+      history.replaceState(null, "", `?bg=${n}`);
+      if (n === 3) drawSky();
+      resize();
+    }
+
+    function resize() {
+      const keep = W ? { mid: x0 + W / k / 2, span: W / k } : null;
+      W = stage.clientWidth; H = stage.clientHeight;
+      if (keep) { k = W / keep.span; x0 = keep.mid - keep.span / 2; } else { k = minK(); x0 = START; }
+      clamp(); draw();
+    }
+    addEventListener("resize", () => { if (document.body.classList.contains("bg-3")) drawSky(); resize(); });
+
+    setBg(Math.min(5, Math.max(1, +new URLSearchParams(location.search).get("bg") || 1)));
+    measure(); draw();
+    document.fonts.ready.then(() => { measure(); draw(); });
+  </script>
 </body>
 </html>
