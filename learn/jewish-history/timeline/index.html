@@ -37,7 +37,8 @@
     /* ---------- Header and controls ---------- */
     .top { position: fixed; top: 15dvh; left: 4vw; right: 4vw; z-index: 8; display: flex; align-items: center; gap: 18px; padding: 0; pointer-events: none; }
     .top > * { pointer-events: auto; }
-    .back { text-decoration: none; font-size: 17px; opacity: .8; }
+    /* Back link sits in the strip of parchment above the top line of Hebrew; the title takes its old place */
+    .back { position: fixed; top: 7dvh; left: 4vw; text-decoration: none; font-size: 17px; opacity: .8; }
     .back:hover { opacity: 1; }
     h1 { font-family: "Kanisah", "EB Garamond", serif; font-weight: 400; font-size: 34px; margin: 0; letter-spacing: .02em; }
     .spacer { flex: 1; }
