@@ -25,6 +25,15 @@
     .backdrop { position: fixed; inset: 0; pointer-events: none; background: #2a170a url("/assets/timeline-scroll.jpg") center / cover no-repeat; }
     button { background: rgba(255, 248, 230, .5); }
 
+    /* Yad (Torah pointer) cursor on mouse devices, same as the Jewish History home page: the real cursor is hidden
+       and a 64px image follows the mouse. The click point is the fingertip, at the image's top-left corner. */
+    .yad { position: fixed; left: 0; top: 0; z-index: 20; width: 64px; height: 64px; margin: -1px 0 0 -2px; pointer-events: none;
+      opacity: 0; transition: opacity .15s; will-change: transform; }
+    .yad.on { opacity: 1; }
+    @media (hover: hover) and (pointer: fine) {
+      body.yadded, body.yadded * { cursor: none !important; }
+    }
+
     /* ---------- Header and controls ---------- */
     .top { position: fixed; top: 15dvh; left: 4vw; right: 4vw; z-index: 8; display: flex; align-items: center; gap: 18px; padding: 0; pointer-events: none; }
     .top > * { pointer-events: auto; }
@@ -49,8 +58,8 @@
     .stage { position: fixed; left: 0; right: 0; top: 0; bottom: 0; overflow: hidden; touch-action: none; cursor: grab; }
     .stage.dragging { cursor: grabbing; }
     .axis { position: absolute; left: 0; right: 0; height: 2px; background: var(--line); opacity: .8; }
-    .era { position: absolute; height: 28px; overflow: hidden; white-space: nowrap; box-shadow: inset 1px 0 0 rgba(58, 38, 18, .45);
-      font-size: 14px; letter-spacing: .06em; text-transform: uppercase; line-height: 28px; font-size: 13px; }
+    .era { position: absolute; height: 28px; overflow: hidden; white-space: nowrap; box-shadow: inset 1px 0 0 rgba(251, 240, 214, .55);
+      font-size: 14px; letter-spacing: .06em; text-transform: uppercase; line-height: 28px; font-size: 13px; color: #fbf0d6; text-shadow: 0 1px 1px rgba(0, 0, 0, .35); }
     .era b { position: absolute; top: 0; font-weight: 600; }
     .tick { position: absolute; width: 1px; height: 8px; background: var(--line); opacity: .7; }
     .tlabel { position: absolute; font-size: 14px; color: var(--muted); transform: translateX(-50%); white-space: nowrap; }
@@ -86,6 +95,7 @@
   </style>
 </head>
 <body>
+  <img class="yad" id="yad" src="/assets/yad-cursor@2x.png?v=4" width="64" height="64" alt="" aria-hidden="true">
   <div class="backdrop"></div>
 
   <div class="stage" id="stage"></div>
@@ -217,7 +227,8 @@
     const axis = document.createElement("div"); axis.className = "axis"; stage.appendChild(axis);
     const eraEls = ERAS.map(([a, b, name], i) => {
       const el = document.createElement("div"); el.className = "era";
-      el.style.background = `hsla(${[32, 12, 200, 95, 45, 270][i % 6]}, 45%, 50%, .22)`;
+      // Rich manuscript inks: madder red, indigo, ochre, verdigris, plum, olive
+      el.style.background = ["#9a3324", "#2e4a7d", "#b5831f", "#2f6f68", "#6e3b68", "#5f6d22"][i % 6];
       el.innerHTML = `<b>${name}</b>`; stage.appendChild(el); return el;
     });
     const tickPool = [];
@@ -363,6 +374,14 @@
       clamp(); draw();
     }
     addEventListener("resize", resize);
+
+    // Yad follows the mouse (mouse devices only)
+    if (matchMedia("(hover: hover) and (pointer: fine)").matches) {
+      const yad = $("#yad");
+      document.body.classList.add("yadded");
+      addEventListener("pointermove", e => { yad.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`; yad.classList.add("on"); }, { passive: true });
+      document.addEventListener("mouseleave", () => yad.classList.remove("on"));
+    } else $("#yad").remove();
 
     resize(); measure(); draw();
     document.fonts.ready.then(() => { measure(); draw(); });
