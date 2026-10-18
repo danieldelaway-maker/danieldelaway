@@ -86,7 +86,8 @@
       box-shadow: 0 10px 40px rgba(0, 0, 0, .35); display: none; user-select: text; -webkit-user-select: text; }
     .pop.on { display: block; }
     .pop.on.has-img { display: grid; grid-template-columns: 280px 1fr; gap: 0 20px; align-items: start; }
-    .pop figure { grid-row: 1 / 4; margin: 0; }
+    .pop figure { margin: 0; }
+    .pop .txt { padding-top: 6px; }
     /* Fixed-size frame: the whole image fits inside it, never cropped */
     .pop figure img { display: block; width: 280px; height: 210px; object-fit: contain; background: #e6d6b2; border-radius: 4px;
       box-shadow: inset 0 0 0 1px rgba(58, 38, 18, .2); }
@@ -127,7 +128,7 @@
   </div>
 
   <div class="mini" id="mini"></div>
-  <div class="pop" id="pop"><button class="x" aria-label="Close">×</button><figure><img alt=""><figcaption></figcaption></figure><div class="y"></div><h2></h2><p></p></div>
+  <div class="pop" id="pop"><button class="x" aria-label="Close">×</button><figure><img alt=""><figcaption></figcaption></figure><div class="txt"><div class="y"></div><h2></h2><p></p></div></div>
 
   <script>
     // Years: negative = BCE. c: circa. e: end year (draws a bar). p: 1 always shown, 2 shown when room, 3 only when zoomed in.
@@ -247,7 +248,110 @@
     ];
 
     // Event images, by event title: [file in /assets/timeline/, credit, Wikimedia Commons page]
-    const IMAGES = {};
+    const IMAGES = {
+      "Abraham's covenant": ["abraham-s-covenant.jpg", "József Molnár · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Moln%C3%A1r_%C3%81brah%C3%A1m_kik%C3%B6lt%C3%B6z%C3%A9se_1850.jpg"],
+      "Jacob's family goes to Egypt": ["jacob-s-family-goes-to-egypt.jpg", "Salomon de Bray · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Salomon_de_Bray_-_Joseph_Receives_His_Father_and_Brothers_in_Egypt_-_WGA3146.jpg"],
+      "The Exodus": ["the-exodus.jpg", "David Roberts · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:David_Roberts-IsraelitesLeavingEgypt_1828.jpg"],
+      "Torah given at Sinai": ["torah-given-at-sinai.jpg", "Rembrandt · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Rembrandt_-_Moses_with_the_Ten_Commandments_-_Google_Art_Project.jpg"],
+      "Merneptah Stele": ["merneptah-stele.jpg", "𐰇𐱅𐰚𐰤 · CC BY-SA 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Merneptah_Steli_(cropped).jpg"],
+      "Joshua enters Canaan": ["joshua-enters-canaan.jpg", "James Tissot · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:James_Jacques_Joseph_Tissot_-_The_Ark_Passes_Over_the_Jordan_-_Google_Art_Project.jpg"],
+      "Saul, the first king": ["saul-the-first-king.jpg", "Unknown artist · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Saul_anointed_by_Samuel.jpg"],
+      "David takes Jerusalem": ["david-takes-jerusalem.jpg", "CC BY 2.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:City_of_David,_Jerusalem_P1110594_(5921766547).jpg"],
+      "First Temple built": ["first-temple-built.jpg", "François-Philippe Charpentier · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Temple_of_Solomon_by_Fran%C3%A7ois-Philippe_Charpentier,_1766.jpg"],
+      "The kingdom splits": ["the-kingdom-splits.jpg", "CC BY-SA 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Biblica_Open_Bible_Map_07_The_Kingdoms_of_Israel_and_Judah.png"],
+      "Elijah the prophet": ["elijah-the-prophet.jpg", "Unknown artist · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Elijah_on_Mt._Carmel.jpg"],
+      "Isaiah's prophecies": ["isaiah-s-prophecies.jpg", "Michelangelo · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Jesaja_(Michelangelo).jpg"],
+      "Assyria destroys Israel": ["assyria-destroys-israel.jpg", "CC0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Sargon_II_Khorsabad_Louvre_14012018_1.jpg"],
+      "Siege of Jerusalem": ["siege-of-jerusalem.jpg", "Photograph by Mike Peel. · CC BY-SA 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Lachish_Relief,_British_Museum_4.jpg"],
+      "Josiah's reforms": ["josiah-s-reforms.jpg", "Unknown artist · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Josiah_hearing_the_book_of_the_law.jpg"],
+      "First Temple destroyed": ["first-temple-destroyed.jpg", "James Tissot · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Tissot_The_Flight_of_the_Prisoners.jpg"],
+      "Cyrus lets the exiles return": ["cyrus-lets-the-exiles-return.jpg", "Prioryman · CC BY-SA 3.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Cyrus_Cylinder_front.jpg"],
+      "Second Temple dedicated": ["second-temple-dedicated.jpg", "Daniel Case · CC BY-SA 3.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Second_Temple_in_model_Jerusalem_at_Israel_Museum.jpg"],
+      "The story of Esther": ["the-story-of-esther.jpg", "Chefallen · CC BY-SA 3.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Megillat_Esther_(1).jpg"],
+      "Ezra reads the Torah": ["ezra-reads-the-torah.jpg", "Gustave Doré · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:109.Ezra_Reads_the_Law_to_the_People.jpg"],
+      "Alexander the Great": ["alexander-the-great.jpg", "Master IRs · CC0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Master_IRs_-_Alexander_the_Great_and_the_High_Priest_of_Jerusalem_-_1944.19_-_Cleveland_Museum_of_Art.tif"],
+      "The Septuagint": ["the-septuagint.jpg", "Unknown artist · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:P._Rylands_458.jpg"],
+      "Maccabean revolt": ["maccabean-revolt.jpg", "Gustave Doré · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:141.Mattathias_and_the_Apostate.jpg"],
+      "Temple rededicated": ["temple-rededicated.jpg", "CC0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Hanukkah_lamp_MET_DP236471.jpg"],
+      "Rome takes Jerusalem": ["rome-takes-jerusalem.jpg", "Jean Fouquet · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Pomp%C3%A9e_dans_le_Temple_de_J%C3%A9rusalem.jpg"],
+      "Herod the Great": ["herod-the-great.jpg", "McCabe, James Dabney, 1842-1883 · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Coin_of_Herod_the_great.jpg"],
+      "Hillel and Shammai": ["hillel-and-shammai.jpg", "Gerd Eichmann · CC BY-SA 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Jerusalem-Menora-52-Hillel_lehrt-2010-gje.jpg"],
+      "Great Revolt": ["great-revolt.jpg", "Godot13 · CC BY-SA 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Aerial_view_of_Masada_(Israel)_02.jpg"],
+      "Second Temple destroyed": ["second-temple-destroyed.jpg", "Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Arch_of_Titus_Menorah.png"],
+      "Bar Kokhba revolt": ["bar-kokhba-revolt.jpg", "CC BY-SA 3.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Bar_Kokhba_Coin.jpg"],
+      "The Mishnah": ["the-mishnah.jpg", "Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:KaufmannManuscript.jpg"],
+      "Jerusalem Talmud": ["jerusalem-talmud.jpg", "Omergold · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Talmud_yerushalmi-front_page.jpg"],
+      "Babylonian Talmud": ["babylonian-talmud.jpg", "שלמה בן שמשון · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Bavli_Kiddushin_Munich_95.jpg"],
+      "Jews return to Jerusalem": ["jews-return-to-jerusalem.jpg", "Godot13 · CC BY-SA 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Jerusalem-2013-Temple_Mount-Dome_of_the_Rock_%26_Chain.jpg"],
+      "Aleppo Codex": ["aleppo-codex.jpg", "Shlomo ben Buya&#x27;a · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Aleppo_Codex_(Deut).jpg"],
+      "Golden Age in Spain": ["golden-age-in-spain.jpg", "Acediscovery · CC BY 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Interior-Santa_Mar%C3%ADa-La-Blanca-synagogue-Toledo-2.jpg"],
+      "Rashi is born": ["rashi-is-born.jpg", "Rashi · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Rashi_Pentateuch.jpg"],
+      "First Crusade": ["first-crusade.jpg", "Fab5669 · CC BY-SA 3.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Auguste_Migette_-_massacre_de_juifs_%C3%A0_Metz_pendant_la_premi%C3%A8re_croisade.jpg"],
+      "Maimonides is born": ["maimonides-is-born.jpg", "David Baron · CC BY-SA 2.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Maimonides_statue_-_Cordoba.jpg"],
+      "First blood libel": ["first-blood-libel.jpg", "Unknown artist · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Saint_William_of_Norwich.jpg"],
+      "Jewish badge": ["jewish-badge.jpg", "Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Jewish_man_-_worms_-_16th_century.jpg"],
+      "Expelled from England": ["expelled-from-england.jpg", "Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:BritLibCottonNeroDiiFol183vPersecutedJews.jpg"],
+      "Expelled from France": ["expelled-from-france.jpg", "Unknown artist · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Philippe_IV_le_Bel.jpg"],
+      "Black Death massacres": ["black-death-massacres.jpg", "Michel Wolgemut, Wilhelm Pleydenwurff · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Nuremberg_chronicles_-_Burning_of_the_Jews_(CCXXv).jpg"],
+      "Riots in Spain": ["riots-in-spain.jpg", "Josep Bracons · CC BY-SA 3.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Barcelona_jewish_Call_MUHBA.JPG"],
+      "First Hebrew printed book": ["first-hebrew-printed-book.jpg", "Sailko · CC BY 3.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Soncino,_yeosh_%27a_ben_yisra_%27el_natan,_bibbia_in_ebraico,_1488,_la_prima_edizione_completa_in_ebraico_(d%27elci_862)_01.JPG"],
+      "Expelled from Spain": ["expelled-from-spain.jpg", "Emilio Sala · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Expulsi%C3%B3n_de_los_jud%C3%ADos.jpg"],
+      "Forced conversion in Portugal": ["forced-conversion-in-portugal.jpg", "Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Massacre_de_lisboa.jpg"],
+      "First ghetto, Venice": ["first-ghetto-venice.jpg", "CC BY-SA 3.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Ghetto_nuovo_a_Cannaregio_Venezia.jpg"],
+      "Shulchan Aruch printed": ["shulchan-aruch-printed.jpg", "Meir Kunstadt · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Postcard_portrait_of_Joseph_Karo_by_Meir_Kunstadt,_early_1900s.jpg"],
+      "Luria in Safed": ["luria-in-safed.jpg", "FLLL · CC BY-SA 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Ari_Ashkenazi_synagogue_-_Safed_-exterior.JPG"],
+      "Khmelnytsky massacres": ["khmelnytsky-massacres.jpg", "Unidentified painter · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Anonymous_Bohdan_Khmelnytsky.jpg"],
+      "First Jews in America": ["first-jews-in-america.jpg", "Johannes Vingboons, Jacques Cortelyou · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Stad_Amsterdam_in_Nieuw_Nederland_(City_Amsterdam_in_New_Netherland)_Castello_Plan_1660.jpg"],
+      "Shabbetai Tzvi": ["shabbetai-tzvi.jpg", "Unknown artist · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Sabbatai_Zevi.jpg"],
+      "Hasidism begins": ["hasidism-begins.jpg", "Unknown artist · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Medzhybizh._Beit_Midrash_of_Baal_Shem_Tov.jpg"],
+      "The Haskalah": ["the-haskalah.jpg", "Moritz Daniel Oppenheim · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Moritz_Daniel_Oppenheim--Lavater_and_Lessing_Visit_Moses_Mendelssohn--1856--Magnes_Collection.jpg"],
+      "Citizenship in France": ["citizenship-in-france.jpg", "Musée d&#x27;art et d&#x27;histoire du Judaïsme · CC BY-SA 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Royal_decree_proclaiming_the_emancipation_of_the_Jews,_France,_1791_-_Mus%C3%A9e_d%27art_et_d%27histoire_du_Juda%C3%AFsme.jpg"],
+      "Damascus affair": ["damascus-affair.jpg", "Moritz Daniel Oppenheim · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Moritz_Daniel_Oppenheim_-_Jewish_prisoner_of_the_Damascus_Affair.jpg"],
+      "Outside the Old City walls": ["outside-the-old-city-walls.jpg", "Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Mishkenot_Sha%27ananim_and_the_Montefiore_Windmill,_Jerusalem,_the_1930s_(128).jpg"],
+      "Pogroms in Russia": ["pogroms-in-russia.jpg", "Unknown artist · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Jewish_pogrom_in_Kiev_(1881).jpg"],
+      "First Aliyah": ["first-aliyah.jpg", "Elians · CC BY-SA 3.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Big_beit_kneset_rishon_lezion_1890.JPG"],
+      "Dreyfus affair": ["dreyfus-affair.jpg", "Henri Meyer · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:D%C3%A9gradation_d%27Alfred_Dreyfus_-_Le_Petit_Journal_(janvier_1895).jpg"],
+      "First Zionist Congress": ["first-zionist-congress.jpg", "Government Press Office · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:THEODOR_HERZL_AT_THE_FIRST_ZIONIST_CONGRESS_IN_BASEL_ON_25.8.1897._%D7%AA%D7%90%D7%95%D7%93%D7%95%D7%A8_%D7%94%D7%A8%D7%A6%D7%9C_%D7%91%D7%A7%D7%95%D7%A0%D7%92%D7%A8%D7%A1_%D7%94%D7%A6%D7%99%D7%95%D7%A0%D7%99_%D7%94%D7%A8%D7%90%D7%A9%D7%95%D7%9F_-_1897.8.25.jpg"],
+      "Tel Aviv founded": ["tel-aviv-founded.jpg", "Avraham Soskin · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:TelAviv-Founding.jpg"],
+      "Balfour Declaration": ["balfour-declaration.jpg", "Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Balfour_declaration_unmarked.jpg"],
+      "Nazis take power": ["nazis-take-power.jpg", "Uncredited photographer.No known copyright · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Judenboykott_1933-04-01_Berlin._Anti-Semitic_Anti-Jewish_Nazi_boycott_of_Jewish_businesses_shops_Germany_Anti-Jewish_poster_advertising_column_Litfasssaule_Plakat_31.3.1933_Photo_18X24cm_(Stade_Auktionen_philasearch.com)_No_copyright.jpg"],
+      "Kristallnacht": ["kristallnacht.jpg", "Unknown artist · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Synagogue_Eisenach_burning-_Nov_1938.jpg"],
+      "The Holocaust": ["the-holocaust.jpg", "Yair Haklai · CC BY-SA 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:The_arbeit_macht_frei_gate_in_Auschwitz_I.jpg"],
+      "Warsaw Ghetto Uprising": ["warsaw-ghetto-uprising.jpg", "Unknown artist · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Stroop_Report_-_Warsaw_Ghetto_Uprising_06b.jpg"],
+      "Dead Sea Scrolls found": ["dead-sea-scrolls-found.jpg", "Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Great_Isaiah_Scroll_Ch53.jpg"],
+      "State of Israel": ["state-of-israel.jpg", "Rudi Weissenstein · CC BY-SA 3.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Flickr_-_Government_Press_Office_(GPO)_-_David_Ben_Gurion_reading_the_Declaration_of_Independence.jpg"],
+      "Operation Magic Carpet": ["operation-magic-carpet.jpg", "Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Op_Magic_Carpet_(Yemenites).jpg"],
+      "Suez Crisis": ["suez-crisis.jpg", "Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:1956_Suez_war_-_conquest_of_Sinai.jpg"],
+      "Eichmann trial": ["eichmann-trial.jpg", "Israel Government Press Office · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Adolf_Eichmann_at_Trial1961.jpg"],
+      "Six-Day War": ["six-day-war.jpg", "David Rubinger · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:%D7%A6%D7%A0%D7%97%D7%A0%D7%99%D7%9D_%D7%91%D7%9B%D7%95%D7%AA%D7%9C_%D7%94%D7%9E%D7%A2%D7%A8%D7%91%D7%99.jpg"],
+      "Munich massacre": ["munich-massacre.jpg", "Avi1111 dr. avishai teicher · CC BY-SA 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Munich_massacre_memorial_in_Munich.JPG"],
+      "Yom Kippur War": ["yom-kippur-war.jpg", "CC BY-SA 3.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:%D7%98%D7%A0%D7%A7%D7%99%D7%9D_%D7%99%D7%A9%D7%A8%D7%90%D7%9C%D7%99%D7%9D_%D7%91%D7%9E%D7%9C%D7%97%D7%9E%D7%AA_%D7%99%D7%95%D7%9D_%D7%9B%D7%99%D7%A4%D7%95%D7%A8.jpg"],
+      "Entebbe raid": ["entebbe-raid.jpg", "IDF Spokesperson&#x27;s Unit photographer · CC BY-SA 3.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Operation_Thunderbolt._IV.jpg"],
+      "Sadat visits Jerusalem": ["sadat-visits-jerusalem.jpg", "Unknown artist · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Sadat_knesset_1977.jpg"],
+      "Peace with Egypt": ["peace-with-egypt.jpg", "Warren K. Leffler · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Sadat_Carter_Begin_handshake_-_USNWR.jpg"],
+      "Osirak strike": ["osirak-strike.jpg", "CC BY-SA 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Osirak_reactor_site_damage.jpg"],
+      "First Lebanon War": ["first-lebanon-war.jpg", "P.mielen at Dutch Wikipedia · CC BY-SA 3.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Israeli_troops_in_south_Lebanon_(1982).jpg"],
+      "Operation Moses": ["operation-moses.jpg", "Doron Bacher · CC BY 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Ethiopian_Jewish_immigrants.png"],
+      "First Intifada": ["first-intifada.jpg", "Efi Sharir · CC BY 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Intifada_in_Gaza_Strip,_1987_III_Dan_Hadani_Archive.jpg"],
+      "Soviet aliyah": ["soviet-aliyah.jpg", "https://www.flickr.com/people/69061470@N05 · CC BY-SA 3.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Flickr_-_Government_Press_Office_(GPO)_-_P.M._Rabin_with_Russian_Immigrants.jpg"],
+      "Operation Solomon": ["operation-solomon.jpg", "Tsvika Israeli · CC BY-SA 3.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Flickr_-_Government_Press_Office_(GPO)_-_Ethiopian_immigrants_coming_off_a_Boeing_jet.jpg"],
+      "Oslo Accords": ["oslo-accords.jpg", "Vince Musi / The White House · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Bill_Clinton,_Yitzhak_Rabin,_Yasser_Arafat_at_the_White_House_1993-09-13_(cropped).jpg"],
+      "Peace with Jordan": ["peace-with-jordan.jpg", "White House · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Bill_Clinton,_Yitzhak_Rabin_and_King_Hussein_I_of_Jordan_at_the_peace_treaty_signing_ceremony.jpg"],
+      "Rabin assassinated": ["rabin-assassinated.jpg", "Yaakov Saar · CC BY-SA 3.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Yitzhak_Rabin_1994_Portrait_(3x4_cropped).jpg"],
+      "Second Intifada": ["second-intifada.jpg", "B. Železník · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Autobus_v_Haif%C4%9B.jpg"],
+      "Gaza disengagement": ["gaza-disengagement.jpg", "Israel Defense Forces · CC BY-SA 2.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Flickr_-_Israel_Defense_Forces_-_Israeli_Civilians_Leave_Gaza_(1).jpg"],
+      "Holocaust Remembrance Day": ["holocaust-remembrance-day.jpg", "Bahnfrend · CC BY-SA 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Hall_of_Remembrance,_Yad_Vashem,_2019_(02).jpg"],
+      "Second Lebanon War": ["second-lebanon-war.jpg", "IDF Spokesperson&#x27;s Unit photographer · CC BY-SA 3.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:2006_Lebanon_War._LI.jpg"],
+      "Gilad Shalit freed": ["gilad-shalit-freed.jpg", "Israel Defense Forces · CC BY-SA 2.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Flickr_-_Israel_Defense_Forces_-_Five_Years_Later,_Gilad_Shalit_Returns_Home.jpg"],
+      "Gaza war": ["gaza-war.jpg", "Israel Defense Forces from Israel · CC BY 2.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Iron_Dome_in_Operation_Protective_Edge.jpg"],
+      "Pittsburgh synagogue attack": ["pittsburgh-synagogue-attack.jpg", "Dmitry Brant · CC BY-SA 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Tree_Of_Life_memorials_1.jpg"],
+      "US embassy in Jerusalem": ["us-embassy-in-jerusalem.jpg", "U.S. Embassy Jerusalem · CC BY 2.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Relocation_of_US_Embassy_in_Israel_from_Tel_Aviv_to_Jerusalem_DSC0557_(28239099728).jpg"],
+      "Abraham Accords": ["abraham-accords.jpg", "The White House · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:President_Trump_and_The_First_Lady_Participate_in_an_Abraham_Accords_Signing_Ceremony.jpg"],
+      "7 October attack": ["7-october-attack.jpg", "Nizzan Cohen · CC BY 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Memorial_ceremony_to_mark_the_anniversary_of_the_October_7_massacre,_Sderot_03.jpg"],
+      "War in Gaza": ["war-in-gaza.jpg", "Jaber Jehad Badwan · CC BY-SA 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Gaza_war_2023_-_2025_IMG_8625.jpg"],
+      "Twelve-Day War with Iran": ["twelve-day-war-with-iran.jpg", "Maps.interlude · CC BY 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Israel_attacks_on_Iran_on_13_June_2025.jpg"],
+      "Hostages come home": ["hostages-come-home.jpg", "Nizzan Cohen · CC BY 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Hostages_Square,_13_October_2025_15.jpg"]
+    };
 
     const $ = s => document.querySelector(s);
     const stage = $("#stage"), mini = $("#mini"), pop = $("#pop"), topBar = $(".top");
