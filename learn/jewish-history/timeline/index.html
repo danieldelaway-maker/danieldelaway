@@ -85,6 +85,9 @@
     .card .t { font-size: 17px; line-height: 1.15; }
     .card.p1 .t { font-size: 19px; font-weight: 600; }
     .card.flip { text-align: right; }
+    /* Labels sit above the lines; a soft parchment halo hides any line that has to pass behind one */
+    .card { z-index: 2; text-shadow: 0 0 2px #e6d3ad, 0 0 4px #e6d3ad, 0 0 6px #e6d3ad, 0 0 8px #e6d3ad; }
+    .stem, .dot, .range { z-index: 1; }
     .card:hover { outline: 2px solid var(--line); outline-offset: 1px; }
 
     /* Overview strip */
@@ -262,6 +265,13 @@
       { y: 638, p: 2, t: "Jews return to Jerusalem", d: "For five centuries under Roman and then Byzantine Christian rule, Jews were largely banned from living in Jerusalem. When the Arab Caliph Umar captures the city, he allows Jews to return and settle there. A small Jewish community grows near the Temple Mount. Over the following centuries Jerusalem changes hands many times, but a Jewish presence continues almost without a break." },
       { y: 740, c: 1, p: 3, t: "The Khazars convert", d: "The ruling class of the Khazars, a Turkic people whose empire stretches across the steppes between the Black Sea and the Caspian, adopts Judaism. Their king Bulan is said to have chosen it after hearing out a Christian, a Muslim and a Jew. The story later inspires Judah Halevi's book, the Kuzari. The Khazar empire falls to the Rus in the 960s." },
       { y: 767, c: 1, p: 3, t: "The Karaites", d: "Anan ben David, passed over for leadership of Babylonian Jewry, starts a movement that rejects the Oral Law and the Talmud, accepting only the written Bible. His followers become known as Karaites, from the Hebrew for \"readers of Scripture\". The split causes fierce debate for centuries. Small Karaite communities still exist today, mostly in Israel." },
+      { y: 797, p: 3, t: "Isaac the Jew's embassy", d: "Charlemagne sends an embassy to Caliph Harun al-Rashid in Baghdad, with a Jewish merchant named Isaac as its interpreter and guide. The two noblemen leading it die on the journey, and only Isaac returns in 802, bringing the caliph's gift of an elephant named Abul-Abbas across the Alps to Aachen. Jewish traders like Isaac link the Christian and Muslim worlds." },
+      { y: 850, p: 3, t: "Caliph's dress laws", d: "The Abbasid caliph al-Mutawakkil orders Jews and Christians across his empire to wear yellow or honey-coloured clothing and patches, ride only on donkeys or mules, and put wooden images of devils on their doors. New houses of worship are to be torn down. These rules, based on the old Pact of Umar, mark Jews and Christians as second-class subjects, called dhimmis." },
+      { y: 860, c: 1, p: 3, t: "First Jewish prayer book", d: "The Jews of Spain write to Rav Amram, Gaon of the Sura academy, asking how to pray correctly. He replies with the order of prayers for the whole year, with the laws for each. Seder Rav Amram is the first known complete Jewish prayer book, or siddur. Almost every later prayer book, Sephardi and Ashkenazi, grows out of it." },
+      { y: 870, c: 1, p: 3, t: "Radhanite merchants", d: "The Persian geographer Ibn Khordadbeh describes Jewish merchants called Radhanites who speak Arabic, Persian, Greek, Frankish, Spanish and Slavic. They trade along routes stretching from France and Spain to India and China, carrying slaves, furs, swords, silk, musk and spices. For a time they are among the most important long-distance traders between East and West." },
+      { y: 880, c: 1, p: 3, t: "Eldad the Danite", d: "A traveller named Eldad arrives in Kairouan, in today's Tunisia, claiming to come from the tribe of Dan. He describes an independent Jewish kingdom of four lost tribes in East Africa, beyond a mysterious river called the Sambatyon that rests on the Sabbath. His tales spread across the Jewish world and fuel legends about the lost tribes for centuries." },
+      { y: 895, p: 3, t: "The Masoretes", d: "In Tiberias, generations of scholars called Masoretes have worked out an exact system of vowel points, accents and notes to preserve the precise reading of the Hebrew Bible. In 895 Moses ben Asher completes the Cairo Codex of the Prophets, one of the oldest dated Hebrew Bible manuscripts. His son Aaron later adds the vowels to the Aleppo Codex." },
+      { y: 905, c: 1, p: 3, t: "Kairouan's scholars", d: "Kairouan, in today's Tunisia, becomes a great centre of Jewish learning and trade, linking Babylonia with Spain and Europe. Isaac Israeli, a Jewish doctor to the Fatimid caliphs, writes medical books later used in European universities for centuries. Soon after, the city's academies are led by Rabbi Hushiel and his son Rabbenu Chananel." },
       { y: 928, p: 2, t: "Saadia Gaon", d: "Saadia ben Joseph, born in Egypt, becomes Gaon, or head, of the great academy of Sura in Babylonia. He translates the Bible into Arabic, writes the first organised Jewish prayer book and the first major work of Jewish philosophy, The Book of Beliefs and Opinions. He also leads the fight against the Karaites. He is often called the father of medieval Jewish scholarship." },
       { y: 930, c: 1, p: 3, t: "Aleppo Codex", d: "In Tiberias, the scribe Shlomo ben Buya'a writes the text and the scholar Aaron ben Asher adds the vowels and cantillation marks. The result is the most accurate manuscript of the Hebrew Bible ever made, later used by Maimonides as his standard. It was kept for centuries in the Great Synagogue of Aleppo, Syria. In riots in 1947 about a third of it went missing, and the rest is now in the Israel Museum." },
       { y: 950, c: 1, p: 2, t: "Golden Age in Spain", d: "Under Muslim rule in Spain, called al-Andalus, Jews rise to high positions as doctors, advisers and even viziers. Poets like Judah Halevi and Solomon ibn Gabirol write Hebrew poetry still sung in synagogues today. Jewish thinkers translate Greek and Arabic science and philosophy. The golden age fades in the 12th century as stricter Muslim and then Christian rulers take over." },
@@ -457,6 +467,13 @@
       "Jews return to Jerusalem": ["jews-return-to-jerusalem.jpg", "Godot13 · CC BY-SA 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Jerusalem-2013-Temple_Mount-Dome_of_the_Rock_%26_Chain.jpg"],
       "The Khazars convert": ["the-khazars-convert.jpg", "as in original source · CC BY-SA 3.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Khazar_Empire.jpg"],
       "The Karaites": ["the-karaites.jpg", "Tamar Hayardeni תמר הירדני · CC BY-SA 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Karaite_synagogue_in_Jerusalem_3.jpg"],
+      "Isaac the Jew's embassy": ["isaac-the-jew-s-embassy.jpg", "Friedrich Hottenroth · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Friedrich_Hottenroth_-_Isaac_the_Jew,_one_of_the_Christian_envoys,_brought_gifts_from_the_Caliph_Harun_al-Rashid_of_Baghdad_to_Charlemagne,_801.jpg"],
+      "Caliph's dress laws": ["caliph-s-dress-laws.jpg", "CNG · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Dinar_of_Al-Mutawakkil,_AH_232-247.jpg"],
+      "First Jewish prayer book": ["first-jewish-prayer-book.jpg", "Olevy · CC0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Siddur_Gallico.jpg"],
+      "Radhanite merchants": ["radhanite-merchants.jpg", "CC BY-SA 3.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Radhanites.png"],
+      "Eldad the Danite": ["eldad-the-danite.jpg", "Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:1632_Tirinus_Map_of_the_Holy_Land_-_Israel_w-_numerous_insets_-_Geographicus_-_HolyLand-tirinus-1632.jpg"],
+      "The Masoretes": ["the-masoretes.jpg", "Shmuel ben Ya&#x27;akov · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Leningrad_Codex_Folio_474a.jpg"],
+      "Kairouan's scholars": ["kairouan-s-scholars.jpg", "damian entwistle · CC BY-SA 2.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Kairouan_medina_walls.jpg"],
       "Saadia Gaon": ["saadia-gaon.jpg", "Francesco Bini · CC BY-SA 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Egitto,_bibbia,_tradotta_in_arabo_da_saadia_ben_joseph_gaon,_1584-85_ca._(bnf).jpg"],
       "Aleppo Codex": ["aleppo-codex.jpg", "Shlomo ben Buya&#x27;a · Public domain · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Aleppo_Codex_(Deut).jpg"],
       "Golden Age in Spain": ["golden-age-in-spain.jpg", "Acediscovery · CC BY 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Interior-Santa_Mar%C3%ADa-La-Blanca-synagogue-Toledo-2.jpg"],
@@ -653,7 +670,7 @@
       const belowTop = axisY + BAND / 2 + 40;
       const below = Math.max(1, Math.min(5, Math.floor((eraTop - 10 - belowTop) / LANE)));
       const lanes = [];
-      for (let i = 0; i < Math.max(above, below); i++) { if (i < above) lanes.push({ up: 1, i, used: [] }); if (i < below) lanes.push({ up: 0, i, used: [] }); }
+      for (let i = 0; i < Math.max(above, below); i++) { if (i < above) lanes.push({ up: 1, i, used: [], stems: [] }); if (i < below) lanes.push({ up: 0, i, used: [], stems: [] }); }
       const order = EVENTS.slice().sort((a, b) => a.p - b.p || a.y - b.y);
       for (const e of order) {
         const x = X(e.y), xe = e.e ? X(e.e) : x;
@@ -661,9 +678,14 @@
         if (e.p === 3 && k < 2) { hide(e); continue; }
         if (xe < 0 || x > W) { hide(e); continue; }
         const flip = x + e.w > W - 6, l = flip ? x - e.w - 14 : x - 4, r = flip ? x + 4 : x + e.w + 14;
-        e.lane = lanes.find(L => L.used.every(([a, b]) => r < a || l > b));
+        // A lane works if the card fits there, no other card's line runs through it,
+        // and its own line won't cut through a card in a lane nearer the axis
+        const inner = L => lanes.filter(M => M.up === L.up && M.i < L.i);
+        e.lane = lanes.find(L => L.used.every(([a, b]) => r < a || l > b) && L.stems.every(sx => sx < l || sx > r)
+          && (e.p === 1 || inner(L).every(M => M.used.every(([a, b]) => x + 3 < a || x - 3 > b))));
         if (!e.lane) { hide(e); continue; }
         e.lane.used.push([l, r]);
+        inner(e.lane).forEach(M => M.stems.push(x));
         const L = e.lane, top = L.up ? axisY - BAND / 2 - 14 - L.i * LANE - e.h : belowTop + L.i * LANE;
         Object.assign(e.card.style, { display: "", left: (flip ? x - e.w + 1 : x - 1) + "px", top: top + "px" });
         e.card.classList.toggle("flip", flip);
