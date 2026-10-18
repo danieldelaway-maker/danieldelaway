@@ -31,7 +31,6 @@
     .back { text-decoration: none; font-size: 17px; opacity: .8; }
     .back:hover { opacity: 1; }
     h1 { font-family: "Kanisah", "EB Garamond", serif; font-weight: 400; font-size: 34px; margin: 0; letter-spacing: .02em; }
-    .hint { font-size: 15px; color: var(--muted); font-style: italic; }
     .spacer { flex: 1; }
     .zoom { display: flex; gap: 6px; }
     button { font: inherit; color: var(--ink); border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
@@ -74,7 +73,6 @@
     .pop .x { position: absolute; top: 8px; right: 10px; border: 0; background: none; font-size: 24px; color: inherit; }
 
     @media (max-width: 700px) {
-      .hint { display: none; }
       h1 { font-size: 26px; }
     }
   </style>
@@ -87,7 +85,6 @@
   <div class="top">
     <a class="back" href="/learn/jewish-history/">← Back</a>
     <h1>Timeline</h1>
-    <span class="hint">Scroll or pinch to zoom · drag to move · tap an event</span>
     <span class="spacer"></span>
     <div class="zoom"><button id="zout" aria-label="Zoom out">−</button><button id="zin" aria-label="Zoom in">+</button><button id="zfit" class="fit">All</button></div>
   </div>
