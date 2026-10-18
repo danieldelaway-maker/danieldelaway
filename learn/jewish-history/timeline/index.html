@@ -38,8 +38,12 @@
     .top { position: fixed; top: 15dvh; left: 4vw; right: 4vw; z-index: 8; display: flex; align-items: center; gap: 18px; padding: 0; pointer-events: none; }
     .top > * { pointer-events: auto; }
     /* Back link sits in the strip of parchment above the top line of Hebrew; the title takes its old place */
-    .back { position: fixed; top: 7dvh; left: 4vw; text-decoration: none; font-size: 17px; opacity: .8; }
-    .back:hover { opacity: 1; }
+    .back { position: fixed; top: 7dvh; left: 4vw; text-decoration: none; font-size: 17px; line-height: 1;
+      /* Same ink-ruled pill as the zoom controls */
+      padding: 9px 18px 10px; border: 1.5px solid rgba(58, 38, 18, .75); border-radius: 999px;
+      background: rgba(248, 236, 208, .35); box-shadow: inset 0 0 0 1px rgba(255, 246, 225, .45), 0 1px 0 rgba(255, 246, 225, .5);
+      transition: background .2s; }
+    .back:hover { background: rgba(58, 38, 18, .1); }
     h1 { font-family: "Kanisah", "EB Garamond", serif; font-weight: 400; font-size: 34px; margin: 0; letter-spacing: .02em; }
     .spacer { flex: 1; }
     button { font: inherit; color: var(--ink); border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
@@ -188,7 +192,7 @@
   <div class="stage" id="stage"></div>
 
   <div class="top">
-    <a class="back" href="/learn/jewish-history/">← Back</a>
+    <a class="back" href="/learn/jewish-history/">Back</a>
     <h1>Timeline</h1>
     <span class="spacer"></span>
     <div class="zoom">
