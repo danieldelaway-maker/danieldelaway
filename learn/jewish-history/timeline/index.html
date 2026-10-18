@@ -61,6 +61,18 @@
     .era { position: absolute; height: 28px; overflow: hidden; white-space: nowrap; box-shadow: inset 1px 0 0 rgba(251, 240, 214, .55);
       font-size: 14px; letter-spacing: .06em; text-transform: uppercase; line-height: 28px; font-size: 13px; color: #fbf0d6; text-shadow: 0 1px 1px rgba(0, 0, 0, .35); }
     .era b { position: absolute; top: 0; font-weight: 600; }
+    .era { cursor: pointer; transition: filter .15s; }
+    .era:hover { filter: brightness(1.15) saturate(1.1); }
+
+    /* Era summary on hover */
+    .tip { position: fixed; z-index: 10; width: 320px; padding: 12px 16px 13px; border-radius: 8px; pointer-events: none;
+      background: var(--pop); color: var(--ink); border: 1px solid var(--line); border-top: 5px solid var(--c, var(--line));
+      box-shadow: 0 8px 30px rgba(0, 0, 0, .3); opacity: 0; transition: opacity .15s; }
+    .tip.on { opacity: 1; }
+    .tip .d { font-size: 14px; font-weight: 600; opacity: .7; letter-spacing: .03em; }
+    .tip h3 { margin: 1px 0 5px; font-size: 22px; font-weight: 600; line-height: 1.1; }
+    .tip p { margin: 0; font-size: 16px; line-height: 1.4; }
+    .tip .go { margin-top: 7px; font-size: 13px; font-style: italic; opacity: .7; }
     .tick { position: absolute; width: 1px; height: 8px; background: var(--line); opacity: .7; }
     .tlabel { position: absolute; font-size: 16px; font-weight: 600; letter-spacing: .02em; color: var(--ink); white-space: nowrap; }
     .stem { position: absolute; width: 1px; background: var(--line); opacity: .65; }
@@ -128,6 +140,7 @@
   </div>
 
   <div class="mini" id="mini"></div>
+  <div class="tip" id="tip" aria-hidden="true"></div>
   <div class="pop" id="pop"><button class="x" aria-label="Close">×</button><figure><img alt=""><figcaption></figcaption></figure><div class="txt"><div class="y"></div><h2></h2><p></p></div></div>
 
   <script>
@@ -141,6 +154,30 @@
       [640, 1096, "Geonim & Golden Age"], [1096, 1492, "Medieval Europe"], [1492, 1789, "Early Modern"], [1789, 1881, "Emancipation"],
       [1881, 1933, "Migration & Zionism"], [1933, 1945, "Holocaust"], [1945, 1948, "Aftermath"], [1948, END, "State of Israel"]
     ];
+
+    // Shown when hovering an era in the ribbon: [dates, summary]
+    const ERA_INFO = {
+      "Patriarchs": ["c. 1800–1600 BCE", "Abraham, Isaac and Jacob, the founding fathers of the Jewish people, live as herders in Canaan. God's covenant with Abraham promises his descendants the land."],
+      "Egypt": ["c. 1600–1280 BCE", "Jacob's family settles in Egypt during a famine and grows into the twelve tribes of Israel, until a new Pharaoh enslaves them."],
+      "Wilderness": ["c. 1280–1200 BCE", "Moses leads the Israelites out of Egypt. They receive the Torah at Sinai and wander the desert for forty years before reaching the Promised Land."],
+      "Judges": ["c. 1200–1050 BCE", "The tribes settle the land under Joshua and are led in times of crisis by judges like Deborah, Gideon, Samson and Samuel."],
+      "United Kingdom": ["c. 1050–930 BCE", "Saul, David and Solomon rule all twelve tribes. David makes Jerusalem the capital and Solomon builds the First Temple."],
+      "Two Kingdoms": ["c. 930–586 BCE", "The nation splits into Israel in the north and Judah in the south. Prophets like Elijah and Isaiah warn the kings. Assyria destroys Israel, then Babylon conquers Judah."],
+      "Exile": ["586–538 BCE", "Babylon destroys Jerusalem and the First Temple and takes the people into exile, where Judaism learns to survive without a Temple or a land."],
+      "Persian Period": ["538–332 BCE", "Persia lets the exiles go home. They rebuild the Temple, Ezra teaches the Torah to the people, and Queen Esther saves the Jews of Persia."],
+      "Greek Period": ["332–167 BCE", "Alexander the Great conquers the region and Greek culture spreads. The Torah is translated into Greek, and tensions grow between traditional and Hellenised Jews."],
+      "Hasmoneans": ["167–63 BCE", "The Maccabees revolt against a Greek king who bans Judaism, rededicate the Temple (Hanukkah) and found an independent Jewish kingdom."],
+      "Roman Rule": ["63 BCE–70 CE", "Rome takes control. Herod rebuilds the Temple on a grand scale, but heavy-handed rule sparks the Great Revolt, ending in the Temple's destruction."],
+      "Mishnah & Talmud": ["70–640 CE", "With the Temple gone, rabbis rebuild Judaism around study and prayer. They write down the Oral Law as the Mishnah, then the great discussions of the Talmud."],
+      "Geonim & Golden Age": ["640–1096", "Under Muslim rule, the academies of Babylonia lead the Jewish world, and Jewish poetry, philosophy and science flourish in Spain."],
+      "Medieval Europe": ["1096–1492", "Great scholars like Rashi and Maimonides write, but Jews in Christian Europe suffer crusades, blood libels and expulsions, ending with Spain in 1492."],
+      "Early Modern": ["1492–1789", "Exiles rebuild in the Ottoman Empire, Italy, Amsterdam and Poland. Ghettos, Kabbalah in Safed, false messiahs and the birth of Hasidism shape the era."],
+      "Emancipation": ["1789–1881", "Starting with France, Jews in Western Europe gain equal rights as citizens. Many enter modern society, and the Jewish Enlightenment spreads."],
+      "Migration & Zionism": ["1881–1933", "Pogroms drive millions of Jews from Eastern Europe to America. The Zionist movement begins, and pioneers build new towns in the Land of Israel."],
+      "Holocaust": ["1933–1945", "Nazi Germany persecutes and then sets out to destroy Europe's Jews. Six million are murdered."],
+      "Aftermath": ["1945–1948", "Survivors search for family and live in displaced persons camps. Many try to reach Palestine despite British limits, and the UN votes to divide the land."],
+      "State of Israel": ["1948–today", "Israel is founded and takes in Jews from around the world. It fights wars, makes peace with some neighbours, and builds a thriving modern country."]
+    };
 
     const EVENTS = [
       { y: -1800, c: 1, p: 1, t: "Abraham's covenant", d: "Abraham leaves the city of Ur in Mesopotamia and travels to Canaan with his wife Sarah and his household. In the Torah, God promises him that his descendants will become a great nation and inherit the land. The sign of this covenant is circumcision, still practised today. Abraham is seen as the first patriarch of the Jewish people, and his son Isaac and grandson Jacob carry the promise forward." },
@@ -354,7 +391,7 @@
     };
 
     const $ = s => document.querySelector(s);
-    const stage = $("#stage"), mini = $("#mini"), pop = $("#pop"), topBar = $(".top");
+    const stage = $("#stage"), mini = $("#mini"), pop = $("#pop"), topBar = $(".top"), tip = $("#tip");
     const fmt = y => y < 0 ? `${-y} BCE` : y < 1000 ? `${y} CE` : `${y}`;
     const when = e => (e.c ? "c. " : "") + (e.e ? `${fmt(e.y).replace(/ (BCE|CE)$/, (e.y < 0) === (e.e < 0) ? "" : " $1")}–${fmt(e.e)}` : fmt(e.y));
 
@@ -373,7 +410,13 @@
       const el = document.createElement("div"); el.className = "era";
       // Rich manuscript inks: madder red, indigo, ochre, verdigris, plum, olive
       el.style.background = ["#9a3324", "#2e4a7d", "#b5831f", "#2f6f68", "#6e3b68", "#5f6d22"][i % 6];
-      el.innerHTML = `<b>${name}</b>`; stage.appendChild(el); return el;
+      el.innerHTML = `<b>${name}</b>`; stage.appendChild(el);
+      // Click: fly to this era. Hover: show its summary.
+      el.addEventListener("click", ev => { ev.stopPropagation(); if (!moved) { pop.classList.remove("on"); flyTo(a, b); } });
+      el.addEventListener("pointerenter", ev => { if (ev.pointerType === "mouse") showTip(i, ev); });
+      el.addEventListener("pointermove", ev => { if (ev.pointerType === "mouse") placeTip(ev); });
+      el.addEventListener("pointerleave", () => tip.classList.remove("on"));
+      return el;
     });
     const tickPool = [];
     EVENTS.forEach(e => {
@@ -386,7 +429,8 @@
     });
     // Measure at the left edge so cards near the right side don't get squeezed, then fix the width
     function measure() {
-      EVENTS.forEach(e => { Object.assign(e.card.style, { display: "", left: "0px", width: "" }); });
+      // max-content keeps the measurement independent of the window width (capped by the card's max-width)
+      EVENTS.forEach(e => { Object.assign(e.card.style, { display: "", left: "0px", width: "max-content" }); });
       EVENTS.forEach(e => { e.w = Math.ceil(e.card.getBoundingClientRect().width); e.h = e.card.offsetHeight; });
       EVENTS.forEach(e => { e.card.style.width = e.w + "px"; e.card.style.boxSizing = "border-box"; });
     }
@@ -489,6 +533,31 @@
     const up = ev => { pts.delete(ev.pointerId); if (pts.size < 2) pinch = null; if (!pts.size) stage.classList.remove("dragging"); };
     addEventListener("pointerup", up); addEventListener("pointercancel", up);
     stage.addEventListener("click", () => { if (!moved) pop.classList.remove("on"); });
+
+    // Smoothly move and zoom so years a..b fill the screen, with a little margin either side
+    function flyTo(a, b) {
+      const pad = (b - a) * .06, tk = Math.max(minK(), Math.min(400, W / (b - a + 2 * pad))), tc = (a + b) / 2;
+      const k0 = k, c0 = x0 + W / k / 2, t0 = performance.now();
+      const stepFn = now => {
+        const t = Math.min(1, (now - t0) / 650), e = t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        k = k0 * Math.pow(tk / k0, e); x0 = c0 + (tc - c0) * e - W / k / 2; clamp(); draw();
+        if (t < 1) requestAnimationFrame(stepFn);
+      };
+      requestAnimationFrame(stepFn);
+    }
+
+    function showTip(i, ev) {
+      const [dates, text] = ERA_INFO[ERAS[i][2]] || ["", ""];
+      tip.innerHTML = `<div class="d">${dates}</div><h3>${ERAS[i][2]}</h3><p>${text}</p><div class="go">Click to explore this era</div>`;
+      tip.style.setProperty("--c", eraEls[i].style.background);
+      tip.classList.add("on"); placeTip(ev);
+    }
+    addEventListener("pointermove", ev => { if (!ev.target.closest || !ev.target.closest(".era")) tip.classList.remove("on"); }, { passive: true });
+    function placeTip(ev) {
+      const w = tip.offsetWidth, h = tip.offsetHeight;
+      tip.style.left = Math.min(Math.max(ev.clientX - w / 2, 12), innerWidth - w - 12) + "px";
+      tip.style.top = ev.clientY - h - 18 + "px";
+    }
 
     function animateZoom(f) {
       const target = Math.max(minK(), Math.min(400, k * f)), from = k, t0 = performance.now();
