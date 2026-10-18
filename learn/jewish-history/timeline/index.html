@@ -44,6 +44,27 @@
       background: rgba(248, 236, 208, .35); box-shadow: inset 0 0 0 1px rgba(255, 246, 225, .45), 0 1px 0 rgba(255, 246, 225, .5);
       transition: background .2s; }
     .back:hover { background: rgba(58, 38, 18, .1); }
+    .top { align-items: flex-start; }
+    .titlebox { display: flex; flex-direction: column; gap: 10px; }
+    /* Search: same ink-ruled pill as the zoom controls, with a dropdown of matches */
+    .search { position: relative; display: flex; align-items: center; gap: 8px; width: min(330px, 70vw); padding: 0 14px; height: 40px; box-sizing: border-box;
+      border: 1.5px solid rgba(58, 38, 18, .75); border-radius: 999px; background: rgba(248, 236, 208, .45);
+      box-shadow: inset 0 0 0 1px rgba(255, 246, 225, .45), 0 1px 0 rgba(255, 246, 225, .5); }
+    .search:focus-within { background: rgba(251, 242, 220, .85); }
+    .search svg { width: 18px; height: 18px; flex: none; fill: none; stroke: var(--ink); stroke-width: 1.7; stroke-linecap: round; opacity: .8; }
+    .search input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font: 17px "EB Garamond", Georgia, serif; color: var(--ink); }
+    .search input::placeholder { color: var(--muted); opacity: .9; }
+    .search input::-webkit-search-cancel-button { display: none; }
+    .results { position: absolute; left: 0; top: calc(100% + 6px); width: max(100%, 360px); max-height: 52dvh; overflow-y: auto; margin: 0; padding: 6px;
+      list-style: none; box-sizing: border-box; background: var(--pop); border: 1px solid var(--line); border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .3); display: none; z-index: 12; }
+    .results.on { display: block; }
+    .results li { display: flex; align-items: baseline; gap: 10px; padding: 7px 10px; border-radius: 6px; cursor: pointer; }
+    .results li[aria-selected="true"], .results li:hover { background: rgba(58, 38, 18, .1); }
+    .results .ry { flex: none; width: 88px; font-size: 14px; font-weight: 600; color: var(--muted); }
+    .results .rt { font-size: 17px; line-height: 1.2; }
+    .results .era-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+    .results .none { cursor: default; color: var(--muted); font-style: italic; }
     h1 { font-family: "Kanisah", "EB Garamond", serif; font-weight: 400; font-size: 34px; margin: 0; letter-spacing: .02em; }
     .spacer { flex: 1; }
     button { font: inherit; color: var(--ink); border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
@@ -197,7 +218,14 @@
 
   <div class="top">
     <a class="back" href="/learn/jewish-history/">Back</a>
-    <h1>Timeline</h1>
+    <div class="titlebox">
+      <h1>Timeline</h1>
+      <div class="search" id="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3 20 20"/></svg>
+        <input id="q" type="search" placeholder="Search events, people, places…" autocomplete="off" spellcheck="false" aria-label="Search the timeline" aria-controls="results">
+        <ul class="results" id="results" role="listbox"></ul>
+      </div>
+    </div>
     <span class="spacer"></span>
     <div class="zoom">
       <button id="zout" aria-label="Zoom out" title="Zoom out"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3 20 20M7.8 10.5h5.4"/></svg></button>
@@ -956,12 +984,62 @@
     $("#zout").onclick = () => animateZoom(.5);
     $("#zfit").onclick = () => animateZoom(minK() / k);
     addEventListener("keydown", ev => {
+      if (ev.target.closest && ev.target.closest("input")) return;
+      if (ev.key === "/") { ev.preventDefault(); q.focus(); return; }
       if (ev.key === "+" || ev.key === "=") animateZoom(2);
       else if (ev.key === "-") animateZoom(.5);
       else if (ev.key === "0") animateZoom(minK() / k);
       else if (ev.key === "ArrowRight" || ev.key === "ArrowLeft") { x0 += (ev.key === "ArrowRight" ? 1 : -1) * W * .25 / k; clamp(); draw(); }
       else if (ev.key === "Escape") pop.classList.remove("on");
     });
+
+    // ---------- Search ----------
+    // Matches event titles first, then descriptions, eras and years; picking a result flies there and opens it
+    const q = $("#q"), results = $("#results");
+    let hits = [], sel = 0;
+    const norm = t => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9 ]/g, " ");
+    EVENTS.forEach(e => { e.nt = norm(e.t); e.nd = norm(e.d); });
+    function search(text) {
+      const n = norm(text).trim(); if (!n) return [];
+      const words = n.split(/\s+/), num = /^\d{1,4}$/.test(n) ? +n : null;
+      const scored = [];
+      ERAS.forEach(([a, b, name], i) => { const nn = norm(name); if (words.every(w => nn.includes(w))) scored.push({ era: i, s: 5 }); });
+      EVENTS.forEach(e => {
+        let s = 0;
+        if (words.every(w => e.nt.includes(w))) s = e.nt.startsWith(n) ? 4 : 3;
+        else if (words.every(w => e.nt.includes(w) || e.nd.includes(w))) s = 1;
+        if (num !== null && (Math.abs(e.y) === num || (e.e && Math.abs(e.e) === num))) s = Math.max(s, 3.5);
+        if (s) scored.push({ ev: e, s: s + (4 - e.p) * .1 });
+      });
+      return scored.sort((a, b) => b.s - a.s).slice(0, 10);
+    }
+    function renderResults() {
+      results.innerHTML = hits.length ? hits.map((h, i) => h.ev
+        ? `<li role="option" data-i="${i}" aria-selected="${i === sel}"><span class="ry">${when(h.ev)}</span><span class="rt">${h.ev.t}</span></li>`
+        : `<li role="option" data-i="${i}" aria-selected="${i === sel}"><span class="ry">${ERA_INFO[ERAS[h.era][2]][0]}</span><span class="rt"><span class="era-dot" style="background:${eraEls[h.era].style.background}"></span>${ERAS[h.era][2]} <em style="opacity:.6">(era)</em></span></li>`).join("")
+        : `<li class="none">No matches</li>`;
+      results.classList.toggle("on", !!q.value.trim());
+      const cur = results.querySelector('[aria-selected="true"]'); if (cur) cur.scrollIntoView({ block: "nearest" });
+    }
+    function choose(h) {
+      if (!h) return;
+      results.classList.remove("on"); q.blur();
+      if (h.era !== undefined) { pop.classList.remove("on"); flyTo(ERAS[h.era][0], ERAS[h.era][1]); return; }
+      const e = h.ev, half = Math.max(20, e.e ? (e.e - e.y) * .8 : 20);
+      flyTo(e.y - half, (e.e || e.y) + half);
+      open(e);
+    }
+    q.addEventListener("input", () => { hits = search(q.value); sel = 0; renderResults(); });
+    q.addEventListener("focus", () => { if (q.value.trim()) { hits = search(q.value); renderResults(); } });
+    q.addEventListener("keydown", ev => {
+      if (ev.key === "ArrowDown") { ev.preventDefault(); sel = Math.min(hits.length - 1, sel + 1); renderResults(); }
+      else if (ev.key === "ArrowUp") { ev.preventDefault(); sel = Math.max(0, sel - 1); renderResults(); }
+      else if (ev.key === "Enter") { ev.preventDefault(); choose(hits[sel]); }
+      else if (ev.key === "Escape") { q.value = ""; results.classList.remove("on"); q.blur(); }
+    });
+    results.addEventListener("pointerdown", ev => ev.preventDefault());
+    results.addEventListener("click", ev => { const li = ev.target.closest("li[data-i]"); if (li) choose(hits[+li.dataset.i]); });
+    q.addEventListener("blur", () => results.classList.remove("on"));
 
     function open(e) {
       pop.querySelector(".y").textContent = when(e);
