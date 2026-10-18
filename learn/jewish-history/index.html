@@ -97,9 +97,11 @@
        The mask (assets/sky-mask.png) covers x 600-1360, y 60-320 of the 2000 x 1120 view. */
     .sky { position: absolute; left: 30%; top: 5.357%; width: 38%; height: 23.214%; pointer-events: none; overflow: hidden; container-type: size;
       -webkit-mask: url("/assets/sky-mask.png?v=2") 0 0 / 100% 100% no-repeat; mask: url("/assets/sky-mask.png?v=2") 0 0 / 100% 100% no-repeat; }
-    .bird { position: absolute; left: 0; top: 0; width: 3.1cqw; height: 1.55cqw; will-change: transform; }
-    .bird svg { display: block; width: 100%; height: 100%; overflow: visible; transform-origin: 50% 40%; animation: flap var(--f, .42s) ease-in-out infinite alternate; }
-    @keyframes flap { from { transform: scaleY(1); } to { transform: scaleY(-.35); } }
+    .bird { position: absolute; left: 0; top: 0; width: 2.6cqw; height: 2.6cqw; margin: -1.3cqw 0 0 -1.3cqw; opacity: .88; will-change: transform; }
+    /* Wing-beat sprite: 12 poses of a pigeon from Muybridge's 1893 'Descriptive Zoopraxography' (public domain) */
+    .bird i { display: block; width: 100%; height: 100%; background: url("/assets/pigeon-flap.png") 0 0 / 1200% 100% no-repeat;
+      animation: flap var(--f, .5s) steps(12) infinite; }
+    @keyframes flap { to { background-position: 100% 0; } }
     @media (prefers-reduced-motion: reduce) { .sky { display: none; } }
 
     /* Welcome text */
@@ -576,7 +578,6 @@
       const sky = document.createElement('div');
       sky.className = 'sky';
       stage.insertBefore(sky, stage.querySelector('.flame'));
-      const wing = '<svg viewBox="0 0 20 10" aria-hidden="true"><path d="M0 3 Q5 0 10 5 Q15 0 20 3 Q15 2.4 10 7 Q5 2.4 0 3Z" fill="#2c211a"/></svg>';
       const rnd = (a, b) => a + Math.random() * (b - a);
       function flock() {
         const n = 6 + Math.floor(Math.random() * 4), ltr = Math.random() < .6;
@@ -584,15 +585,15 @@
         for (let i = 0; i < n; i++) {
           const b = document.createElement('div');
           b.className = 'bird';
-          b.innerHTML = wing;
-          b.firstChild.style.setProperty('--f', rnd(.32, .5).toFixed(2) + 's');
-          b.firstChild.style.animationDelay = -rnd(0, .5).toFixed(2) + 's';
+          b.innerHTML = '<i></i>';
+          b.firstChild.style.setProperty('--f', rnd(.42, .6).toFixed(2) + 's');
+          b.firstChild.style.animationDelay = -rnd(0, .6).toFixed(2) + 's';
           sky.appendChild(b);
           // loose V: each bird trails the leader a little and sits a little higher or lower
           const back = i * rnd(2.2, 3.4), side = (i % 2 ? 1 : -1) * Math.ceil(i / 2) * rnd(3, 5.5);
           const y0 = alt + side * .9, wob = rnd(2, 5), sc = rnd(.75, 1.15);
           const x0 = ltr ? -12 - back : 112 + back, x1 = ltr ? 112 - back : -12 + back;
-          const flip = ltr ? 1 : -1;
+          const flip = ltr ? 1 : -1;               // sprite faces right
           b.animate([
             { transform: `translate(${x0}cqw, 0) translate(0, ${y0}cqh) scale(${flip * sc}, ${sc})` },
             { transform: `translate(${(x0 + x1) / 2}cqw, 0) translate(0, ${y0 - wob}cqh) scale(${flip * sc}, ${sc})` },
