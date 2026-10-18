@@ -62,13 +62,13 @@
       font-size: 14px; letter-spacing: .06em; text-transform: uppercase; line-height: 28px; font-size: 13px; color: #fbf0d6; text-shadow: 0 1px 1px rgba(0, 0, 0, .35); }
     .era b { position: absolute; top: 0; font-weight: 600; }
     .tick { position: absolute; width: 1px; height: 8px; background: var(--line); opacity: .7; }
-    .tlabel { position: absolute; font-size: 16px; font-weight: 600; letter-spacing: .02em; color: var(--ink); transform: translateX(-50%); white-space: nowrap; }
+    .tlabel { position: absolute; font-size: 16px; font-weight: 600; letter-spacing: .02em; color: var(--ink); white-space: nowrap; }
     .stem { position: absolute; width: 1px; background: var(--line); opacity: .65; }
     .dot { position: absolute; width: 9px; height: 9px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--line); }
     .range { position: absolute; height: 6px; margin-top: -3px; border-radius: 3px; background: var(--line); opacity: .55; }
     .card { position: absolute; max-width: 210px; padding: 6px 10px 7px; border-radius: 4px; cursor: pointer;
       background: var(--card); border: 1px solid var(--card-line); color: var(--ink); }
-    .card .y { font-size: 13px; color: var(--muted); letter-spacing: .03em; }
+    .card .y { font-size: 15px; font-weight: 600; color: var(--ink); letter-spacing: .03em; opacity: .85; }
     .card .t { font-size: 17px; line-height: 1.15; }
     .card.p1 .t { font-size: 19px; font-weight: 600; }
     .card.flip { text-align: right; }
@@ -81,10 +81,24 @@
     .mini .win { position: absolute; top: -1px; bottom: -1px; border: 2px solid var(--ink); border-radius: 3px; background: rgba(255, 255, 255, .12); }
 
     /* Event detail */
-    .pop { position: fixed; left: 50%; bottom: calc(16dvh + 40px); transform: translateX(-50%); z-index: 9; width: min(520px, calc(100vw - 32px)); box-sizing: border-box;
+    .pop { position: fixed; left: 50%; bottom: calc(16dvh + 40px); transform: translateX(-50%); z-index: 9; width: min(760px, calc(100vw - 32px)); box-sizing: border-box;
       padding: 16px 20px 18px; border-radius: 8px; background: var(--pop); color: var(--ink); border: 1px solid var(--line);
       box-shadow: 0 10px 40px rgba(0, 0, 0, .35); display: none; user-select: text; -webkit-user-select: text; }
     .pop.on { display: block; }
+    .pop.on.has-img { display: grid; grid-template-columns: 280px 1fr; gap: 0 20px; align-items: start; }
+    .pop figure { grid-row: 1 / 4; margin: 0; }
+    /* Fixed-size frame: the whole image fits inside it, never cropped */
+    .pop figure img { display: block; width: 280px; height: 210px; object-fit: contain; background: #e6d6b2; border-radius: 4px;
+      box-shadow: inset 0 0 0 1px rgba(58, 38, 18, .2); }
+    .pop figcaption { margin-top: 4px; font-size: 12px; line-height: 1.3; opacity: .65; }
+    .pop figcaption a { text-decoration: none; }
+    .pop figcaption a:hover { text-decoration: underline; }
+    .pop .y, .pop h2 { padding-right: 28px; }
+    @media (max-width: 640px) {
+      .pop.on.has-img { display: block; }
+      .pop figure img { width: 100%; height: 180px; }
+      .pop figure { margin-bottom: 10px; }
+    }
     .pop .y { font-size: 15px; opacity: .7; }
     .pop h2 { font-size: 26px; margin: 2px 0 8px; font-weight: 600; line-height: 1.1; }
     .pop p { margin: 0; font-size: 18px; line-height: 1.4; }
@@ -113,18 +127,18 @@
   </div>
 
   <div class="mini" id="mini"></div>
-  <div class="pop" id="pop"><button class="x" aria-label="Close">×</button><div class="y"></div><h2></h2><p></p></div>
+  <div class="pop" id="pop"><button class="x" aria-label="Close">×</button><figure><img alt=""><figcaption></figcaption></figure><div class="y"></div><h2></h2><p></p></div>
 
   <script>
     // Years: negative = BCE. c: circa. e: end year (draws a bar). p: 1 always shown, 2 shown when room, 3 only when zoomed in.
     const START = -2000, END = 2030;
 
     const ERAS = [
-      [-1800, -1600, "Patriarchs"], [-1600, -1280, "Egypt"], [-1280, -1200, "Wilderness"], [-1200, -1050, "Judges"],
+      [START, -1600, "Patriarchs"], [-1600, -1280, "Egypt"], [-1280, -1200, "Wilderness"], [-1200, -1050, "Judges"],
       [-1050, -930, "United Kingdom"], [-930, -586, "Two Kingdoms"], [-586, -538, "Exile"], [-538, -332, "Persian Period"],
       [-332, -167, "Greek Period"], [-167, -63, "Hasmoneans"], [-63, 70, "Roman Rule"], [70, 640, "Mishnah & Talmud"],
       [640, 1096, "Geonim & Golden Age"], [1096, 1492, "Medieval Europe"], [1492, 1789, "Early Modern"], [1789, 1881, "Emancipation"],
-      [1881, 1933, "Migration & Zionism"], [1933, 1945, "Holocaust"], [1948, END, "State of Israel"]
+      [1881, 1933, "Migration & Zionism"], [1933, 1945, "Holocaust"], [1945, 1948, "Aftermath"], [1948, END, "State of Israel"]
     ];
 
     const EVENTS = [
@@ -232,6 +246,9 @@
       { y: 2025, p: 2, t: "Hostages come home", d: "Under a ceasefire, the last 20 living hostages return to Israel on 13 October." }
     ];
 
+    // Event images, by event title: [file in /assets/timeline/, credit, Wikimedia Commons page]
+    const IMAGES = {};
+
     const $ = s => document.querySelector(s);
     const stage = $("#stage"), mini = $("#mini"), pop = $("#pop"), topBar = $(".top");
     const fmt = y => y < 0 ? `${-y} BCE` : y < 1000 ? `${y} CE` : `${y}`;
@@ -296,8 +313,10 @@
         const [a, b] = tickPool[n], x = X(t);
         a.style.display = b.style.display = "";
         a.style.left = x + "px"; a.style.top = axisY + BAND / 2 + "px";
-        b.style.left = x + "px"; b.style.top = axisY + BAND / 2 + 9 + "px";
         b.textContent = t === 0 ? "BCE | CE" : fmt(t);
+        // Centred under its tick, but never pushed off either edge of the screen
+        const bw = b.offsetWidth;
+        b.style.left = Math.min(Math.max(x - bw / 2, 6), W - bw - 6) + "px"; b.style.top = axisY + BAND / 2 + 9 + "px";
       }
       for (; n < tickPool.length; n++) tickPool[n][0].style.display = tickPool[n][1].style.display = "none";
 
@@ -387,6 +406,14 @@
       pop.querySelector(".y").textContent = when(e);
       pop.querySelector("h2").textContent = e.t;
       pop.querySelector("p").textContent = e.d;
+      // Every event has an image from Wikimedia Commons, credited underneath with a link to its source page
+      const im = IMAGES[e.t], fig = pop.querySelector("figure");
+      fig.hidden = !im; pop.classList.toggle("has-img", !!im);
+      if (im) {
+        const img = fig.querySelector("img");
+        img.src = `/assets/timeline/${im[0]}`; img.alt = e.t;
+        fig.querySelector("figcaption").innerHTML = `<a href="${im[2]}" target="_blank" rel="noopener">${im[1]}</a>`;
+      }
       pop.classList.add("on");
     }
     pop.querySelector(".x").onclick = () => pop.classList.remove("on");
