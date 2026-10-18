@@ -70,13 +70,17 @@
     .era:hover { filter: brightness(1.15) saturate(1.1); }
 
     /* Era summary on hover */
-    .tip { position: fixed; z-index: 10; width: 320px; padding: 12px 16px 13px; border-radius: 8px; pointer-events: none;
+    .tip { position: fixed; z-index: 10; width: 340px; padding: 12px 16px 13px; border-radius: 8px; pointer-events: none;
       background: var(--pop); color: var(--ink); border: 1px solid var(--line); border-top: 5px solid var(--c, var(--line));
       box-shadow: 0 8px 30px rgba(0, 0, 0, .3); opacity: 0; transition: opacity .15s; }
     .tip.on { opacity: 1; }
     .tip .d { font-size: 14px; font-weight: 600; opacity: .7; letter-spacing: .03em; }
     .tip h3 { margin: 1px 0 5px; font-size: 22px; font-weight: 600; line-height: 1.1; }
     .tip p { margin: 0; font-size: 16px; line-height: 1.4; }
+    /* Fixed-size frame: the whole painting fits inside it, never cropped */
+    .tip figure { margin: -2px -6px 10px; }
+    .tip figure img { display: block; width: 100%; height: 170px; object-fit: contain; background: #e6d6b2; border-radius: 4px; }
+    .tip figcaption { margin-top: 3px; font-size: 11px; opacity: .6; }
     .tip .go { margin-top: 7px; font-size: 13px; font-style: italic; opacity: .7; }
     .tick { position: absolute; width: 1px; height: 8px; background: var(--line); opacity: .7; }
     .tlabel { position: absolute; font-size: 16px; font-weight: 600; letter-spacing: .02em; color: var(--ink); white-space: nowrap; }
@@ -217,6 +221,30 @@
       [640, 1096, "Geonim & Golden Age"], [1096, 1492, "Medieval Europe"], [1492, 1789, "Early Modern"], [1789, 1881, "Emancipation"],
       [1881, 1933, "Migration & Zionism"], [1933, 1945, "Holocaust"], [1945, 1948, "Aftermath"], [1948, END, "State of Israel"]
     ];
+
+    // A painting for each era, shown in its hover card: [file in /assets/timeline/, credit]
+    const ERA_IMG = {
+      "Wilderness": ["era-wilderness.jpg", "Jacob Willemsz de Wet · Public domain · Wikimedia Commons"],
+      "Judges": ["era-judges.jpg", "Public domain · Wikimedia Commons"],
+      "United Kingdom": ["era-united-kingdom.jpg", "Peter Paul Rubens – Creator Born in Sie · Public domain · Wikimedia Commons"],
+      "Two Kingdoms": ["era-two-kingdoms.jpg", "Claes Moeyaert · Public domain · Wikimedia Commons"],
+      "Exile": ["era-exile.jpg", "Eduard Bendemann · Public domain · Wikimedia Commons"],
+      "Persian Period": ["era-persian-period.jpg", "Rembrandt · Public domain · Wikimedia Commons"],
+      "Hasmoneans": ["era-hasmoneans.jpg", "Peter Paul Rubens and workshop · Public domain · Wikimedia Commons"],
+      "Roman Rule": ["era-roman-rule.jpg", "Didier Descouens · Public domain · Wikimedia Commons"],
+      "Mishnah & Talmud": ["era-mishnah-talmud.jpg", "Samuel Hirszenberg · Public domain · Wikimedia Commons"],
+      "Medieval Europe": ["era-medieval-europe.jpg", "Unknown artist · Public domain · Wikimedia Commons"],
+      "Emancipation": ["era-emancipation.jpg", "Maurycy Gottlieb · Public domain · Wikimedia Commons"],
+      "Migration & Zionism": ["era-migration-zionism.jpg", "שמואל הירשנברג · Public domain · Wikimedia Commons"],
+      "Holocaust": ["era-holocaust.jpg", "GodeNehler · CC BY-SA 4.0 · Wikimedia Commons"],
+      "Aftermath": ["era-aftermath.jpg", "Public domain · Wikimedia Commons"],
+      "State of Israel": ["era-state-of-israel.jpg", "Rudi Weissenstein · CC BY-SA 3.0 · Wikimedia Commons"],
+      "Patriarchs": ["era-patriarchs.jpg", "József Molnár · Public domain · Wikimedia Commons"],
+      "Egypt": ["era-egypt.jpg", "Edward Poynter · Public domain · Wikimedia Commons"],
+      "Greek Period": ["era-greek-period.jpg", "Master IRs · CC0 · Wikimedia Commons"],
+      "Early Modern": ["era-early-modern.jpg", "Emanuel de Witte · Public domain · Wikimedia Commons"],
+      "Geonim & Golden Age": ["era-geonim-golden-age.jpg", "Unknown artist · Public domain · Wikimedia Commons"]
+    };
 
     // Shown when hovering an era in the ribbon: [dates, summary]
     const ERA_INFO = {
@@ -902,9 +930,13 @@
       requestAnimationFrame(stepFn);
     }
 
+    addEventListener("load", () => setTimeout(() => Object.values(ERA_IMG).forEach(([f]) => { new Image().src = `/assets/timeline/${f}`; }), 1500));
+
     function showTip(i, ev) {
       const [dates, text] = ERA_INFO[ERAS[i][2]] || ["", ""];
-      tip.innerHTML = `<div class="d">${dates}</div><h3>${ERAS[i][2]}</h3><p>${text}</p><div class="go">Click to explore this era</div>`;
+      const im = ERA_IMG[ERAS[i][2]];
+      tip.innerHTML = (im ? `<figure><img src="/assets/timeline/${im[0]}" alt=""><figcaption>${im[1]}</figcaption></figure>` : "")
+        + `<div class="d">${dates}</div><h3>${ERAS[i][2]}</h3><p>${text}</p><div class="go">Click to explore this era</div>`;
       tip.style.setProperty("--c", eraEls[i].style.background);
       tip.classList.add("on"); placeTip(ev);
     }
