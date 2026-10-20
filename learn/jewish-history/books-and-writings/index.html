@@ -23,6 +23,12 @@
       touch-action: none; cursor: grab; }
     .shelf.dragging { cursor: grabbing; }
 
+    /* Books stand on the shelves and scroll with them */
+    .books { position: fixed; inset: 0; pointer-events: none; z-index: 2; }
+    .book { position: absolute; display: block; pointer-events: auto; cursor: pointer; transform-origin: 50% 100%;
+      filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .55)); transition: transform .2s ease; }
+    .book:hover { transform: translateY(-4px); }
+
     .top { position: fixed; top: 2.2dvh; left: max(3vw, calc(env(safe-area-inset-left) + 10px)); z-index: 5; display: flex; align-items: center; gap: 16px; }
     .back { text-decoration: none; font-size: 16px; line-height: 1; padding: 8px 16px 9px; border-radius: 999px;
       border: 1.5px solid rgba(243, 227, 195, .6); background: rgba(36, 19, 9, .45); transition: background .2s; }
@@ -39,16 +45,41 @@
 <body>
   <img class="yad" id="yad" src="/assets/yad-cursor@2x.png?v=4" width="64" height="64" alt="" aria-hidden="true">
   <div class="shelf" id="shelf" aria-label="Bookshelf"></div>
+  <div class="books" id="books"></div>
   <div class="top">
     <a class="back" href="/learn/jewish-history/">Back</a>
     <h1>Books and Writings</h1>
   </div>
 
   <script>
+    // ---------- Books ----------
+    // The shelf tile is 875 x 1120 and is scaled to the screen height. Positions below are in tile pixels.
+    // Each shelf's surface, where book bottoms rest: top shelf, middle shelf, bottom shelf.
+    const TILE_W = 875, TILE_H = 1120, SHELF_BASE = [336, 630, 950];
+    // n: number on the list of 111, shelf: 0 top / 1 middle / 2 bottom, at: distance along the shelves, h: height on screen in tile pixels
+    const BOOKS = [
+      { n: 69, t: "Tsene-rene", img: "tsene-rene.webp", shelf: 1, at: 380, h: 200 }
+    ];
+    // The shelves loop forever, so the books repeat after LOOP tile pixels (grows as more books are added)
+    const LOOP = Math.max(TILE_W * 4, Math.ceil((Math.max(...BOOKS.map(b => b.at)) + 600) / TILE_W) * TILE_W);
+    const layer = document.getElementById("books");
+    BOOKS.forEach(b => {
+      b.el = document.createElement("img"); b.el.className = "book"; b.el.src = `/assets/books/${b.img}`; b.el.alt = b.t; b.el.title = b.t;
+      b.el.draggable = false; layer.appendChild(b.el);
+    });
+    function placeBooks() {
+      const s = innerHeight / TILE_H, loop = LOOP * s;
+      BOOKS.forEach(b => {
+        const w = b.el.naturalWidth ? b.el.naturalWidth / b.el.naturalHeight * b.h * s : 0;
+        const left = ((b.at * s - x + w) % loop + loop) % loop - w;
+        Object.assign(b.el.style, { height: b.h * s + "px", left: left + "px", top: (SHELF_BASE[b.shelf] - b.h) * s + "px" });
+      });
+    }
+
     // Endless sideways scrolling: wheel, trackpad, drag or swipe moves the shelf; a flick keeps gliding and slows down
     const shelf = document.getElementById("shelf");
     let x = 0, v = 0, dragging = false, lastX = 0, lastT = 0, raf = 0;
-    const render = () => { shelf.style.backgroundPositionX = -x + "px"; };
+    const render = () => { shelf.style.backgroundPositionX = -x + "px"; placeBooks(); };
     function glide() {
       if (dragging || Math.abs(v) < .02) { raf = 0; return; }
       x += v * 16; v *= .94; render(); raf = requestAnimationFrame(glide);
@@ -58,10 +89,13 @@
       x += Math.abs(ev.deltaX) > Math.abs(ev.deltaY) ? ev.deltaX : ev.deltaY;
       v = 0; render();
     }, { passive: false });
-    shelf.addEventListener("pointerdown", ev => {
+    // Dragging works from the shelf or from on top of a book
+    const startDrag = ev => {
       dragging = true; v = 0; lastX = ev.clientX; lastT = performance.now();
       shelf.setPointerCapture(ev.pointerId); shelf.classList.add("dragging");
-    });
+    };
+    shelf.addEventListener("pointerdown", startDrag);
+    layer.addEventListener("pointerdown", startDrag);
     shelf.addEventListener("pointermove", ev => {
       if (!dragging) return;
       const now = performance.now(), dx = ev.clientX - lastX;
@@ -73,6 +107,10 @@
       if (ev.key === "ArrowRight") { x += innerWidth * .3; render(); }
       else if (ev.key === "ArrowLeft") { x -= innerWidth * .3; render(); }
     });
+
+    addEventListener("resize", render);
+    BOOKS.forEach(b => b.el.addEventListener("load", render));
+    render();
 
     // Yad follows the mouse (mouse devices only)
     if (matchMedia("(hover: hover) and (pointer: fine)").matches) {
