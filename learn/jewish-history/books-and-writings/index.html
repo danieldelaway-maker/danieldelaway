@@ -61,6 +61,39 @@
     .book.found { animation: found 1.6s ease-out 2; }
     @keyframes found { 0%, 100% { filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .55)); } 40% { filter: drop-shadow(0 0 14px rgba(255, 214, 140, .95)) drop-shadow(0 3px 4px rgba(0, 0, 0, .55)); } }
 
+    /* Book card: opens when a book is clicked */
+    .veil { position: fixed; inset: 0; z-index: 30; background: rgba(15, 7, 2, .55); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+      opacity: 0; pointer-events: none; transition: opacity .2s; }
+    .veil.on { opacity: 1; pointer-events: auto; }
+    .card { position: fixed; z-index: 31; left: 50%; top: 50%; width: min(860px, calc(100vw - 32px)); max-height: calc(100dvh - 40px); overflow-y: auto;
+      box-sizing: border-box; display: grid; grid-template-columns: 300px 1fr; gap: 0 28px; padding: 26px 30px 28px;
+      background: #f6ead0; color: #33220f; border: 1px solid #6b4a26; border-radius: 12px; box-shadow: 0 20px 60px rgba(0, 0, 0, .6);
+      transform: translate(-50%, -48%) scale(.97); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+      user-select: text; -webkit-user-select: text; }
+    .card.on { opacity: 1; transform: translate(-50%, -50%); pointer-events: auto; }
+    .card-x { position: absolute; top: 10px; right: 12px; width: 40px; height: 40px; border: 0; background: none; color: inherit; font-size: 28px; cursor: pointer; }
+    /* Fixed-size frame on dark wood: the whole object fits inside, never cropped */
+    .card-pic { margin: 0; height: 340px; display: block; padding: 16px; box-sizing: border-box; border-radius: 8px;
+      background: radial-gradient(ellipse at 50% 40%, #5a341a, #2c1709); }
+    .card-pic img { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .6)); }
+    .card-n { font-size: 13px; letter-spacing: .1em; text-transform: uppercase; opacity: .6; margin-top: 4px; }
+    .card h2 { margin: 2px 40px 10px 0; font: 600 30px/1.1 "EB Garamond", Georgia, serif; }
+    .card-meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 6px; }
+    .card-meta span { padding: 4px 10px 5px; border-radius: 999px; background: rgba(107, 74, 38, .12); font-size: 14px; line-height: 1.1; }
+    .card-meta b { font-weight: 600; opacity: .7; margin-right: 4px; }
+    .card h3 { margin: 14px 0 4px; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: #7a5a36; }
+    .card p { margin: 0; font-size: 18px; line-height: 1.5; }
+    @media (max-width: 700px), (max-height: 520px) {
+      .card { grid-template-columns: 1fr; padding: 20px; }
+      .card-pic { height: 180px; margin-bottom: 8px; }
+      .card h2 { font-size: 24px; }
+      .card p { font-size: 16px; }
+    }
+    @media (orientation: landscape) and (max-height: 520px) {
+      .card { grid-template-columns: 200px 1fr; }
+      .card-pic { height: 100%; min-height: 200px; }
+    }
+
     /* Yad (Torah pointer) cursor on mouse devices, same as the rest of Jewish History */
     .yad { position: fixed; left: 0; top: 0; z-index: 20; width: 64px; height: 64px; margin: -1px 0 0 -2px; pointer-events: none;
       opacity: 0; transition: opacity .15s; will-change: transform; }
@@ -73,6 +106,18 @@
   <div class="shelf" id="shelf" aria-label="Bookshelf"></div>
   <div class="books" id="books"></div>
   <div class="label" id="label" aria-hidden="true"></div>
+  <div class="veil" id="veil"></div>
+  <article class="card" id="card" role="dialog" aria-modal="true" aria-labelledby="card-title">
+    <button class="card-x" id="card-x" aria-label="Close">×</button>
+    <figure class="card-pic"><img id="card-img" alt=""></figure>
+    <div class="card-body">
+      <div class="card-n" id="card-n"></div>
+      <h2 id="card-title"></h2>
+      <div class="card-meta" id="card-meta"></div>
+      <h3>What it is</h3><p id="card-desc"></p>
+      <h3>Why it matters</h3><p id="card-sig"></p>
+    </div>
+  </article>
   <div class="top">
     <a class="back" href="/learn/jewish-history/">Back</a>
     <h1>Books and Writings</h1>
@@ -240,13 +285,17 @@
     }
     // Scrolling works anywhere on the page, including over a book (but not inside the search results list)
     addEventListener("wheel", ev => {
-      if (ev.target.closest && ev.target.closest(".results")) return;
+      if (ev.target.closest && ev.target.closest(".results, .card")) return;
+      if (card.classList.contains("on")) { ev.preventDefault(); return; }
       ev.preventDefault();
       x += Math.abs(ev.deltaX) > Math.abs(ev.deltaY) ? ev.deltaX : ev.deltaY;
       v = 0; render();
     }, { passive: false });
     // Dragging works from the shelf or from on top of a book
+    // A press that barely moves counts as a click on the book under it
+    let downBook = null, travelled = 0;
     const startDrag = ev => {
+      downBook = BOOKS.find(b => b.el === ev.target) || null; travelled = 0;
       dragging = true; v = 0; lastX = ev.clientX; lastT = performance.now();
       shelf.setPointerCapture(ev.pointerId); shelf.classList.add("dragging");
     };
@@ -255,11 +304,18 @@
     shelf.addEventListener("pointermove", ev => {
       if (!dragging) return;
       const now = performance.now(), dx = ev.clientX - lastX;
+      travelled += Math.abs(dx);
       x -= dx; v = -dx / Math.max(1, now - lastT); lastX = ev.clientX; lastT = now; render();
     });
-    const end = () => { if (!dragging) return; dragging = false; shelf.classList.remove("dragging"); if (!raf) raf = requestAnimationFrame(glide); };
+    const end = ev => {
+      if (!dragging) return; dragging = false; shelf.classList.remove("dragging");
+      if (ev.type === "pointerup" && downBook && travelled < 6) { v = 0; openCard(downBook); return; }
+      if (!raf) raf = requestAnimationFrame(glide);
+    };
     shelf.addEventListener("pointerup", end); shelf.addEventListener("pointercancel", end);
     addEventListener("keydown", ev => {
+      if (ev.key === "Escape") { closeCard(); return; }
+      if (card.classList.contains("on")) return;
       if (ev.key === "ArrowRight") { x += innerWidth * .3; render(); }
       else if (ev.key === "ArrowLeft") { x -= innerWidth * .3; render(); }
     });
@@ -267,6 +323,27 @@
     addEventListener("resize", render);
     BOOKS.forEach(b => b.el.addEventListener("load", () => { computeLoop(); render(); }));
     render();
+
+    // ---------- Book card ----------
+    // Year, language, author, description and significance for every book live in cards.json, fetched once
+    const card = document.getElementById("card"), veil = document.getElementById("veil");
+    let cards = null;
+    const loadCards = () => cards || (cards = fetch("cards.json").then(r => r.json()).catch(() => { cards = null; return {}; }));
+    addEventListener("load", () => setTimeout(loadCards, 1500));
+    async function openCard(b) {
+      label.classList.remove("on");
+      const c = (await loadCards())[b.t] || {};
+      document.getElementById("card-img").src = b.el.src; document.getElementById("card-img").alt = b.t;
+      document.getElementById("card-n").textContent = `No. ${b.n} of 111`;
+      document.getElementById("card-title").textContent = b.t;
+      document.getElementById("card-meta").innerHTML = [["Written", c.year], ["Language", c.language], ["By", c.author]]
+        .filter(([, v]) => v).map(([k, v]) => `<span><b>${k}</b>${v.replace(/[&<>]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[ch]))}</span>`).join("");
+      document.getElementById("card-desc").textContent = c.description || "";
+      document.getElementById("card-sig").textContent = c.significance || "";
+      card.scrollTop = 0; card.classList.add("on"); veil.classList.add("on");
+    }
+    function closeCard() { card.classList.remove("on"); veil.classList.remove("on"); }
+    document.getElementById("card-x").onclick = closeCard; veil.onclick = closeCard;
 
     // ---------- Search: find a book on the shelves and glide to it ----------
     const q = document.getElementById("q"), results = document.getElementById("results");
