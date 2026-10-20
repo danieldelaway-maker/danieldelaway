@@ -41,6 +41,26 @@
     .back:hover { background: rgba(243, 227, 195, .15); }
     h1 { margin: 0; font: 400 28px "Kanisah", "EB Garamond", serif; letter-spacing: .02em; text-shadow: 0 2px 6px rgba(0, 0, 0, .6); }
 
+    /* Search: a pill on the top frame with a dropdown of matching books */
+    .search { position: relative; display: flex; align-items: center; gap: 8px; width: min(300px, 40vw); height: 36px; padding: 0 13px; box-sizing: border-box;
+      border: 1.5px solid rgba(243, 227, 195, .6); border-radius: 999px; background: rgba(36, 19, 9, .55); }
+    .search:focus-within { background: rgba(36, 19, 9, .85); }
+    .search svg { width: 16px; height: 16px; flex: none; fill: none; stroke: #f3e3c3; stroke-width: 1.8; stroke-linecap: round; opacity: .85; }
+    .search input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; color: #f3e3c3; font: 16px "EB Garamond", Georgia, serif; }
+    .search input::placeholder { color: rgba(243, 227, 195, .6); }
+    .search input::-webkit-search-cancel-button { display: none; }
+    .results { position: absolute; left: 0; top: calc(100% + 6px); width: max(100%, 320px); max-height: 60dvh; overflow-y: auto; margin: 0; padding: 6px;
+      list-style: none; box-sizing: border-box; background: #f6ead0; color: #33220f; border: 1px solid #6b4a26; border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .5); display: none; }
+    .results.on { display: block; }
+    .results li { display: flex; gap: 10px; align-items: baseline; padding: 7px 10px; border-radius: 6px; cursor: pointer; font-size: 17px; }
+    .results li[aria-selected="true"], .results li:hover { background: rgba(58, 38, 18, .1); }
+    .results .rn { flex: none; width: 34px; font-size: 13px; font-weight: 600; opacity: .6; }
+    .results .none { cursor: default; font-style: italic; opacity: .7; }
+    /* A found book glows briefly */
+    .book.found { animation: found 1.6s ease-out 2; }
+    @keyframes found { 0%, 100% { filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .55)); } 40% { filter: drop-shadow(0 0 14px rgba(255, 214, 140, .95)) drop-shadow(0 3px 4px rgba(0, 0, 0, .55)); } }
+
     /* Yad (Torah pointer) cursor on mouse devices, same as the rest of Jewish History */
     .yad { position: fixed; left: 0; top: 0; z-index: 20; width: 64px; height: 64px; margin: -1px 0 0 -2px; pointer-events: none;
       opacity: 0; transition: opacity .15s; will-change: transform; }
@@ -56,6 +76,11 @@
   <div class="top">
     <a class="back" href="/learn/jewish-history/">Back</a>
     <h1>Books and Writings</h1>
+    <div class="search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3 20 20"/></svg>
+      <input id="q" type="search" placeholder="Search the shelves…" autocomplete="off" spellcheck="false" aria-label="Search the shelves">
+      <ul class="results" id="results" role="listbox"></ul>
+    </div>
   </div>
 
   <script>
@@ -65,7 +90,18 @@
     const TILE_W = 875, TILE_H = 1120, SHELF_BASE = [336, 630, 950];
     // n: number on the list of 111, shelf: 0 top / 1 middle / 2 bottom, at: distance along the shelves, h: height on screen in tile pixels
     const BOOKS = [
-      { n: 69, t: "Tsene-rene", img: "tsene-rene.webp", shelf: 1, at: 380, h: 200 }
+      { n: 1, t: "The Torah", img: "torah.webp", shelf: 2, at: 70, h: 255 },
+      { n: 2, t: "The Prophets", img: "prophets.webp", shelf: 2, at: 214, h: 210 },
+      { n: 3, t: "The Writings", img: "writings.webp", shelf: 2, at: 365, h: 195 },
+      { n: 4, t: "The Book of Psalms", img: "psalms.webp", shelf: 1, at: 110, h: 135 },
+      { n: 5, t: "The Septuagint", img: "septuagint.webp", shelf: 1, at: 222, h: 175 },
+      { n: 6, t: "The Letter of Aristeas", img: "letter-of-aristeas.webp", shelf: 0, at: 90, h: 70 },
+      { n: 7, t: "The Wisdom of Ben Sira", img: "ben-sira.webp", shelf: 0, at: 345, h: 165 },
+      { n: 8, t: "The Books of Maccabees", img: "maccabees.webp", shelf: 1, at: 370, h: 195 },
+      { n: 9, t: "The Dead Sea Scrolls", img: "dead-sea-scrolls.webp", shelf: 2, at: 520, h: 225 },
+      { n: 10, t: "Philo of Alexandria's writings", img: "philo.webp", shelf: 2, at: 690, h: 205 },
+      // Not yet in its place in date order; parked further along until the books around it arrive
+      { n: 69, t: "Tsene-rene", img: "tsene-rene.webp", shelf: 1, at: 2600, h: 155 }
     ];
     // The shelves loop forever, so the books repeat after LOOP tile pixels (grows as more books are added)
     const LOOP = Math.max(TILE_W * 4, Math.ceil((Math.max(...BOOKS.map(b => b.at)) + 600) / TILE_W) * TILE_W);
@@ -122,6 +158,41 @@
     addEventListener("resize", render);
     BOOKS.forEach(b => b.el.addEventListener("load", render));
     render();
+
+    // ---------- Search: find a book on the shelves and glide to it ----------
+    const q = document.getElementById("q"), results = document.getElementById("results");
+    let hits = [], sel = 0;
+    const norm = t => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9 ]/g, " ");
+    function search(text) {
+      const words = norm(text).trim().split(/\s+/).filter(Boolean); if (!words.length) return [];
+      return BOOKS.filter(b => words.every(w => norm(b.t).includes(w)) || words.join("") === String(b.n)).sort((a, b) => a.n - b.n).slice(0, 12);
+    }
+    function showResults() {
+      results.innerHTML = hits.length ? hits.map((b, i) => `<li role="option" data-i="${i}" aria-selected="${i === sel}"><span class="rn">${b.n}</span>${b.t}</li>`).join("")
+        : `<li class="none">Not on the shelves yet</li>`;
+      results.classList.toggle("on", !!q.value.trim());
+    }
+    function goTo(b) {
+      if (!b) return;
+      results.classList.remove("on"); q.blur();
+      const s = innerHeight / TILE_H, loop = LOOP * s, w = b.el.getBoundingClientRect().width;
+      // glide the shortest way round the loop so the book ends up in the middle of the screen
+      let target = b.at * s + w / 2 - innerWidth / 2, d = ((target - x) % loop + loop) % loop; if (d > loop / 2) d -= loop;
+      const x0 = x, t0 = performance.now(); v = 0;
+      const step = now => { const t = Math.min(1, (now - t0) / 700), e = 1 - Math.pow(1 - t, 3); x = x0 + d * e; render(); if (t < 1) requestAnimationFrame(step); else { b.el.classList.remove("found"); void b.el.offsetWidth; b.el.classList.add("found"); } };
+      requestAnimationFrame(step);
+    }
+    q.addEventListener("input", () => { hits = search(q.value); sel = 0; showResults(); });
+    q.addEventListener("keydown", ev => {
+      ev.stopPropagation();
+      if (ev.key === "ArrowDown") { ev.preventDefault(); sel = Math.min(hits.length - 1, sel + 1); showResults(); }
+      else if (ev.key === "ArrowUp") { ev.preventDefault(); sel = Math.max(0, sel - 1); showResults(); }
+      else if (ev.key === "Enter") { ev.preventDefault(); goTo(hits[sel]); }
+      else if (ev.key === "Escape") { q.value = ""; results.classList.remove("on"); q.blur(); }
+    });
+    results.addEventListener("pointerdown", ev => ev.preventDefault());
+    results.addEventListener("click", ev => { const li = ev.target.closest("li[data-i]"); if (li) goTo(hits[+li.dataset.i]); });
+    q.addEventListener("blur", () => results.classList.remove("on"));
 
     // Yad follows the mouse (mouse devices only)
     if (matchMedia("(hover: hover) and (pointer: fine)").matches) {
