@@ -110,8 +110,37 @@
       { n: 19, t: "The Babylonian Talmud", img: "babylonian-talmud.webp", shelf: 2, at: 1210, h: 235 },
       { n: 20, t: "Midrash Rabbah", img: "midrash-rabbah.webp", shelf: 1, at: 1280, h: 105 },
       { n: 21, t: "Sefer Yetzirah", img: "sefer-yetzirah.webp", shelf: 0, at: 1120, h: 165 },
+      { n: 11, t: "Josephus, The Jewish War and Antiquities", img: "josephus.webp", shelf: 2, at: 1720, h: 215 },
+      { n: 22, t: "Hekhalot literature", img: "hekhalot.webp", shelf: 1, at: 1720, h: 140 },
+      { n: 23, t: "The piyyutim of Yannai and Kalir", img: "piyyutim.webp", shelf: 0, at: 1720, h: 225 },
+      { n: 24, t: "The Passover Haggadah", img: "haggadah.webp", shelf: 1, at: 1842, h: 170 },
+      { n: 26, t: "The Siddur", img: "siddur.webp", shelf: 2, at: 1895, h: 125 },
+      { n: 27, t: "Halakhot Gedolot", img: "halakhot-gedolot.webp", shelf: 2, at: 2002, h: 140 },
+      { n: 28, t: "Saadia Gaon, Tafsir", img: "saadia-tafsir.webp", shelf: 1, at: 2006, h: 175 },
+      { n: 29, t: "Saadia Gaon, Beliefs and Opinions", img: "saadia-beliefs.webp", shelf: 0, at: 2111, h: 170 },
+      { n: 30, t: "The Letter of Rav Sherira Gaon", img: "sherira-letter.webp", shelf: 2, at: 2112, h: 55 },
+      { n: 31, t: "Yosippon", img: "yosippon.webp", shelf: 1, at: 2153, h: 185 },
+      { n: 32, t: "The Cairo Geniza documents", img: "cairo-geniza.webp", shelf: 0, at: 2254, h: 120 },
+      { n: 33, t: "Alfasi, Sefer ha-Halakhot", img: "rif.webp", shelf: 1, at: 2300, h: 215 },
+      { n: 34, t: "Rashi's commentary", img: "rashi.webp", shelf: 2, at: 2367, h: 150 },
+      { n: 35, t: "The Tosafot", img: "tosafot.webp", shelf: 0, at: 2411, h: 205 },
+      { n: 36, t: "Solomon ibn Gabirol, Keter Malkhut and Fons Vitae", img: "ibn-gabirol.webp", shelf: 1, at: 2466, h: 140 },
+      { n: 37, t: "Bahya ibn Paquda, Duties of the Heart", img: "duties-of-the-heart.webp", shelf: 2, at: 2496, h: 140 },
+      { n: 38, t: "Judah Halevi, The Kuzari", img: "kuzari.webp", shelf: 0, at: 2575, h: 165 },
+      { n: 39, t: "Judah Halevi, Songs of Zion", img: "songs-of-zion.webp", shelf: 1, at: 2591, h: 125 },
+      { n: 40, t: "Abraham ibn Ezra's commentary", img: "ibn-ezra.webp", shelf: 2, at: 2619, h: 95 },
+      { n: 41, t: "Abraham ibn Daud, Sefer ha-Kabbalah", img: "ibn-daud.webp", shelf: 0, at: 2709, h: 130 },
+      { n: 42, t: "Maimonides, Commentary on the Mishnah", img: "commentary-on-the-mishnah.webp", shelf: 1, at: 2710, h: 175 },
+      { n: 43, t: "Maimonides, Mishneh Torah", img: "mishneh-torah.webp", shelf: 0, at: 2826, h: 220 },
+      { n: 44, t: "Maimonides, Guide for the Perplexed", img: "guide-for-the-perplexed.webp", shelf: 1, at: 2862, h: 170 },
+      { n: 45, t: "Maimonides, Letter to Yemen", img: "letter-to-yemen.webp", shelf: 2, at: 2876, h: 70 },
+      { n: 46, t: "The Travels of Benjamin of Tudela", img: "benjamin-of-tudela.webp", shelf: 0, at: 2996, h: 135 },
+      { n: 47, t: "Sefer ha-Bahir", img: "bahir.webp", shelf: 1, at: 3013, h: 130 },
+      { n: 48, t: "Sefer Hasidim", img: "sefer-hasidim.webp", shelf: 2, at: 3063, h: 170 },
+      { n: 49, t: "Radak, Bible commentary", img: "radak.webp", shelf: 0, at: 3115, h: 215 },
+      { n: 50, t: "Nachmanides' Torah commentary", img: "nachmanides.webp", shelf: 1, at: 3131, h: 205 },
       // Not yet in its place in date order; parked further along until the books around it arrive
-      { n: 69, t: "Tsene-rene", img: "tsene-rene.webp", shelf: 1, at: 2600, h: 155 }
+      { n: 69, t: "Tsene-rene", img: "tsene-rene.webp", shelf: 1, at: 3600, h: 155 }
     ];
     // The shelves loop forever, so the books repeat after LOOP tile pixels (grows as more books are added)
     const LOOP = Math.max(TILE_W * 4, Math.ceil((Math.max(...BOOKS.map(b => b.at)) + 600) / TILE_W) * TILE_W);
