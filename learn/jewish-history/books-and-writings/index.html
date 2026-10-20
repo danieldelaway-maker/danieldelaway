@@ -28,6 +28,12 @@
     .book { position: absolute; display: block; pointer-events: auto; cursor: pointer; transform-origin: 50% 100%;
       filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .55)); transition: transform .2s ease; }
     .book:hover { transform: translateY(-4px); }
+    /* Name label on hover */
+    .label { position: fixed; z-index: 6; pointer-events: none; padding: 6px 12px 7px; border-radius: 8px; white-space: nowrap;
+      background: #f6ead0; color: #33220f; border: 1px solid #6b4a26; box-shadow: 0 6px 18px rgba(0, 0, 0, .45);
+      font-size: 16px; line-height: 1.15; opacity: 0; transform: translate(-50%, -100%); transition: opacity .15s; }
+    .label.on { opacity: 1; }
+    .label small { display: block; font-size: 12px; opacity: .65; }
 
     .top { position: fixed; top: 2.2dvh; left: max(3vw, calc(env(safe-area-inset-left) + 10px)); z-index: 5; display: flex; align-items: center; gap: 16px; }
     .back { text-decoration: none; font-size: 16px; line-height: 1; padding: 8px 16px 9px; border-radius: 999px;
@@ -46,6 +52,7 @@
   <img class="yad" id="yad" src="/assets/yad-cursor@2x.png?v=4" width="64" height="64" alt="" aria-hidden="true">
   <div class="shelf" id="shelf" aria-label="Bookshelf"></div>
   <div class="books" id="books"></div>
+  <div class="label" id="label" aria-hidden="true"></div>
   <div class="top">
     <a class="back" href="/learn/jewish-history/">Back</a>
     <h1>Books and Writings</h1>
@@ -62,10 +69,14 @@
     ];
     // The shelves loop forever, so the books repeat after LOOP tile pixels (grows as more books are added)
     const LOOP = Math.max(TILE_W * 4, Math.ceil((Math.max(...BOOKS.map(b => b.at)) + 600) / TILE_W) * TILE_W);
-    const layer = document.getElementById("books");
+    const layer = document.getElementById("books"), label = document.getElementById("label");
     BOOKS.forEach(b => {
       b.el = document.createElement("img"); b.el.className = "book"; b.el.src = `/assets/books/${b.img}`; b.el.alt = b.t; b.el.title = b.t;
       b.el.draggable = false; layer.appendChild(b.el);
+      b.el.removeAttribute("title");
+      b.el.addEventListener("pointerenter", () => { label.innerHTML = `${b.t}<small>No. ${b.n} of 111</small>`; label.classList.add("on"); });
+      b.el.addEventListener("pointermove", ev => { label.style.left = ev.clientX + "px"; label.style.top = ev.clientY - 14 + "px"; });
+      b.el.addEventListener("pointerleave", () => label.classList.remove("on"));
     });
     function placeBooks() {
       const s = innerHeight / TILE_H, loop = LOOP * s;
