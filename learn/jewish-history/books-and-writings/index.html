@@ -200,7 +200,9 @@
       if (dragging || Math.abs(v) < .02) { raf = 0; return; }
       x += v * 16; v *= .94; render(); raf = requestAnimationFrame(glide);
     }
-    shelf.addEventListener("wheel", ev => {
+    // Scrolling works anywhere on the page, including over a book (but not inside the search results list)
+    addEventListener("wheel", ev => {
+      if (ev.target.closest && ev.target.closest(".results")) return;
       ev.preventDefault();
       x += Math.abs(ev.deltaX) > Math.abs(ev.deltaY) ? ev.deltaX : ev.deltaY;
       v = 0; render();
