@@ -202,8 +202,16 @@
       { n: 110, t: "Elie Wiesel, Night", img: "night-wiesel.webp", shelf: 0, at: 6460, h: 130 },
       { n: 111, t: "S. Y. Agnon, Only Yesterday", img: "only-yesterday.webp", shelf: 1, at: 6559, h: 175 }
     ];
-    // The shelves loop forever: just after the last book, the shelf runs straight back round to the Torah
-    const LOOP = Math.max(...BOOKS.map(b => b.at)) + 320;
+    // The shelves loop forever. Once the books' real widths are known, the loop is set so the longest shelf
+    // runs straight back round to its first book with the normal gap between books.
+    let LOOP = Math.max(...BOOKS.map(b => b.at)) + 320;
+    function computeLoop() {
+      if (!BOOKS.every(b => b.el.naturalWidth)) return;
+      LOOP = Math.max(...[0, 1, 2].map(sh => {
+        const on = BOOKS.filter(b => b.shelf === sh); if (!on.length) return 0;
+        return Math.max(...on.map(b => b.at + b.el.naturalWidth / b.el.naturalHeight * b.h)) - Math.min(...on.map(b => b.at)) + 24;
+      }));
+    }
     const layer = document.getElementById("books"), label = document.getElementById("label");
     BOOKS.forEach(b => {
       b.el = document.createElement("img"); b.el.className = "book"; b.el.src = `/assets/books/${b.img}`; b.el.alt = b.t; b.el.title = b.t;
@@ -257,7 +265,7 @@
     });
 
     addEventListener("resize", render);
-    BOOKS.forEach(b => b.el.addEventListener("load", render));
+    BOOKS.forEach(b => b.el.addEventListener("load", () => { computeLoop(); render(); }));
     render();
 
     // ---------- Search: find a book on the shelves and glide to it ----------
