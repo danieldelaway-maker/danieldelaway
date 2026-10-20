@@ -170,10 +170,40 @@
       { n: 78, t: "Toledot Yaakov Yosef", img: "toledot-yaakov-yosef.webp", shelf: 1, at: 4714, h: 155 },
       { n: 79, t: "Moses Mendelssohn, Jerusalem and his Torah translation", img: "mendelssohn.webp", shelf: 0, at: 4769, h: 165 },
       { n: 80, t: "Shneur Zalman of Liadi, Tanya", img: "tanya.webp", shelf: 1, at: 4841, h: 125 },
-      { n: 81, t: "Rebbe Nachman of Breslov, Likutei Moharan and Tales", img: "likutei-moharan.webp", shelf: 1, at: 4953, h: 175 }
+      { n: 81, t: "Rebbe Nachman of Breslov, Likutei Moharan and Tales", img: "likutei-moharan.webp", shelf: 1, at: 4953, h: 175 },
+      { n: 82, t: "Chaim of Volozhin, Nefesh HaChaim", img: "nefesh-hachaim.webp", shelf: 2, at: 5110, h: 150 },
+      { n: 83, t: "Samson Raphael Hirsch, Nineteen Letters", img: "nineteen-letters.webp", shelf: 1, at: 5110, h: 145 },
+      { n: 84, t: "Abraham Mapu, Love of Zion", img: "love-of-zion.webp", shelf: 0, at: 5110, h: 140 },
+      { n: 85, t: "Heinrich Graetz, History of the Jews", img: "graetz-history.webp", shelf: 2, at: 5228, h: 185 },
+      { n: 86, t: "Moses Hess, Rome and Jerusalem", img: "rome-and-jerusalem.webp", shelf: 1, at: 5234, h: 150 },
+      { n: 87, t: "Shlomo Ganzfried, Kitzur Shulchan Aruch", img: "kitzur-shulchan-aruch.webp", shelf: 0, at: 5237, h: 135 },
+      { n: 88, t: "Mendele Mocher Sforim, The Travels of Benjamin the Third", img: "travels-of-benjamin.webp", shelf: 0, at: 5351, h: 140 },
+      { n: 89, t: "Leon Pinsker, Auto-Emancipation", img: "auto-emancipation.webp", shelf: 1, at: 5365, h: 135 },
+      { n: 90, t: "Naftali Herz Imber, Hatikvah", img: "hatikvah.webp", shelf: 0, at: 5471, h: 120 },
+      { n: 91, t: "Emma Lazarus, The New Colossus", img: "new-colossus.webp", shelf: 1, at: 5484, h: 130 },
+      { n: 92, t: "I. L. Peretz, short stories", img: "peretz-stories.webp", shelf: 2, at: 5558, h: 160 },
+      { n: 93, t: "Ahad Ha'am's essays", img: "ahad-haam.webp", shelf: 1, at: 5597, h: 175 },
+      { n: 94, t: "Theodor Herzl, The Jewish State", img: "der-judenstaat.webp", shelf: 0, at: 5676, h: 135 },
+      { n: 95, t: "Sholem Aleichem, Tevye the Dairyman", img: "tevye.webp", shelf: 2, at: 5691, h: 155 },
+      { n: 96, t: "The Chofetz Chaim, Mishnah Berurah", img: "mishnah-berurah.webp", shelf: 0, at: 5798, h: 190 },
+      { n: 97, t: "Hayim Nahman Bialik's poems", img: "bialik-poems.webp", shelf: 1, at: 5811, h: 160 },
+      { n: 98, t: "Eliezer Ben-Yehuda, Dictionary of the Hebrew Language", img: "ben-yehuda-dictionary.webp", shelf: 2, at: 5813, h: 230 },
+      { n: 99, t: "S. Ansky, The Dybbuk", img: "the-dybbuk.webp", shelf: 1, at: 5949, h: 145 },
+      { n: 100, t: "Rav Kook, Orot", img: "orot.webp", shelf: 1, at: 6062, h: 140 },
+      { n: 101, t: "Martin Buber, I and Thou", img: "i-and-thou.webp", shelf: 0, at: 6116, h: 140 },
+      { n: 102, t: "The Hertz Chumash", img: "hertz-chumash.webp", shelf: 2, at: 6168, h: 200 },
+      { n: 103, t: "Mordecai Kaplan, Judaism as a Civilization", img: "kaplan.webp", shelf: 1, at: 6177, h: 185 },
+      { n: 104, t: "Gershom Scholem, Major Trends in Jewish Mysticism", img: "scholem.webp", shelf: 0, at: 6232, h: 175 },
+      { n: 105, t: "Anne Frank, The Diary of a Young Girl", img: "anne-frank-diary.webp", shelf: 1, at: 6309, h: 130 },
+      { n: 106, t: "Primo Levi, If This Is a Man", img: "if-this-is-a-man.webp", shelf: 2, at: 6326, h: 135 },
+      { n: 107, t: "Abraham Joshua Heschel, The Sabbath", img: "heschel-sabbath.webp", shelf: 0, at: 6359, h: 140 },
+      { n: 108, t: "Isaac Bashevis Singer, Gimpel the Fool and other stories", img: "gimpel-the-fool.webp", shelf: 1, at: 6427, h: 165 },
+      { n: 109, t: "Leon Uris, Exodus", img: "exodus-uris.webp", shelf: 2, at: 6438, h: 185 },
+      { n: 110, t: "Elie Wiesel, Night", img: "night-wiesel.webp", shelf: 0, at: 6460, h: 130 },
+      { n: 111, t: "S. Y. Agnon, Only Yesterday", img: "only-yesterday.webp", shelf: 1, at: 6559, h: 175 }
     ];
-    // The shelves loop forever, so the books repeat after LOOP tile pixels (grows as more books are added)
-    const LOOP = Math.max(TILE_W * 4, Math.ceil((Math.max(...BOOKS.map(b => b.at)) + 600) / TILE_W) * TILE_W);
+    // The shelves loop forever: just after the last book, the shelf runs straight back round to the Torah
+    const LOOP = Math.max(...BOOKS.map(b => b.at)) + 320;
     const layer = document.getElementById("books"), label = document.getElementById("label");
     BOOKS.forEach(b => {
       b.el = document.createElement("img"); b.el.className = "book"; b.el.src = `/assets/books/${b.img}`; b.el.alt = b.t; b.el.title = b.t;
