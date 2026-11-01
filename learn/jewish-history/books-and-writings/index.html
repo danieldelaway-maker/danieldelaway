@@ -71,7 +71,10 @@
       transform: translate(-50%, -48%) scale(.97); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
       user-select: text; -webkit-user-select: text; }
     .card.on { opacity: 1; transform: translate(-50%, -50%); pointer-events: auto; }
-    .card-x { position: absolute; top: 10px; right: 12px; width: 40px; height: 40px; border: 0; background: none; color: inherit; font-size: 28px; cursor: pointer; }
+    /* Close button: a light round button pinned to the card's top corner, so it shows over the dark picture and stays while scrolling */
+    .card-x { position: sticky; top: 0; z-index: 3; grid-column: 1 / -1; justify-self: end; width: 40px; height: 40px; margin: -14px -18px -40px 0;
+      display: grid; place-items: center; padding: 0 0 3px; border: 1px solid #6b4a26; border-radius: 50%; background: #f6ead0; color: #33220f;
+      font: 28px/1 Georgia, serif; cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, .35); }
     /* Fixed-size frame on dark wood: the whole object fits inside, never cropped */
     .card-pic { margin: 0; height: 340px; display: block; padding: 16px; box-sizing: border-box; border-radius: 8px;
       background: radial-gradient(ellipse at 50% 40%, #5a341a, #2c1709); }
