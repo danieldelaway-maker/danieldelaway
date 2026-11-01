@@ -322,6 +322,13 @@
 
     addEventListener("resize", render);
     BOOKS.forEach(b => b.el.addEventListener("load", () => { computeLoop(); render(); }));
+    // On a patchy phone connection a book image can fail; fetch it fresh a few more times
+    BOOKS.forEach(b => {
+      let tries = 0;
+      const retry = () => { if (tries++ < 4) setTimeout(() => { b.el.src = `/assets/books/${b.img}?r=${tries}`; }, 600 * tries); };
+      b.el.addEventListener("error", retry);
+      b.el.addEventListener("load", () => { if (!b.el.naturalWidth) retry(); });
+    });
     render();
 
     // ---------- Book card ----------
