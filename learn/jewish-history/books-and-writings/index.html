@@ -27,7 +27,7 @@
     .books { position: fixed; inset: 0; pointer-events: none; z-index: 2; touch-action: none; }
     .book { position: absolute; display: block; pointer-events: auto; cursor: pointer; transform-origin: 50% 100%; touch-action: none; -webkit-touch-callout: none;
       filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .55)); transition: transform .2s ease; }
-    .book:hover { transform: translateY(-4px); }
+    @media (hover: hover) { .book:hover { transform: translateY(-4px); } }
     /* Name label on hover */
     .label { position: fixed; z-index: 6; pointer-events: none; padding: 6px 12px 7px; border-radius: 8px; white-space: nowrap;
       background: #f6ead0; color: #33220f; border: 1px solid #6b4a26; box-shadow: 0 6px 18px rgba(0, 0, 0, .45);
@@ -262,7 +262,7 @@
       b.el = document.createElement("img"); b.el.className = "book"; b.el.src = `/assets/books/${b.img}`; b.el.alt = b.t; b.el.title = b.t;
       b.el.draggable = false; layer.appendChild(b.el);
       b.el.removeAttribute("title");
-      b.el.addEventListener("pointerenter", () => { label.innerHTML = `${b.t}<small>No. ${b.n} of 111</small>`; label.classList.add("on"); });
+      b.el.addEventListener("pointerenter", ev => { if (ev.pointerType !== "mouse") return; label.innerHTML = `${b.t}<small>No. ${b.n} of 111</small>`; label.classList.add("on"); });
       b.el.addEventListener("pointermove", ev => { label.style.left = ev.clientX + "px"; label.style.top = ev.clientY - 14 + "px"; });
       b.el.addEventListener("pointerleave", () => label.classList.remove("on"));
     });
@@ -297,11 +297,13 @@
     const startDrag = ev => {
       downBook = BOOKS.find(b => b.el === ev.target) || null; travelled = 0;
       dragging = true; v = 0; lastX = ev.clientX; lastT = performance.now();
-      shelf.setPointerCapture(ev.pointerId); shelf.classList.add("dragging");
+      try { shelf.setPointerCapture(ev.pointerId); } catch (e) {}
+      shelf.classList.add("dragging");
     };
     shelf.addEventListener("pointerdown", startDrag);
     layer.addEventListener("pointerdown", startDrag);
-    shelf.addEventListener("pointermove", ev => {
+    // Move and lift are caught on the whole window: on phones they go to the book the finger went down on
+    addEventListener("pointermove", ev => {
       if (!dragging) return;
       const now = performance.now(), dx = ev.clientX - lastX;
       travelled += Math.abs(dx);
@@ -312,7 +314,7 @@
       if (ev.type === "pointerup" && downBook && travelled < (ev.pointerType === "mouse" ? 6 : 14)) { v = 0; openCard(downBook); return; }
       if (!raf) raf = requestAnimationFrame(glide);
     };
-    shelf.addEventListener("pointerup", end); shelf.addEventListener("pointercancel", end);
+    addEventListener("pointerup", end); addEventListener("pointercancel", end);
     addEventListener("keydown", ev => {
       if (ev.key === "Escape") { closeCard(); return; }
       if (card.classList.contains("on")) return;
