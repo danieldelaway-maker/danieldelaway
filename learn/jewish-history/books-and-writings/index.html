@@ -330,8 +330,10 @@
     let cards = null;
     const loadCards = () => cards || (cards = fetch("cards.json").then(r => r.json()).catch(() => { cards = null; return {}; }));
     addEventListener("load", () => setTimeout(loadCards, 1500));
+    // On phones a tap also sends a late click; it lands on the veil and would shut the card straight away
+    let openedAt = 0;
     async function openCard(b) {
-      label.classList.remove("on");
+      label.classList.remove("on"); openedAt = performance.now();
       const c = (await loadCards())[b.t] || {};
       document.getElementById("card-img").src = b.el.src; document.getElementById("card-img").alt = b.t;
       document.getElementById("card-n").textContent = `No. ${b.n} of 111`;
@@ -343,7 +345,8 @@
       card.scrollTop = 0; card.classList.add("on"); veil.classList.add("on");
     }
     function closeCard() { card.classList.remove("on"); veil.classList.remove("on"); }
-    document.getElementById("card-x").onclick = closeCard; veil.onclick = closeCard;
+    document.getElementById("card-x").onclick = closeCard;
+    veil.onclick = () => { if (performance.now() - openedAt > 600) closeCard(); };
 
     // ---------- Search: find a book on the shelves and glide to it ----------
     const q = document.getElementById("q"), results = document.getElementById("results");
