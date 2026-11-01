@@ -24,8 +24,8 @@
     .shelf.dragging { cursor: grabbing; }
 
     /* Books stand on the shelves and scroll with them */
-    .books { position: fixed; inset: 0; pointer-events: none; z-index: 2; }
-    .book { position: absolute; display: block; pointer-events: auto; cursor: pointer; transform-origin: 50% 100%;
+    .books { position: fixed; inset: 0; pointer-events: none; z-index: 2; touch-action: none; }
+    .book { position: absolute; display: block; pointer-events: auto; cursor: pointer; transform-origin: 50% 100%; touch-action: none; -webkit-touch-callout: none;
       filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .55)); transition: transform .2s ease; }
     .book:hover { transform: translateY(-4px); }
     /* Name label on hover */
@@ -309,7 +309,7 @@
     });
     const end = ev => {
       if (!dragging) return; dragging = false; shelf.classList.remove("dragging");
-      if (ev.type === "pointerup" && downBook && travelled < 6) { v = 0; openCard(downBook); return; }
+      if (ev.type === "pointerup" && downBook && travelled < (ev.pointerType === "mouse" ? 6 : 14)) { v = 0; openCard(downBook); return; }
       if (!raf) raf = requestAnimationFrame(glide);
     };
     shelf.addEventListener("pointerup", end); shelf.addEventListener("pointercancel", end);
