@@ -34,9 +34,9 @@
 
     /* actions */
     .actions { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-    .actions li { display: grid; grid-template-columns: 92px 1fr; gap: 12px; align-items: start; padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid var(--line); }
+    .actions li { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 14px; align-items: start; padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid var(--line); }
     .actions li.urgent { border-color: var(--warn); }
-    .tag { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; border: 1px solid currentColor; justify-self: start; }
+    .tag { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; border: 1px solid currentColor; justify-self: start; white-space: nowrap; max-width: 100%; }
     .t-Upwork { color: var(--c-up); } .t-Cold { color: var(--c-dm); } .t-Apollo { color: var(--c-ap); } .t-Referral { color: var(--c-ref); } .t-Website { color: var(--c-web); } .t-Hiring { color: var(--c-hire); } .t-Marketplace { color: var(--c-mkt); }
     .actions b { color: var(--ink); font-weight: 600; }
     .actions small { display: block; color: var(--muted); font-size: 13px; }
