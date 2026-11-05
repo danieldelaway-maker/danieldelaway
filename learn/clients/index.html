@@ -142,7 +142,7 @@ function render(d) {
   $('#built').textContent = 'Updated ' + b.toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
 
   const c = d.channels;
-  const weekTotal = c.upwork.week + c.dms.week + c.hiring.week + c.apollo.week + c.referrals.week;
+  const weekTotal = c.upwork.week + c.dms.week + c.hiring.week + c.apollo.week;
   $('#kpis').innerHTML = [
     [d.totals.wins, 'New clients won'],
     [d.totals.calls, 'Calls / interviews'],
@@ -161,7 +161,6 @@ function render(d) {
     card('dms', c.dms.week, c.dms.target, [['Ready to send', c.dms.toSend], ['Sent', c.dms.sent], ['Replied', c.dms.replied], ['Calls', c.dms.calls], ['Won', c.dms.won]]),
     card('hiring', c.hiring.week, c.hiring.target, [['Ready to send', c.hiring.toSend], ['Sent', c.hiring.sent], ['Replied', c.hiring.replied], ['Calls', c.hiring.calls], ['Won', c.hiring.won]]),
     card('apollo', c.apollo.week, c.apollo.target, c.apollo.live ? [['Sent', c.apollo.sent], ['Bounced', c.apollo.bounced], ['Replied', c.apollo.replied], ['Calls', c.apollo.calls], ['Won', c.apollo.won]] : [['Status', 'Not live yet'], ['Contacts loaded', c.apollo.contacts]]),
-    card('referrals', c.referrals.week, c.referrals.target, [['People on the list', c.referrals.people], ['Check-ins due', c.referrals.due]]),
     card('marketplaces', null, null, [['Still to apply', c.marketplaces.toApply], ['Applied', c.marketplaces.applied], ['Approved', c.marketplaces.live], ['Invites', c.marketplaces.invites], ['Won', c.marketplaces.won]]),
     card('website', null, null, [['Enquiries, 30 days', c.website.last30], ['Open', c.website.open], ['Won', c.website.won]]),
   ].join('');
@@ -171,7 +170,7 @@ function render(d) {
 }
 
 function chart(rows) {
-  const keys = ['upwork', 'dms', 'hiring', 'apollo', 'referrals'];
+  const keys = ['upwork', 'dms', 'hiring', 'apollo'];
   const total = rows.reduce((s, r) => s + keys.reduce((a, k) => a + r[k], 0), 0);
   $('#ctotal').innerHTML = `<b>${total}</b><span>total, last 8 weeks</span>`;
   $('#legend').innerHTML = keys.map(k => `<span><span class="dot" style="background:${COL[k]}"></span>${NAME[k]}</span>`).join('');
@@ -213,7 +212,6 @@ function tables(d) {
     'Marketplaces': () => `<table><tr><th>Platform</th><th>Status</th><th>Since</th><th>Invites</th><th>Notes</th></tr>${d.marketplaces.map(m => `<tr><td>${link(m.url, m.platform)}</td><td><span class="stage">${esc(m.status)}</span></td><td>${esc(m.date) || '–'}</td><td>${m.invites}</td><td>${esc(m.notes)}</td></tr>`).join('')}</table>`,
     'Upwork': () => `<table><tr><th>Sent</th><th>Job</th><th>Bid</th><th>Connects</th><th>Result</th></tr>${d.upwork.map(u => `<tr><td>${esc(u.date)}</td><td>${link(u.url, u.title)}</td><td>${esc(u.bid)}</td><td>${u.connects}</td><td><span class="stage">${esc(u.outcome)}</span></td></tr>`).join('')}</table>`,
     'Apollo': () => d.apollo.length ? `<table><tr><th>Company</th><th>Contact</th><th>Sent</th><th>Reply</th><th>Call</th></tr>${d.apollo.map(a => `<tr><td>${link(a.website, a.company)}</td><td>${esc(a.first_name)} ${esc(a.last_name)}<br><small>${esc(a.title)}</small></td><td>${esc(a.date_sent)}</td><td>${esc(a.reply_type)}</td><td>${esc(a.call_booked)}</td></tr>`).join('')}</table>` : '<p class="empty">Apollo pilot not started yet. Waiting on Google Workspace for dan@delawaydigital.com.</p>',
-    'Referrals': () => `<table><tr><th>Who</th><th>Relationship</th><th>Last contact</th><th>Next check-in</th><th>Ask</th></tr>${d.referrals.map(r => `<tr><td><b style="color:var(--ink)">${esc(r.company)}</b>${r.name ? '<br>' + esc(r.name) : ''}<br><small>${esc(r.notes)}</small></td><td>${esc(r.relationship)}</td><td>${esc(r.last_contact) || '–'}</td><td>${r.overdue ? '<span class="stage" style="color:var(--warn)">due</span>' : esc(r.next_check_in)}</td><td>${esc(r.ask)}</td></tr>`).join('')}</table>`,
     'Website': () => d.enquiries.length ? `<table><tr><th>Date</th><th>Who</th><th>What</th><th>Stage</th><th>Next</th></tr>${d.enquiries.map(e => `<tr><td>${esc(e.date)}</td><td>${esc(e.name)}<br><small>${esc(e.company)}</small></td><td>${esc(e.summary)}</td><td><span class="stage">${esc(e.stage)}</span></td><td>${esc(e.next_step)}</td></tr>`).join('')}</table>` : '<p class="empty">No website enquiries logged yet. The daily task checks Gmail for new delawaydigital.com form messages.</p>',
   };
   const names = Object.keys(T);
