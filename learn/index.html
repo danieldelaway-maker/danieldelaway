@@ -57,6 +57,11 @@
       --s-ink: #f5f6fa; --s-text: #c7cbd6; --s-muted: #8b91a1; --s-font: "Poppins", "Inter", sans-serif; }
     .clients .art { background: radial-gradient(240px 160px at 50% 60%, rgba(91,123,255,.22), transparent 70%); border-bottom: 1px solid var(--s-line); }
 
+    /* Family Tree: archive teal-grey and parchment */
+    .family { --s-bg: linear-gradient(180deg, #1c2a2b 0%, #121b1c 100%); --s-line: rgba(143,188,217,.25); --s-accent: #8fbcd9; --s-glow: rgba(143,188,217,.35);
+      --s-ink: #eef2f1; --s-text: #c9d4d3; --s-muted: #93a5a5; --s-font: "Spectral", Georgia, serif; }
+    .family .art { background: radial-gradient(240px 160px at 50% 55%, rgba(227,196,141,.14), transparent 70%); border-bottom: 1px solid var(--s-line); }
+
     .back { display: inline-block; margin-top: 40px; color: var(--muted); font-size: 13px; text-decoration: none; }
     .back:hover { color: var(--teal); }
     @media (prefers-reduced-motion: reduce) { .subject, .art svg { transition: none; } }
@@ -180,6 +185,28 @@
           <h2>Clients HQ</h2>
           <span class="era">Password needed</span>
           <p>Every lead channel for Delaway Digital in one place, with what to do today.</p>
+          <span class="status">Open</span>
+        </div>
+      </a>
+
+      <a class="subject family" href="/learn/family-tree/">
+        <div class="art">
+          <svg viewBox="0 0 200 150" fill="none" stroke-linecap="round" aria-hidden="true">
+            <path d="M100 128 V92 M100 92 L58 64 M100 92 L142 64 M58 64 L36 38 M58 64 L80 38 M142 64 L120 38 M142 64 L164 38" stroke="#8fbcd9" stroke-width="3"/>
+            <circle cx="100" cy="128" r="9" fill="#e3c48d"/>
+            <circle cx="58" cy="64" r="8" fill="#8fbcd9"/>
+            <circle cx="142" cy="64" r="8" fill="#8fbcd9"/>
+            <circle cx="36" cy="34" r="7" fill="#8fbcd9" fill-opacity=".6"/>
+            <circle cx="80" cy="34" r="7" fill="#8fbcd9" fill-opacity=".6"/>
+            <circle cx="120" cy="34" r="7" fill="#8fbcd9" fill-opacity=".6"/>
+            <circle cx="164" cy="34" r="7" fill="#8fbcd9" fill-opacity=".6"/>
+          </svg>
+        </div>
+        <div class="info">
+          <span class="num">Private · Family</span>
+          <h2>Family Tree</h2>
+          <span class="era">Password needed</span>
+          <p>Both sides of the family, back to the 1840s, with where each fact came from.</p>
           <span class="status">Open</span>
         </div>
       </a>

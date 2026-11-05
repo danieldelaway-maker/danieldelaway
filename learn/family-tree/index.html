@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Family Tree</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+    /* Lock screen only. The tree's own styles arrive inside the encrypted data. */
+    :root { --lk-bg: #eef2f1; --lk-ink: #1d2a2b; --lk-muted: #5b6b6c; --lk-line: #b9c6c5; --lk-accent: #2c5a78; --lk-card: #ffffff; --lk-err: #b3261e; }
+    @media (prefers-color-scheme: dark) { :root { --lk-bg: #131b1c; --lk-ink: #e3ebea; --lk-muted: #97a8a8; --lk-line: #3a4a4b; --lk-accent: #8fbcd9; --lk-card: #1c2627; --lk-err: #ff8a8a; color-scheme: dark; } }
+    html, body { margin: 0; }
+    body { background: var(--lk-bg); color: var(--lk-ink); font: 15px/1.5 "IBM Plex Sans", system-ui, sans-serif; }
+    #lock { max-width: 420px; margin: 0 auto; padding: 14vh max(16px, env(safe-area-inset-right, 0px)) 40px max(16px, env(safe-area-inset-left, 0px)); text-align: center; }
+    #lock .eyebrow { font: 500 12px "IBM Plex Mono", monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--lk-accent); margin: 0; }
+    #lock h1 { font: 600 clamp(32px, 6vw, 44px)/1.1 "Spectral", Georgia, serif; margin: 8px 0 6px; }
+    #lock p.sub { color: var(--lk-muted); margin: 0; }
+    #lock form { display: flex; gap: 10px; margin-top: 22px; }
+    #lock input { flex: 1; min-width: 0; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--lk-line); background: var(--lk-card); color: var(--lk-ink); font: inherit; }
+    #lock button, .lockbar button { cursor: pointer; padding: 10px 16px; border-radius: 10px; border: 0; font: 600 14px "IBM Plex Sans", sans-serif; color: #fff; background: var(--lk-accent); }
+    #lock input:focus-visible, #lock button:focus-visible { outline: 2px solid var(--lk-accent); outline-offset: 2px; }
+    .err { color: var(--lk-err); font-size: 14px; min-height: 20px; margin-top: 10px; }
+    #lock a, .lockbar a { color: var(--lk-muted); font-size: 13px; }
+    #lock .back { display: inline-block; margin-top: 28px; }
+    .lockbar { max-width: 1240px; margin: 0 auto; padding: 20px max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px)); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .lockbar button { background: transparent; color: var(--lk-muted); border: 1px solid var(--lk-line); padding: 6px 12px; font-weight: 500; }
+  </style>
+</head>
+<body>
+  <div id="lock">
+    <p class="eyebrow">Private · Family</p>
+    <h1>Family Tree</h1>
+    <p class="sub">Both sides of the family.</p>
+    <form id="unlock"><input id="pw" type="password" placeholder="Password" autocomplete="current-password" aria-label="Password"><button>Open</button></form>
+    <div class="err" id="err" role="alert"></div>
+    <a class="back" href="/learn/">← Back to the learning list</a>
+  </div>
+
+  <div id="app" hidden>
+    <div class="lockbar"><a href="/learn/">← Back to the learning list</a><button id="lockBtn" type="button">Lock</button></div>
+    <style id="treeCss"></style>
+    <div id="tree"></div>
+  </div>
+
+<script>
+const $ = s => document.querySelector(s);
+const KEY = 'familyTree';
+const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} }, del(k) { try { localStorage.removeItem(k); } catch {} } };
+
+async function decrypt(pass) {
+  const r = await fetch('data.enc.json?t=' + Date.now(), { cache: 'no-store' });
+  const p = await r.json();
+  const b = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: b(p.salt), iterations: p.iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b(p.iv) }, key, b(p.ct));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+
+async function open(pass, remember) {
+  try {
+    const d = await decrypt(pass);
+    if (remember) store.set(KEY, pass);
+    $('#treeCss').textContent = d.css;
+    $('#tree').innerHTML = d.html;
+    $('#lock').hidden = true; $('#app').hidden = false;
+    document.title = 'Family Tree';
+  } catch (e) { store.del(KEY); $('#err').textContent = 'That password didn’t work. Try again.'; }
+}
+$('#unlock').addEventListener('submit', e => { e.preventDefault(); $('#err').textContent = ''; open($('#pw').value.trim(), true); });
+$('#lockBtn').addEventListener('click', () => { store.del(KEY); location.reload(); });
+const saved = store.get(KEY) || store.get('clientsHQ'); if (saved) open(saved, false);
+</script>
+</body>
+</html>
