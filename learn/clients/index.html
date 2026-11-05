@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clients HQ</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0b0d14">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/styles.css?v=13">
+  <style>
+    :root { --c-up: #2fd3a8; --c-dm: #5b7bff; --c-ap: #ffb45b; --c-ref: #e86bd0; --c-web: #9fd7ff; --warn: #ffb45b; --line: rgba(255,255,255,.1); }
+    .top { margin-bottom: 40px; }
+    h1 { font-size: clamp(32px, 5vw, 52px); margin-bottom: 8px; }
+    .sub { color: var(--muted); font-size: 14px; margin: 0 0 32px; }
+    .panel { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 20px; }
+    h2 { font-family: var(--display); color: var(--ink); font-size: 20px; margin: 0 0 14px; }
+    section { margin-bottom: 28px; }
+
+    /* lock screen */
+    #lock { max-width: 420px; margin: 8vh auto 0; text-align: center; }
+    #lock form { display: flex; gap: 10px; margin-top: 18px; }
+    #lock input { flex: 1; min-width: 0; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: rgba(255,255,255,.06); color: var(--ink); font: inherit; }
+    button, .btn { cursor: pointer; padding: 10px 16px; border-radius: 12px; border: 0; font: 600 14px var(--font); color: #0b0d14; background: linear-gradient(135deg, var(--blue), var(--teal)); }
+    .err { color: #ff8a8a; font-size: 14px; min-height: 20px; margin-top: 10px; }
+
+    /* KPIs */
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+    .kpi .v { font-family: var(--display); font-size: 34px; font-weight: 700; color: var(--ink); line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .kpi .l { font-size: 13px; color: var(--muted); }
+
+    /* actions */
+    .actions { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+    .actions li { display: grid; grid-template-columns: 92px 1fr; gap: 12px; align-items: start; padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid var(--line); }
+    .actions li.urgent { border-color: var(--warn); }
+    .tag { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; border: 1px solid currentColor; justify-self: start; }
+    .t-Upwork { color: var(--c-up); } .t-Cold { color: var(--c-dm); } .t-Apollo { color: var(--c-ap); } .t-Referral { color: var(--c-ref); } .t-Website { color: var(--c-web); }
+    .actions b { color: var(--ink); font-weight: 600; }
+    .actions small { display: block; color: var(--muted); font-size: 13px; }
+
+    /* channels */
+    .channels { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+    .ch h3 { margin: 0 0 4px; font-size: 15px; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .bar { height: 8px; border-radius: 999px; background: rgba(255,255,255,.08); overflow: hidden; margin: 10px 0 6px; }
+    .bar i { display: block; height: 100%; border-radius: 999px; }
+    .ch .wk { font-size: 13px; color: var(--muted); }
+    .ch dl { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; margin: 12px 0 0; font-size: 14px; }
+    .ch dt { color: var(--muted); } .ch dd { margin: 0; color: var(--ink); font-variant-numeric: tabular-nums; text-align: right; }
+
+    /* chart */
+    .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    #chart svg { width: 100%; height: auto; display: block; }
+    #tip { position: fixed; pointer-events: none; background: #161a28; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; font-size: 13px; color: var(--ink); display: none; z-index: 5; }
+
+    /* tabs + tables */
+    .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+    .tabs button { background: rgba(255,255,255,.06); color: var(--text); }
+    .tabs button[aria-selected="true"] { background: var(--ink); color: #0b0d14; }
+    .tbl { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,.06); vertical-align: top; color: var(--text); }
+    td a { color: var(--teal); }
+    .stage { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,.08); white-space: nowrap; }
+    .dm { margin-top: 8px; padding: 10px 12px; border-radius: 10px; background: rgba(91,123,255,.08); border: 1px solid rgba(91,123,255,.25); color: var(--ink); white-space: pre-wrap; font-size: 14px; }
+    .copy { margin-top: 6px; padding: 5px 10px; font-size: 12px; }
+    .empty { color: var(--muted); font-size: 14px; padding: 12px 0; }
+    .foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 40px; font-size: 13px; color: var(--muted); }
+    .foot a { color: var(--muted); }
+    .foot button { background: none; color: var(--muted); padding: 0; font-weight: 500; text-decoration: underline; }
+    @media (max-width: 560px) { .actions li { grid-template-columns: 1fr; gap: 6px; } }
+  </style>
+</head>
+<body>
+  <div class="bg" aria-hidden="true"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span><span class="grain"></span></div>
+  <main class="wrap">
+    <header class="top"><a class="mono" href="/learn/" aria-label="Back to the learning list">DD</a></header>
+
+    <div id="lock">
+      <p class="eyebrow">Delaway Digital</p>
+      <h1>Clients HQ</h1>
+      <form id="unlock"><input id="pw" type="password" placeholder="Password" autocomplete="current-password" aria-label="Password"><button>Open</button></form>
+      <div class="err" id="err"></div>
+    </div>
+
+    <div id="app" hidden>
+      <p class="eyebrow">Delaway Digital · Clients HQ</p>
+      <h1 id="goal"></h1>
+      <p class="sub" id="built"></p>
+
+      <section class="kpis" id="kpis"></section>
+      <section class="panel"><h2>Today</h2><ul class="actions" id="actions"></ul></section>
+      <section><h2>This week by channel</h2><div class="channels" id="channels"></div></section>
+      <section class="panel"><h2>Outreach per week</h2><div class="legend" id="legend"></div><div id="chart"></div></section>
+      <section class="panel">
+        <div class="tabs" role="tablist" id="tabs"></div>
+        <div class="tbl" id="table"></div>
+      </section>
+      <div class="foot"><a href="/learn/">← Back to the learning list</a><button id="lockBtn">Lock</button></div>
+    </div>
+  </main>
+  <div id="tip"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} }, del(k) { try { localStorage.removeItem(k); } catch {} } };
+const COL = { upwork: 'var(--c-up)', dms: 'var(--c-dm)', apollo: 'var(--c-ap)', referrals: 'var(--c-ref)', website: 'var(--c-web)' };
+const NAME = { upwork: 'Upwork', dms: 'Cold DMs', apollo: 'Apollo email', referrals: 'Referrals', website: 'Website' };
+
+async function decrypt(pass) {
+  const r = await fetch('data.enc.json?t=' + Date.now(), { cache: 'no-store' });
+  const p = await r.json();
+  const b = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: b(p.salt), iterations: p.iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b(p.iv) }, key, b(p.ct));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+
+async function open(pass, remember) {
+  try {
+    const d = await decrypt(pass);
+    if (remember) store.set('clientsHQ', pass);
+    $('#lock').hidden = true; $('#app').hidden = false; render(d);
+  } catch (e) { store.del('clientsHQ'); $('#err').textContent = 'That password didn’t work.'; }
+}
+$('#unlock').addEventListener('submit', e => { e.preventDefault(); $('#err').textContent = ''; open($('#pw').value.trim(), true); });
+$('#lockBtn').addEventListener('click', () => { store.del('clientsHQ'); location.reload(); });
+const saved = store.get('clientsHQ'); if (saved) open(saved, false);
+
+function render(d) {
+  $('#goal').textContent = d.goal;
+  const b = new Date(d.built);
+  $('#built').textContent = 'Updated ' + b.toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+
+  const c = d.channels;
+  const weekTotal = c.upwork.week + c.dms.week + c.apollo.week + c.referrals.week;
+  $('#kpis').innerHTML = [
+    [d.totals.wins, 'New clients won'],
+    [d.totals.calls, 'Calls / interviews'],
+    [d.totals.open, 'Open conversations'],
+    [weekTotal, 'Outreach this week'],
+  ].map(([v, l]) => `<div class="panel kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('');
+
+  $('#actions').innerHTML = d.actions.length ? d.actions.map(a => `<li class="${a.urgent ? 'urgent' : ''}"><span class="tag t-${a.kind.split(' ')[0]}">${esc(a.kind)}</span><div><b>${a.url ? `<a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.text)}</a>` : esc(a.text)}</b>${a.detail ? `<small>${esc(a.detail)}</small>` : ''}</div></li>`).join('') : '<li class="empty">Nothing waiting. Nice.</li>';
+
+  const pct = (a, t) => Math.min(100, t ? Math.round(a / t * 100) : 0);
+  const card = (k, week, target, rows) => `<div class="panel ch"><h3><span class="dot" style="background:${COL[k]}"></span>${NAME[k]}</h3>
+    ${target != null ? `<div class="bar"><i style="width:${pct(week, target)}%;background:${COL[k]}"></i></div><div class="wk">${week} of ${target} this week</div>` : ''}
+    <dl>${rows.map(([l, v]) => `<dt>${l}</dt><dd>${v ?? '–'}</dd>`).join('')}</dl></div>`;
+  $('#channels').innerHTML = [
+    card('upwork', c.upwork.week, c.upwork.target, [['Proposals, 30 days', c.upwork.last30], ['Connects spent, 30 days', c.upwork.connects30], ['Connects left', c.upwork.connectsLeft], ['Replies / interviews', c.upwork.replies], ['Won', c.upwork.won]]),
+    card('dms', c.dms.week, c.dms.target, [['Ready to send', c.dms.toSend], ['Sent', c.dms.sent], ['Replied', c.dms.replied], ['Calls', c.dms.calls], ['Won', c.dms.won]]),
+    card('apollo', c.apollo.week, c.apollo.target, c.apollo.live ? [['Sent', c.apollo.sent], ['Bounced', c.apollo.bounced], ['Replied', c.apollo.replied], ['Calls', c.apollo.calls], ['Won', c.apollo.won]] : [['Status', 'Not live yet'], ['Contacts loaded', c.apollo.contacts]]),
+    card('referrals', c.referrals.week, c.referrals.target, [['People on the list', c.referrals.people], ['Check-ins due', c.referrals.due]]),
+    card('website', null, null, [['Enquiries, 30 days', c.website.last30], ['Open', c.website.open], ['Won', c.website.won]]),
+  ].join('');
+
+  chart(d.activity);
+  tables(d);
+}
+
+function chart(rows) {
+  const keys = ['upwork', 'dms', 'apollo', 'referrals'];
+  $('#legend').innerHTML = keys.map(k => `<span><span class="dot" style="background:${COL[k]}"></span>${NAME[k]}</span>`).join('');
+  const W = 720, H = 220, pl = 28, pb = 26, pt = 10;
+  const max = Math.max(5, ...rows.map(r => keys.reduce((s, k) => s + r[k], 0)));
+  const step = (W - pl) / rows.length, bw = Math.min(44, step * .6);
+  const y = v => H - pb - (v / max) * (H - pb - pt);
+  let g = '';
+  [0, Math.round(max / 2), max].forEach(v => { g += `<line x1="${pl}" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="rgba(255,255,255,.08)"/><text x="${pl - 6}" y="${y(v) + 4}" fill="#8b91a1" font-size="11" text-anchor="end">${v}</text>`; });
+  rows.forEach((r, i) => {
+    const x = pl + i * step + (step - bw) / 2; let acc = 0;
+    const tip = `${new Date(r.week + 'T00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short' })} week|` + keys.map(k => `${NAME[k]}: ${r[k]}`).join('|');
+    keys.forEach(k => { if (!r[k]) return; const y0 = y(acc), y1 = y(acc + r[k]); acc += r[k];
+      g += `<rect x="${x}" y="${y1}" width="${bw}" height="${Math.max(0, y0 - y1 - 2)}" rx="3" fill="${COL[k]}"/>`; });
+    g += `<rect x="${pl + i * step}" y="${pt}" width="${step}" height="${H - pb - pt}" fill="transparent" data-tip="${esc(tip)}"/>`;
+    g += `<text x="${x + bw / 2}" y="${H - 8}" fill="#8b91a1" font-size="11" text-anchor="middle">${new Date(r.week + 'T00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</text>`;
+  });
+  $('#chart').innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Outreach per week, last 8 weeks">${g}</svg>`;
+  const tip = $('#tip');
+  $('#chart').onmousemove = e => { const t = e.target.dataset?.tip; if (!t) { tip.style.display = 'none'; return; }
+    tip.innerHTML = t.split('|').map((s, i) => i ? esc(s) : `<b>${esc(s)}</b>`).join('<br>'); tip.style.display = 'block';
+    tip.style.left = Math.min(e.clientX + 14, innerWidth - 180) + 'px'; tip.style.top = (e.clientY + 14) + 'px'; };
+  $('#chart').onmouseleave = () => tip.style.display = 'none';
+}
+
+function tables(d) {
+  const link = (u, t) => u ? `<a href="${esc(u.startsWith('http') ? u : 'https://' + u)}" target="_blank" rel="noopener">${esc(t || u)}</a>` : esc(t);
+  const T = {
+    'Cold DMs': () => d.prospects.length ? `<table><tr><th>Brand</th><th>Why them</th><th>Contact</th><th>Stage</th></tr>${d.prospects.map((p, i) => `<tr>
+      <td>${link(p.website, p.company)}<br><small style="color:var(--muted)">${esc(p.category)} · ${esc(p.country)}</small></td>
+      <td><b style="color:var(--ink)">Site:</b> ${esc(p.site_problems)}<br><b style="color:var(--ink)">Sales:</b> ${esc(p.sales_evidence)}${p.dm ? `<div class="dm" id="dm${i}">${esc(p.dm)}</div><button class="copy" data-copy="dm${i}">Copy DM</button>` : ''}</td>
+      <td>${esc(p.contact_name)}<br>${esc(p.contact_channel)}: ${/^https?:/.test(p.contact_handle) ? link(p.contact_handle, 'open') : esc(p.contact_handle)}</td>
+      <td><span class="stage">${esc(p.stage)}</span>${p.date_sent ? `<br><small>sent ${esc(p.date_sent)}</small>` : ''}${p.follow_up_due ? `<br><small>follow up ${esc(p.follow_up_due)}</small>` : ''}</td></tr>`).join('')}</table>` : '<p class="empty">No prospects yet. The daily task adds 5 a day.</p>',
+    'Upwork': () => `<table><tr><th>Sent</th><th>Job</th><th>Bid</th><th>Connects</th><th>Result</th></tr>${d.upwork.map(u => `<tr><td>${esc(u.date)}</td><td>${link(u.url, u.title)}</td><td>${esc(u.bid)}</td><td>${u.connects}</td><td><span class="stage">${esc(u.outcome)}</span></td></tr>`).join('')}</table>`,
+    'Apollo': () => d.apollo.length ? `<table><tr><th>Company</th><th>Contact</th><th>Sent</th><th>Reply</th><th>Call</th></tr>${d.apollo.map(a => `<tr><td>${link(a.website, a.company)}</td><td>${esc(a.first_name)} ${esc(a.last_name)}<br><small>${esc(a.title)}</small></td><td>${esc(a.date_sent)}</td><td>${esc(a.reply_type)}</td><td>${esc(a.call_booked)}</td></tr>`).join('')}</table>` : '<p class="empty">Apollo pilot not started yet. Waiting on Google Workspace for dan@delawaydigital.com.</p>',
+    'Referrals': () => `<table><tr><th>Who</th><th>Relationship</th><th>Last contact</th><th>Next check-in</th><th>Ask</th></tr>${d.referrals.map(r => `<tr><td><b style="color:var(--ink)">${esc(r.company)}</b>${r.name ? '<br>' + esc(r.name) : ''}<br><small>${esc(r.notes)}</small></td><td>${esc(r.relationship)}</td><td>${esc(r.last_contact) || '–'}</td><td>${r.overdue ? '<span class="stage" style="color:var(--warn)">due</span>' : esc(r.next_check_in)}</td><td>${esc(r.ask)}</td></tr>`).join('')}</table>`,
+    'Website': () => d.enquiries.length ? `<table><tr><th>Date</th><th>Who</th><th>What</th><th>Stage</th><th>Next</th></tr>${d.enquiries.map(e => `<tr><td>${esc(e.date)}</td><td>${esc(e.name)}<br><small>${esc(e.company)}</small></td><td>${esc(e.summary)}</td><td><span class="stage">${esc(e.stage)}</span></td><td>${esc(e.next_step)}</td></tr>`).join('')}</table>` : '<p class="empty">No website enquiries logged yet. The daily task checks Gmail for new delawaydigital.com form messages.</p>',
+  };
+  const names = Object.keys(T);
+  let cur = store.get('clientsHQtab'); if (!T[cur]) cur = names[0];
+  const show = n => { cur = n; store.set('clientsHQtab', n);
+    $('#tabs').innerHTML = names.map(k => `<button role="tab" aria-selected="${k === n}" data-tab="${k}">${k}</button>`).join('');
+    $('#table').innerHTML = T[n](); };
+  $('#tabs').onclick = e => { const t = e.target.dataset.tab; if (t) show(t); };
+  $('#table').onclick = e => { const id = e.target.dataset.copy; if (!id) return;
+    navigator.clipboard?.writeText($('#' + id).textContent).then(() => { e.target.textContent = 'Copied'; setTimeout(() => e.target.textContent = 'Copy DM', 1500); }); };
+  show(cur);
+}
+</script>
+</body>
+</html>

@@ -52,6 +52,11 @@
     .rome .ghost { font-family: "Cinzel", serif; color: #f4ece2; font-size: 110px; letter-spacing: .08em; }
     .rome h2 { letter-spacing: .04em; font-size: 26px; }
 
+    /* Clients HQ: the site's own blue and teal */
+    .clients { --s-bg: linear-gradient(180deg, #101833 0%, #0b0f1f 100%); --s-line: rgba(47,211,168,.22); --s-accent: #2fd3a8; --s-glow: rgba(47,211,168,.4);
+      --s-ink: #f5f6fa; --s-text: #c7cbd6; --s-muted: #8b91a1; --s-font: "Poppins", "Inter", sans-serif; }
+    .clients .art { background: radial-gradient(240px 160px at 50% 60%, rgba(91,123,255,.22), transparent 70%); border-bottom: 1px solid var(--s-line); }
+
     .back { display: inline-block; margin-top: 40px; color: var(--muted); font-size: 13px; text-decoration: none; }
     .back:hover { color: var(--teal); }
     @media (prefers-reduced-motion: reduce) { .subject, .art svg { transition: none; } }
@@ -156,6 +161,26 @@
           <span class="era">753 BCE – 476 CE</span>
           <p>From a village on seven hills to an empire that ruled the Mediterranean, and how it all fell apart.</p>
           <span class="status">Coming soon</span>
+        </div>
+      </a>
+
+      <a class="subject clients" href="/learn/clients/">
+        <div class="art">
+          <svg viewBox="0 0 200 150" fill="none" stroke-linecap="round" aria-hidden="true">
+            <rect x="34" y="96" width="22" height="34" rx="4" fill="#2fd3a8" fill-opacity=".35"/>
+            <rect x="70" y="76" width="22" height="54" rx="4" fill="#2fd3a8" fill-opacity=".55"/>
+            <rect x="106" y="56" width="22" height="74" rx="4" fill="#2fd3a8" fill-opacity=".75"/>
+            <rect x="142" y="30" width="22" height="100" rx="4" fill="#2fd3a8"/>
+            <path d="M30 84 L80 62 L116 44 L166 16" stroke="#5b7bff" stroke-width="4"/>
+            <path d="M150 16 H166 V32" stroke="#5b7bff" stroke-width="4"/>
+          </svg>
+        </div>
+        <div class="info">
+          <span class="num">Private · Work</span>
+          <h2>Clients HQ</h2>
+          <span class="era">Password needed</span>
+          <p>Every lead channel for Delaway Digital in one place, with what to do today.</p>
+          <span class="status">Open</span>
         </div>
       </a>
 
