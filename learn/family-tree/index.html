@@ -58,13 +58,18 @@ const KEY = 'familyTree';
 const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} }, del(k) { try { localStorage.removeItem(k); } catch {} } };
 
 async function decrypt(pass) {
-  const r = await fetch('data.enc.json?t=' + Date.now(), { cache: 'no-store' });
-  const p = await r.json();
+  const get = async f => (await fetch(f + '?t=' + Date.now(), { cache: 'no-store' })).json();
+  const p = await get('data.enc.json');
   const b = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
   const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
   const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: b(p.salt), iterations: p.iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
-  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b(p.iv) }, key, b(p.ct));
-  return JSON.parse(new TextDecoder().decode(pt));
+  const open = async x => JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b(x.iv) }, key, b(x.ct))));
+  const d = await open(p);
+  if (d.parts && d.parts.length) {
+    const imgs = Object.assign({}, ...(await Promise.all(d.parts.map(async f => open(await get(f))))));
+    d.doc = d.doc.replace(/@@IMG_([0-9a-f]{16})@@/g, (m, h) => imgs[h] || '');
+  }
+  return d;
 }
 
 async function open(pass, remember) {
