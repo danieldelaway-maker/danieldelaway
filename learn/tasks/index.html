@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Brand Tasks</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0b0d14">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="/styles.css?v=13">
+  <style>
+    :root { --warn: #ffb45b; --late: #ff8a8a; --line: rgba(255,255,255,.1); }
+    .top { margin-bottom: 40px; }
+    h1 { font-size: clamp(32px, 5vw, 52px); margin-bottom: 8px; }
+    .sub { color: var(--muted); font-size: 14px; margin: 0 0 32px; }
+    .panel { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 20px; min-width: 0; }
+    h2 { font-family: var(--display); color: var(--ink); font-size: 20px; margin: 0; }
+    section { margin-bottom: 28px; }
+
+    /* lock screen (same as Clients HQ) */
+    #lock { max-width: 420px; margin: 8vh auto 0; text-align: center; }
+    #lock form { display: flex; gap: 10px; margin-top: 18px; }
+    #lock input { flex: 1; min-width: 0; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: rgba(255,255,255,.06); color: var(--ink); font: inherit; }
+    button { cursor: pointer; padding: 10px 16px; border-radius: 12px; border: 0; font: 600 14px var(--font); color: #0b0d14; background: linear-gradient(135deg, var(--blue), var(--teal)); }
+    .err { color: var(--late); font-size: 14px; min-height: 20px; margin-top: 10px; }
+
+    /* totals */
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+    .kpi .v { font-family: var(--display); font-size: 34px; font-weight: 700; color: var(--ink); line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .kpi .l { font-size: 13px; color: var(--muted); }
+    .kpi.hot .v { color: var(--late); }
+
+    /* brand cards */
+    .brands { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 14px; align-items: start; }
+    .bhead { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+    .bhead h2 { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+    .count { font: 700 13px var(--font); font-variant-numeric: tabular-nums; padding: 2px 10px; border-radius: 999px; background: rgba(255,255,255,.08); color: var(--muted); }
+    .count.has { color: #0b0d14; background: linear-gradient(135deg, var(--blue), var(--teal)); }
+    .rev { font-size: 12px; color: var(--muted); margin: 0 0 12px; }
+
+    .tasks { list-style: none; margin: 0; padding: 0; }
+    .tasks li { padding: 12px 0; border-top: 1px solid rgba(255,255,255,.07); }
+    .trow { display: flex; align-items: flex-start; gap: 10px; }
+    .tasks b { flex: 1; min-width: 0; color: var(--ink); font-weight: 600; font-size: 15px; line-height: 1.4; overflow-wrap: anywhere; }
+    .tasks b a { text-decoration-color: rgba(255,255,255,.3); text-underline-offset: 3px; }
+    .tasks b a:hover { color: var(--teal); }
+    .tasks small { display: block; color: var(--text); font-size: 13.5px; margin-top: 4px; }
+    .tasks .src { color: var(--muted); font-size: 12px; margin-top: 4px; }
+    .chip { flex: none; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; border: 1px solid currentColor; color: var(--muted); white-space: nowrap; }
+    .chip.late { color: var(--late); } .chip.soon { color: var(--warn); } .chip.brand { color: var(--teal); }
+    .tasks li.done b { color: var(--muted); font-weight: 500; text-decoration: line-through; }
+    .empty { color: var(--muted); font-size: 14px; padding: 12px 0 0; border-top: 1px solid rgba(255,255,255,.07); margin: 0; }
+    details { margin-top: 4px; border-top: 1px solid rgba(255,255,255,.07); padding-top: 10px; }
+    summary { cursor: pointer; font-size: 13px; color: var(--muted); }
+    summary:hover { color: var(--ink); }
+    details .tasks li:first-child { border-top: 0; }
+    #due h2 { margin-bottom: 4px; }
+
+    .foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 40px; font-size: 13px; color: var(--muted); }
+    .foot a { color: var(--muted); }
+    .foot button { background: none; color: var(--muted); padding: 0; font-weight: 500; text-decoration: underline; }
+    .how { color: var(--muted); font-size: 13px; margin: 0; }
+  </style>
+</head>
+<body>
+  <div class="bg" aria-hidden="true"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span><span class="grain"></span></div>
+  <main class="wrap">
+    <header class="top"><a class="mono" href="/learn/" aria-label="Back to the learning list">DD</a></header>
+
+    <div id="lock">
+      <p class="eyebrow">Private</p>
+      <h1>Brand Tasks</h1>
+      <form id="unlock"><input id="pw" type="password" placeholder="Password" autocomplete="current-password" aria-label="Password"><button>Open</button></form>
+      <div class="err" id="err"></div>
+    </div>
+
+    <div id="app" hidden>
+      <p class="eyebrow">Private · Every brand</p>
+      <h1>The little <span class="grad">things.</span></h1>
+      <p class="sub" id="built"></p>
+
+      <section class="kpis" id="kpis"></section>
+      <section class="panel" id="due" hidden><h2>Due now</h2><ul class="tasks" id="dueList"></ul></section>
+      <section class="brands" id="brands"></section>
+      <p class="how">Claude reviews every brand and keeps this list. To tick something off or add one, just say so in chat.</p>
+      <div class="foot"><a href="/learn/">← Back to the learning list</a><button id="lockBtn">Lock</button></div>
+    </div>
+  </main>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} }, del(k) { try { localStorage.removeItem(k); } catch {} } };
+const KEY = 'clientsHQ'; // same password as Clients HQ, so one unlock covers both
+
+async function decrypt(pass) {
+  const r = await fetch('data.enc.json?t=' + Date.now(), { cache: 'no-store' });
+  const p = await r.json();
+  const b = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: b(p.salt), iterations: p.iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b(p.iv) }, key, b(p.ct));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+async function open(pass, remember) {
+  try {
+    const d = await decrypt(pass);
+    if (remember) store.set(KEY, pass);
+    $('#lock').hidden = true; $('#app').hidden = false; render(d);
+  } catch (e) { if (remember) $('#err').textContent = 'That password didn’t work.'; }
+}
+$('#unlock').addEventListener('submit', e => { e.preventDefault(); $('#err').textContent = ''; open($('#pw').value.trim(), true); });
+$('#lockBtn').addEventListener('click', () => { store.del(KEY); location.reload(); });
+const saved = store.get(KEY); if (saved) open(saved, false);
+
+const day = s => new Date(s + 'T00:00');
+const today = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
+const diff = s => Math.round((day(s) - today()) / 864e5);
+const short = s => day(s).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+function dueChip(t) {
+  if (!t.due || t.done) return '';
+  const n = diff(t.due);
+  const label = n < 0 ? `${-n}d late` : n === 0 ? 'Today' : n === 1 ? 'Tomorrow' : short(t.due);
+  return `<span class="chip ${n < 0 ? 'late' : n <= 2 ? 'soon' : ''}">${label}</span>`;
+}
+function item(t, brandName) {
+  const safe = /^https?:\/\//.test(t.link || '') ? t.link : '';
+  const title = safe ? `<a href="${esc(safe)}" target="_blank" rel="noopener">${esc(t.text)}</a>` : esc(t.text);
+  const meta = [t.source, t.done && t.doneDate ? 'done ' + short(t.doneDate) : (t.added ? 'added ' + short(t.added) : '')].filter(Boolean).join(' · ');
+  return `<li class="${t.done ? 'done' : ''}"><div class="trow"><b>${title}</b>${brandName ? `<span class="chip brand">${esc(brandName)}</span>` : ''}${dueChip(t)}</div>
+    ${t.detail && !t.done ? `<small>${esc(t.detail)}</small>` : ''}${meta ? `<div class="src">${esc(meta)}</div>` : ''}</li>`;
+}
+const order = (a, b) => (a.due || '9999').localeCompare(b.due || '9999') || (a.added || '').localeCompare(b.added || '');
+
+function render(d) {
+  const b = new Date(d.built);
+  $('#built').textContent = 'Last updated ' + b.toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+  const open = d.tasks.filter(t => !t.done);
+  const late = open.filter(t => t.due && diff(t.due) < 0);
+  const soon = open.filter(t => t.due && diff(t.due) >= 0 && diff(t.due) <= 2);
+  const week = open.filter(t => t.due && diff(t.due) > 2 && diff(t.due) <= 7);
+  $('#kpis').innerHTML = [[open.length, 'Open tasks', ''], [late.length, 'Late', late.length ? 'hot' : ''], [soon.length, 'Due in 2 days', ''], [week.length, 'Later this week', '']]
+    .map(([v, l, c]) => `<div class="panel kpi ${c}"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('');
+
+  const name = Object.fromEntries(d.brands.map(x => [x.id, x.name]));
+  const now = late.concat(soon).sort(order);
+  $('#due').hidden = !now.length;
+  $('#dueList').innerHTML = now.map(t => item(t, name[t.brand])).join('');
+
+  $('#brands').innerHTML = d.brands.map(br => {
+    const mine = d.tasks.filter(t => t.brand === br.id);
+    const o = mine.filter(t => !t.done).sort(order);
+    const done = mine.filter(t => t.done).sort((x, y) => (y.doneDate || '').localeCompare(x.doneDate || ''));
+    const rev = d.reviewed[br.id];
+    return `<article class="panel"><div class="bhead"><h2>${esc(br.name)}</h2><span class="count ${o.length ? 'has' : ''}" title="${o.length} open">${o.length}</span></div>
+      <p class="rev">${rev ? 'Reviewed ' + short(rev) : 'Not reviewed yet'}</p>
+      ${o.length ? `<ul class="tasks">${o.map(t => item(t)).join('')}</ul>` : `<p class="empty">${rev ? 'Nothing open.' : 'Waiting on the first review.'}</p>`}
+      ${done.length ? `<details><summary>Done lately (${done.length})</summary><ul class="tasks">${done.map(t => item(t)).join('')}</ul></details>` : ''}</article>`;
+  }).join('');
+}
+</script>
+</body>
+</html>
