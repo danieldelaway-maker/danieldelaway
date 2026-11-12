@@ -211,7 +211,7 @@ function card(t, brandName) {
   return `<li class="tcard ${t.done ? 'done' : ''}" data-id="${t.id}">
     <input type="checkbox" class="tick" ${t.done ? 'checked' : ''} aria-label="Mark “${esc(t.text)}” done">
     <div class="tbody" data-act="edit"><div class="trow"><b>${esc(t.text)}</b>${brandName ? `<span class="chip brand">${esc(brandName)}</span>` : ''}${dueChip(t)}</div>
-    ${t.detail && !t.done ? `<small>${esc(t.detail)}</small>` : ''}${meta ? `<div class="src">${meta}</div>` : ''}</div>
+    ${t.detail && (!t.done || doneToday(t)) ? `<small>${esc(t.detail)}</small>` : ''}${meta ? `<div class="src">${meta}</div>` : ''}</div>
     <button class="edit" data-act="edit" aria-label="Edit task">Edit</button></li>`;
 }
 const order = (a, b) => (a.due || '9999').localeCompare(b.due || '9999');
@@ -225,10 +225,12 @@ function render() {
   $('#brands').innerHTML = d.brands.map(br => {
     const mine = d.tasks.filter(t => t.brand === br.id);
     const o = mine.filter(t => !t.done).sort(order);
-    const done = mine.filter(t => t.done);
+    const today = mine.filter(t => doneToday(t));
+    const done = mine.filter(t => t.done && !doneToday(t));
+    const shown = o.concat(today).sort(order);
     const urgent = o.filter(t => t.due && diff(t.due) <= 2).length;
     const adding = editing === 'new:' + br.id;
-    const isOpen = opened.has(br.id) || adding || o.some(t => t.id === editing) || done.some(t => t.id === editing);
+    const isOpen = opened.has(br.id) || adding || mine.some(t => t.id === editing);
     const key = slug(br.name);
     const logo = LOGOS.has(key) ? `<img src="logos/${key}.png" alt="${esc(br.name)} logo">` : `<span class="mono-logo">${esc(br.name.slice(0, 2))}</span>`;
     const badge = `<span class="badge ${o.length ? (urgent ? 'hot' : 'has') : ''}" title="${o.length} open${urgent ? ', ' + urgent + ' due in the next 2 days' : ''}">${o.length}</span>`;
@@ -238,7 +240,7 @@ function render() {
       <div class="plogo">${logo}</div><h2>${esc(br.name)}</h2><p class="line ${urgent ? 'hot' : ''}">${esc(line)}</p></article>`;
     return `<article class="board proj open">${badge}
       <div class="ohead"><div class="plogo sm">${logo}</div><h2>${esc(br.name)}</h2><button class="close" data-act="toggle" data-brand="${br.id}" aria-label="Close ${esc(br.name)}">Close</button></div>
-      ${o.length || adding ? `<ul class="tasks">${o.map(t => card(t)).join('')}${adding ? `<li class="tcard">${form(null, br.id)}</li>` : ''}</ul>` : '<p class="empty">Nothing open.</p>'}
+      ${shown.length || adding ? `<ul class="tasks">${shown.map(t => card(t)).join('')}${adding ? `<li class="tcard">${form(null, br.id)}</li>` : ''}</ul>` : '<p class="empty">Nothing open.</p>'}
       ${adding ? '' : `<button class="add" data-act="add" data-brand="${br.id}">+ Add task</button>`}
       ${done.length ? `<details><summary>Done (${done.length})</summary><ul class="tasks">${done.map(t => card(t)).join('')}</ul></details>` : ''}</article>`;
   }).join('');
@@ -246,12 +248,14 @@ function render() {
 }
 
 const find = id => data.tasks.find(t => t.id === id);
+// Ticked today: stays in the list, struck through. Older ticked tasks move to "Done".
+function doneToday(t) { return t.done && t.edited && new Date(t.edited).toDateString() === new Date().toDateString(); }
 document.addEventListener('change', async e => {
   if (!e.target.classList.contains('tick')) return;
   const li = e.target.closest('.tcard'), t = find(li.dataset.id), done = e.target.checked;
-  t.done = done; render();
+  const was = t.edited; t.done = done; t.edited = new Date().toISOString(); render();
   try { await api('/tasks/' + t.id, 'PATCH', { done }); toast(done ? 'Ticked off. Saved to Notion.' : 'Moved back to open.'); }
-  catch (err) { t.done = !done; render(); toast('Not saved: ' + err.message); }
+  catch (err) { t.done = !done; t.edited = was; render(); toast('Not saved: ' + err.message); }
 });
 document.addEventListener('click', async e => {
   const el = e.target.closest('[data-act]'); if (!el || e.target.closest('a')) return;
