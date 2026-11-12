@@ -201,6 +201,25 @@
     }
     @keyframes sheetup { from { transform: translateY(100%); } }
     @keyframes fadein { from { opacity: 0; } }
+
+    /* card wave on first load */
+    #brands.wave .proj { animation: rise .55s cubic-bezier(.2,.8,.3,1) backwards; animation-delay: calc(var(--i, 0) * 55ms); }
+    @keyframes rise { from { opacity: 0; transform: translateY(18px) scale(.97); } }
+    /* urgent bubbles pulse */
+    .badge.hot { animation: pulse 1.8s ease-out infinite; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(229,72,77,.55); } 70%, 100% { box-shadow: 0 0 0 11px rgba(229,72,77,0); } }
+    /* rolling numbers */
+    .badge { overflow: hidden; }
+    .badge .bnum { display: inline-block; }
+    .badge .bnum.up { animation: rollup .5s cubic-bezier(.2,.8,.3,1); }
+    .badge .bnum.down { animation: rolldown .5s cubic-bezier(.2,.8,.3,1); }
+    @keyframes rollup { from { transform: translateY(110%); opacity: 0; } }
+    @keyframes rolldown { from { transform: translateY(-110%); opacity: 0; } }
+    /* all clear stamp */
+    .clear { margin: 6px 0 0; display: inline-block; font: 800 11px var(--font); letter-spacing: .14em; text-transform: uppercase; color: #13906f; border: 2px solid currentColor; border-radius: 8px; padding: 4px 10px; transform: rotate(-4deg); background: rgba(19,144,111,.06); }
+    #brands.wave .clear { animation: stamp .45s cubic-bezier(.3,1.6,.5,1) backwards; animation-delay: calc(var(--i, 0) * 55ms + .35s); }
+    @keyframes stamp { from { transform: rotate(-4deg) scale(1.8); opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { #brands.wave .proj, #brands.wave .clear, .badge.hot, .badge .bnum { animation: none !important; } }
   </style>
 </head>
 <body>
@@ -367,7 +386,7 @@ const slug = n => String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^
 const LOGOS = new Set(['sls3', 'zensim', 'true-blue-studies', 'her-naturals', 'sally', 'everyone', 'kitchen-impossible', 'life-admin']);
 const TINT = { 'sls3': '#d7263d', 'zensim': '#3a3f4f', 'true-blue-studies': '#2bb5d6', 'her-naturals': '#2f6b4f', 'sally': '#7d5f8a', 'everyone': '#0f7a6a', 'kitchen-impossible': '#9a3fd1', 'life-admin': '#5b7bff' };
 const isPhone = () => matchMedia('(max-width: 560px)').matches;
-let openedId = null; // one project open at a time, shown below all the cards
+let openedId = null, firstPaint = true; const prevCount = {}; // one project open at a time, shown below all the cards
 function render() {
   const d = data;
   $('#built').textContent = 'Synced with Notion ' + new Date(d.synced).toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
@@ -385,13 +404,14 @@ function render() {
     const isOpen = openedId === br.id || adding || mine.some(t => t.id === editing);
     const key = slug(br.name);
     const logo = LOGOS.has(key) ? `<img src="logos/${key}.${key === 'life-admin' ? 'svg?v=3' : 'png'}" alt="${esc(br.name)} logo">` : `<span class="mono-logo">${esc(br.name.slice(0, 2))}</span>`;
-    const badge = `<span class="badge ${main.length ? (urgent ? 'hot' : 'has') : ''}" title="${main.length} open${urgent ? ', ' + urgent + ' need you in the next 2 days' : ''}">${main.length}</span>`;
+    const badge = `<span class="badge ${main.length ? (urgent ? 'hot' : 'has') : ''}" title="${main.length} open${urgent ? ', ' + urgent + ' need you in the next 2 days' : ''}"><span class="bnum ${prevCount[br.id] === undefined || prevCount[br.id] === main.length ? '' : main.length > prevCount[br.id] ? 'up' : 'down'}">${main.length}</span></span>`;
+    prevCount[br.id] = main.length;
     const next = main.find(t => t.due && t.kind !== 'waiting');
     const bits = [main.length ? `${main.length} open${next ? ' · next due ' + (dueChip(next).replace(/<[^>]+>/g, '') || short(next.due)) : ''}` : 'Nothing open'];
     const sub = [waiting.length && `${waiting.length} waiting`, later.length && `${later.length} later`].filter(Boolean).join(' · ');
     const sugLine = sugs.length ? `<p class="sugline">${sugs.length} new suggestion${sugs.length > 1 ? 's' : ''}</p>` : '';
     const tile = `<article class="board proj ${isOpen ? 'sel' : ''}" ${TINT[key] ? `style="--tint:${TINT[key]}"` : ''} aria-expanded="${isOpen}" data-act="toggle" data-brand="${br.id}" role="button" tabindex="0" aria-label="Open ${esc(br.name)} tasks">${badge}
-      <div class="plogo">${logo}</div><h2>${esc(br.name)}</h2><p class="line ${urgent ? 'hot' : ''}">${esc(bits[0])}</p>${sub ? `<p class="line">${esc(sub)}</p>` : ''}${sugLine}</article>`;
+      <div class="plogo">${logo}</div><h2>${esc(br.name)}</h2>${main.length ? `<p class="line ${urgent ? 'hot' : ''}">${esc(bits[0])}</p>` : '<p class="clear">All clear ✓</p>'}${sub ? `<p class="line">${esc(sub)}</p>` : ''}${sugLine}</article>`;
     // urgency: overdue/chase first, then due within 2 days, then soonest due, then most open
     const late = main.filter(t => isChase(t) || (t.due && t.kind !== 'waiting' && diff(t.due) < 0)).length;
     const rank = [late ? 0 : 1, urgent ? 0 : 1, next ? next.due : '9999', -main.length];
@@ -413,6 +433,11 @@ function render() {
   const W = work.map(cardHtml).sort(byUrgency), P = personal.map(cardHtml).sort(byUrgency);
   $('#brands').innerHTML = `<p class="grp">Work</p>` + W.map(x => x.tile).join('') + (P.length ? `<p class="grp">Personal</p>` + P.map(x => x.tile).join('') : '');
   $('#panel').innerHTML = W.concat(P).map(x => x.panel).join('');
+  if (firstPaint) {
+    firstPaint = false; const bx = $('#brands');
+    bx.querySelectorAll('.proj').forEach((el, i) => el.style.setProperty('--i', i));
+    bx.classList.add('wave'); setTimeout(() => bx.classList.remove('wave'), 1600);
+  }
   const f = document.querySelector('.form input[name=text]'); if (f && !f.value) f.focus();
   const n = d.tasks.filter(doneToday).length, pill = $('#donePill');
   pill.hidden = !n; pill.textContent = '✓ ' + n + ' done today';
