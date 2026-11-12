@@ -12,12 +12,16 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="/styles.css?v=13">
   <style>
-    :root { --warn: #ffb45b; --late: #ff8a8a; --line: rgba(255,255,255,.1); }
+    :root {
+      --late: #ff8a8a; --line: rgba(255,255,255,.1);
+      /* white task area */
+      --w-bg: #ffffff; --w-card: #f6f7fa; --w-line: #e3e6ee; --w-ink: #12141c; --w-text: #3d4352; --w-muted: #6b7183;
+      --w-late: #c62f2f; --w-soon: #a86400; --w-accent: #0f8f86;
+    }
     .top { margin-bottom: 40px; }
     h1 { font-size: clamp(32px, 5vw, 52px); margin-bottom: 8px; }
     .sub { color: var(--muted); font-size: 14px; margin: 0 0 32px; }
     .panel { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 20px; min-width: 0; }
-    h2 { font-family: var(--display); color: var(--ink); font-size: 20px; margin: 0; }
     section { margin-bottom: 28px; }
 
     /* lock screen (same as Clients HQ) */
@@ -33,32 +37,59 @@
     .kpi .l { font-size: 13px; color: var(--muted); }
     .kpi.hot .v { color: var(--late); }
 
-    /* brand cards */
-    .brands { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 14px; align-items: start; }
-    .bhead { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
-    .bhead h2 { flex: 1; min-width: 0; overflow-wrap: anywhere; }
-    .count { font: 700 13px var(--font); font-variant-numeric: tabular-nums; padding: 2px 10px; border-radius: 999px; background: rgba(255,255,255,.08); color: var(--muted); }
-    .count.has { color: #0b0d14; background: linear-gradient(135deg, var(--blue), var(--teal)); }
-    .rev { font-size: 12px; color: var(--muted); margin: 0 0 12px; }
+    /* white brand boards */
+    .board { background: var(--w-bg); border-radius: 18px; padding: 20px; min-width: 0; color: var(--w-text); box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+    .board h2 { font-family: var(--display); color: var(--w-ink); font-size: 20px; margin: 0; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+    .brands { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 16px; align-items: start; }
+    .bhead { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .count { font: 700 13px var(--font); font-variant-numeric: tabular-nums; padding: 2px 10px; border-radius: 999px; background: #eef0f5; color: var(--w-muted); }
+    .count.has { color: #fff; background: var(--w-accent); }
+    #due h2 { margin-bottom: 14px; }
 
-    .tasks { list-style: none; margin: 0; padding: 0; }
-    .tasks li { padding: 12px 0; border-top: 1px solid rgba(255,255,255,.07); }
-    .trow { display: flex; align-items: flex-start; gap: 10px; }
-    .tasks b { flex: 1; min-width: 0; color: var(--ink); font-weight: 600; font-size: 15px; line-height: 1.4; overflow-wrap: anywhere; }
-    .tasks b a { text-decoration-color: rgba(255,255,255,.3); text-underline-offset: 3px; }
-    .tasks b a:hover { color: var(--teal); }
-    .tasks small { display: block; color: var(--text); font-size: 13.5px; margin-top: 4px; }
-    .tasks .src { color: var(--muted); font-size: 12px; margin-top: 4px; }
-    .chip { flex: none; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; border: 1px solid currentColor; color: var(--muted); white-space: nowrap; }
-    .chip.late { color: var(--late); } .chip.soon { color: var(--warn); } .chip.brand { color: var(--teal); }
-    .tasks li.done b { color: var(--muted); font-weight: 500; text-decoration: line-through; }
-    .empty { color: var(--muted); font-size: 14px; padding: 12px 0 0; border-top: 1px solid rgba(255,255,255,.07); margin: 0; }
-    details { margin-top: 4px; border-top: 1px solid rgba(255,255,255,.07); padding-top: 10px; }
-    summary { cursor: pointer; font-size: 13px; color: var(--muted); }
-    summary:hover { color: var(--ink); }
-    details .tasks li:first-child { border-top: 0; }
-    #due h2 { margin-bottom: 4px; }
+    .tasks { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+    .tcard { background: var(--w-card); border: 1px solid var(--w-line); border-radius: 12px; padding: 12px 12px 12px 10px; display: flex; gap: 10px; align-items: flex-start; }
+    .tcard.done { opacity: .6; }
+    .tcard.saving { opacity: .55; }
+    .tick { flex: none; appearance: none; -webkit-appearance: none; width: 20px; height: 20px; margin: 1px 0 0; border: 2px solid #b9bfcc; border-radius: 6px; background: #fff; cursor: pointer; display: grid; place-content: center; transition: background .15s, border-color .15s; }
+    .tick:hover { border-color: var(--w-accent); }
+    .tick:checked { background: var(--w-accent); border-color: var(--w-accent); }
+    .tick:checked::after { content: ''; width: 5px; height: 10px; border: solid #fff; border-width: 0 2.5px 2.5px 0; transform: translateY(-1px) rotate(45deg); }
+    .tick:focus-visible { outline: 2px solid var(--w-accent); outline-offset: 2px; }
+    .tbody { flex: 1; min-width: 0; cursor: pointer; }
+    .trow { display: flex; align-items: flex-start; gap: 8px; }
+    .trow b { flex: 1; min-width: 0; color: var(--w-ink); font-weight: 600; font-size: 15px; line-height: 1.4; overflow-wrap: anywhere; }
+    .tcard.done .trow b { text-decoration: line-through; font-weight: 500; color: var(--w-muted); }
+    .tbody small { display: block; color: var(--w-text); font-size: 13.5px; line-height: 1.5; margin-top: 4px; }
+    .src { color: var(--w-muted); font-size: 12px; margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px 10px; }
+    .src a { color: var(--w-accent); font-weight: 600; text-decoration: none; }
+    .src a:hover { text-decoration: underline; }
+    .chip { flex: none; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; border: 1px solid currentColor; color: var(--w-muted); white-space: nowrap; }
+    .chip.late { color: var(--w-late); } .chip.soon { color: var(--w-soon); } .chip.brand { color: var(--w-accent); }
+    .edit { flex: none; background: none; border: 0; padding: 2px 4px; color: var(--w-muted); font: 500 12px var(--font); border-radius: 6px; }
+    .edit:hover { color: var(--w-ink); background: #e9ecf2; }
+    .empty { color: var(--w-muted); font-size: 14px; margin: 0; }
 
+    /* edit form */
+    .form { flex: 1; min-width: 0; display: grid; gap: 8px; }
+    .form label { font-size: 12px; font-weight: 600; color: var(--w-muted); display: grid; gap: 4px; }
+    .form input, .form textarea { width: 100%; min-width: 0; box-sizing: border-box; font: 400 14px/1.45 var(--font); color: var(--w-ink); background: #fff; border: 1px solid #cfd4df; border-radius: 8px; padding: 8px 10px; }
+    .form input:focus, .form textarea:focus { outline: 2px solid var(--w-accent); outline-offset: -1px; border-color: transparent; }
+    .form textarea { min-height: 70px; resize: vertical; }
+    .form .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    @media (max-width: 420px) { .form .two { grid-template-columns: 1fr; } }
+    .btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .btns button { padding: 8px 14px; font-size: 13px; }
+    .btns .ghost { background: #e9ecf2; color: var(--w-ink); }
+    .btns .del { margin-left: auto; background: none; color: var(--w-late); padding: 8px 4px; }
+    .add { margin-top: 10px; width: 100%; background: none; border: 1.5px dashed #cfd4df; color: var(--w-muted); font-weight: 600; }
+    .add:hover { border-color: var(--w-accent); color: var(--w-accent); }
+
+    details { margin-top: 12px; border-top: 1px solid var(--w-line); padding-top: 10px; }
+    summary { cursor: pointer; font-size: 13px; color: var(--w-muted); }
+    summary:hover { color: var(--w-ink); }
+    details .tasks { margin-top: 10px; }
+
+    #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: #12141c; color: #fff; border: 1px solid var(--line); padding: 10px 16px; border-radius: 12px; font-size: 14px; max-width: calc(100% - 32px); z-index: 10; }
     .foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 40px; font-size: 13px; color: var(--muted); }
     .foot a { color: var(--muted); }
     .foot button { background: none; color: var(--muted); padding: 0; font-weight: 500; text-decoration: underline; }
@@ -74,6 +105,7 @@
       <p class="eyebrow">Private</p>
       <h1>Brand Tasks</h1>
       <form id="unlock"><input id="pw" type="password" placeholder="Password" autocomplete="current-password" aria-label="Password"><button>Open</button></form>
+      <p class="sub" id="loading" hidden>Loading from Notion…</p>
       <div class="err" id="err"></div>
     </div>
 
@@ -83,38 +115,50 @@
       <p class="sub" id="built"></p>
 
       <section class="kpis" id="kpis"></section>
-      <section class="panel" id="due" hidden><h2>Due now</h2><ul class="tasks" id="dueList"></ul></section>
+      <section class="board" id="due" hidden><div class="bhead"><h2>Due now</h2></div><ul class="tasks" id="dueList"></ul></section>
       <section class="brands" id="brands"></section>
-      <p class="how">Claude reviews every brand and keeps this list. To tick something off or add one, just say so in chat.</p>
+      <p class="how">Ticks and edits save straight to Notion (Work page → Brand Tasks), and changes made in Notion show up here. Claude also adds tasks when it reviews each brand.</p>
       <div class="foot"><a href="/learn/">← Back to the learning list</a><button id="lockBtn">Lock</button></div>
     </div>
   </main>
+  <div id="toast" hidden role="status"></div>
 
 <script>
+const API = 'https://brand-tasks-api.danieldelaway.workers.dev';
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} }, del(k) { try { localStorage.removeItem(k); } catch {} } };
 const KEY = 'clientsHQ'; // same password as Clients HQ, so one unlock covers both
+let pass = '', data = null, editing = null, editIn = ''; // editing = task id, or 'new:<brandId>'; editIn = 'due' or 'brand'
 
-async function decrypt(pass) {
-  const r = await fetch('data.enc.json?t=' + Date.now(), { cache: 'no-store' });
-  const p = await r.json();
-  const b = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
-  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
-  const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: b(p.salt), iterations: p.iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
-  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b(p.iv) }, key, b(p.ct));
-  return JSON.parse(new TextDecoder().decode(pt));
+async function api(path, method = 'GET', body) {
+  const r = await fetch(API + path, { method, headers: { 'X-Key': pass, ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(d.error || 'Something went wrong'), { status: r.status });
+  return d;
 }
-async function open(pass, remember) {
+let toastT;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 4000); }
+
+async function load(quiet) {
+  try { data = await api('/tasks'); if (!editing) render(); return true; }
+  catch (e) { if (e.status === 401) throw e; if (!quiet) toast('Could not reach Notion: ' + e.message); return false; }
+}
+async function open(p, remember) {
+  pass = p;
   try {
-    const d = await decrypt(pass);
-    if (remember) store.set(KEY, pass);
-    $('#lock').hidden = true; $('#app').hidden = false; render(d);
+    await load();
+    if (remember) store.set(KEY, p);
+    $('#lock').hidden = true; $('#app').hidden = false;
   } catch (e) { if (remember) $('#err').textContent = 'That password didn’t work.'; }
 }
-$('#unlock').addEventListener('submit', e => { e.preventDefault(); $('#err').textContent = ''; open($('#pw').value.trim(), true); });
+$('#unlock').addEventListener('submit', e => { e.preventDefault(); $('#err').textContent = ''; $('#loading').hidden = false; open($('#pw').value.trim(), true).then(() => $('#loading').hidden = true); });
 $('#lockBtn').addEventListener('click', () => { store.del(KEY); location.reload(); });
-const saved = store.get(KEY); if (saved) open(saved, false);
+const saved = store.get(KEY);
+if (saved) { $('#unlock').hidden = true; $('#err').textContent = ''; $('#loading').hidden = false; open(saved, false).then(() => { $('#unlock').hidden = false; $('#loading').hidden = true; }); }
+// Pick up changes made in Notion.
+setInterval(() => { if (data && !editing && !document.hidden) load(true); }, 60000);
+document.addEventListener('visibilitychange', () => { if (data && !editing && !document.hidden) load(true); });
 
 const day = s => new Date(s + 'T00:00');
 const today = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
@@ -126,18 +170,34 @@ function dueChip(t) {
   const label = n < 0 ? `${-n}d late` : n === 0 ? 'Today' : n === 1 ? 'Tomorrow' : short(t.due);
   return `<span class="chip ${n < 0 ? 'late' : n <= 2 ? 'soon' : ''}">${label}</span>`;
 }
-function item(t, brandName) {
-  const safe = /^https?:\/\//.test(t.link || '') ? t.link : '';
-  const title = safe ? `<a href="${esc(safe)}" target="_blank" rel="noopener">${esc(t.text)}</a>` : esc(t.text);
-  const meta = [t.source, t.done && t.doneDate ? 'done ' + short(t.doneDate) : (t.added ? 'added ' + short(t.added) : '')].filter(Boolean).join(' · ');
-  return `<li class="${t.done ? 'done' : ''}"><div class="trow"><b>${title}</b>${brandName ? `<span class="chip brand">${esc(brandName)}</span>` : ''}${dueChip(t)}</div>
-    ${t.detail && !t.done ? `<small>${esc(t.detail)}</small>` : ''}${meta ? `<div class="src">${esc(meta)}</div>` : ''}</li>`;
-}
-const order = (a, b) => (a.due || '9999').localeCompare(b.due || '9999') || (a.added || '').localeCompare(b.added || '');
+const linkLabel = u => { try { const h = new URL(u).hostname.replace(/^www\./, ''); return h === 'claude.ai' ? 'Open plan' : 'Open ' + h; } catch { return 'Open link'; } };
 
-function render(d) {
-  const b = new Date(d.built);
-  $('#built').textContent = 'Last updated ' + b.toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+function form(t, brandId) {
+  const isNew = !t;
+  t = t || { text: '', detail: '', due: '', link: '' };
+  return `<form class="form" data-id="${isNew ? '' : t.id}" data-brand="${brandId || ''}">
+    <label>Task<input name="text" value="${esc(t.text)}" placeholder="What needs doing?" required maxlength="1800"></label>
+    <label>Details<textarea name="detail" placeholder="Any context (optional)" maxlength="1800">${esc(t.detail)}</textarea></label>
+    <div class="two"><label>Due date<input type="date" name="due" value="${esc(t.due)}"></label>
+    <label>Link<input type="url" name="link" value="${esc(t.link)}" placeholder="https://… (optional)"></label></div>
+    <div class="btns"><button type="submit">${isNew ? 'Add task' : 'Save'}</button><button type="button" class="ghost" data-act="cancel">Cancel</button>
+    ${isNew ? '' : '<button type="button" class="del" data-act="delete">Delete</button>'}</div></form>`;
+}
+function card(t, brandName) {
+  if (editing === t.id && editIn === (brandName ? 'due' : 'brand')) return `<li class="tcard">${form(t)}</li>`;
+  const safe = /^https?:\/\//.test(t.link || '') ? t.link : '';
+  const meta = [t.source && `<span>${esc(t.source)}</span>`, safe && `<a href="${esc(safe)}" target="_blank" rel="noopener">${esc(linkLabel(safe))} ↗</a>`].filter(Boolean).join('');
+  return `<li class="tcard ${t.done ? 'done' : ''}" data-id="${t.id}">
+    <input type="checkbox" class="tick" ${t.done ? 'checked' : ''} aria-label="Mark “${esc(t.text)}” done">
+    <div class="tbody" data-act="edit"><div class="trow"><b>${esc(t.text)}</b>${brandName ? `<span class="chip brand">${esc(brandName)}</span>` : ''}${dueChip(t)}</div>
+    ${t.detail && !t.done ? `<small>${esc(t.detail)}</small>` : ''}${meta ? `<div class="src">${meta}</div>` : ''}</div>
+    <button class="edit" data-act="edit" aria-label="Edit task">Edit</button></li>`;
+}
+const order = (a, b) => (a.due || '9999').localeCompare(b.due || '9999');
+
+function render() {
+  const d = data;
+  $('#built').textContent = 'Synced with Notion ' + new Date(d.synced).toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
   const open = d.tasks.filter(t => !t.done);
   const late = open.filter(t => t.due && diff(t.due) < 0);
   const soon = open.filter(t => t.due && diff(t.due) >= 0 && diff(t.due) <= 2);
@@ -148,19 +208,57 @@ function render(d) {
   const name = Object.fromEntries(d.brands.map(x => [x.id, x.name]));
   const now = late.concat(soon).sort(order);
   $('#due').hidden = !now.length;
-  $('#dueList').innerHTML = now.map(t => item(t, name[t.brand])).join('');
+  $('#dueList').innerHTML = now.map(t => card(t, name[t.brand])).join('');
 
   $('#brands').innerHTML = d.brands.map(br => {
     const mine = d.tasks.filter(t => t.brand === br.id);
     const o = mine.filter(t => !t.done).sort(order);
-    const done = mine.filter(t => t.done).sort((x, y) => (y.doneDate || '').localeCompare(x.doneDate || ''));
-    const rev = d.reviewed[br.id];
-    return `<article class="panel"><div class="bhead"><h2>${esc(br.name)}</h2><span class="count ${o.length ? 'has' : ''}" title="${o.length} open">${o.length}</span></div>
-      <p class="rev">${rev ? 'Reviewed ' + short(rev) : 'Not reviewed yet'}</p>
-      ${o.length ? `<ul class="tasks">${o.map(t => item(t)).join('')}</ul>` : `<p class="empty">${rev ? 'Nothing open.' : 'Waiting on the first review.'}</p>`}
-      ${done.length ? `<details><summary>Done lately (${done.length})</summary><ul class="tasks">${done.map(t => item(t)).join('')}</ul></details>` : ''}</article>`;
+    const done = mine.filter(t => t.done);
+    const adding = editing === 'new:' + br.id;
+    return `<article class="board"><div class="bhead"><h2>${esc(br.name)}</h2><span class="count ${o.length ? 'has' : ''}" title="${o.length} open">${o.length}</span></div>
+      ${o.length || adding ? `<ul class="tasks">${o.map(t => card(t)).join('')}${adding ? `<li class="tcard">${form(null, br.id)}</li>` : ''}</ul>` : '<p class="empty">Nothing open.</p>'}
+      ${adding ? '' : `<button class="add" data-act="add" data-brand="${br.id}">+ Add task</button>`}
+      ${done.length ? `<details><summary>Done (${done.length})</summary><ul class="tasks">${done.map(t => card(t)).join('')}</ul></details>` : ''}</article>`;
   }).join('');
+  const f = document.querySelector('.form input[name=text]'); if (f && !f.value) f.focus();
 }
+
+const find = id => data.tasks.find(t => t.id === id);
+document.addEventListener('change', async e => {
+  if (!e.target.classList.contains('tick')) return;
+  const li = e.target.closest('.tcard'), t = find(li.dataset.id), done = e.target.checked;
+  t.done = done; render();
+  try { await api('/tasks/' + t.id, 'PATCH', { done }); toast(done ? 'Ticked off. Saved to Notion.' : 'Moved back to open.'); }
+  catch (err) { t.done = !done; render(); toast('Not saved: ' + err.message); }
+});
+document.addEventListener('click', async e => {
+  const el = e.target.closest('[data-act]'); if (!el || e.target.closest('a')) return;
+  const act = el.dataset.act;
+  if (act === 'edit') { if (editing) return; editing = el.closest('.tcard').dataset.id; editIn = el.closest('#dueList') ? 'due' : 'brand'; render(); document.querySelector('.form input[name=text]')?.focus(); }
+  else if (act === 'add') { editing = 'new:' + el.dataset.brand; render(); }
+  else if (act === 'cancel') { editing = null; render(); }
+  else if (act === 'delete') {
+    const id = el.closest('form').dataset.id, t = find(id);
+    if (!confirm(`Delete “${t.text}”? It goes to Notion’s trash, so you can still get it back there.`)) return;
+    el.closest('.tcard').classList.add('saving');
+    try { await api('/tasks/' + id, 'DELETE'); data.tasks = data.tasks.filter(x => x.id !== id); editing = null; render(); toast('Deleted.'); }
+    catch (err) { el.closest('.tcard').classList.remove('saving'); toast('Not deleted: ' + err.message); }
+  }
+});
+document.addEventListener('submit', async e => {
+  const f = e.target; if (!f.classList.contains('form')) return;
+  e.preventDefault();
+  const v = Object.fromEntries(new FormData(f));
+  v.text = v.text.trim(); v.detail = v.detail.trim(); v.link = v.link.trim();
+  if (!v.text) return;
+  f.closest('.tcard').classList.add('saving'); f.querySelectorAll('button').forEach(b => b.disabled = true);
+  try {
+    if (f.dataset.id) { await api('/tasks/' + f.dataset.id, 'PATCH', v); Object.assign(find(f.dataset.id), v); }
+    else { const r = await api('/tasks', 'POST', { ...v, brand: f.dataset.brand }); data.tasks.push({ ...v, id: r.id, brand: f.dataset.brand, done: false, source: 'added on the site' }); }
+    editing = null; toast('Saved to Notion.'); render();
+  } catch (err) { f.closest('.tcard').classList.remove('saving'); f.querySelectorAll('button').forEach(b => b.disabled = false); toast('Not saved: ' + err.message); }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && editing) { editing = null; render(); } });
 </script>
 </body>
 </html>
