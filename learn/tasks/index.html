@@ -220,6 +220,90 @@
     #brands.wave .clear { animation: stamp .45s cubic-bezier(.3,1.6,.5,1) backwards; animation-delay: calc(var(--i, 0) * 55ms + .35s); }
     @keyframes stamp { from { transform: rotate(-4deg) scale(1.8); opacity: 0; } }
     @media (prefers-reduced-motion: reduce) { #brands.wave .proj, #brands.wave .clear, .badge.hot, .badge .bnum { animation: none !important; } }
+
+    /* calendar */
+    #cal { margin: 36px 0 28px; }
+    #cal .board { padding: 22px; }
+    .chead { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+    .chead h2 { flex: none; font-size: 22px; }
+    .chead .cmonth { font: 700 18px var(--display); color: var(--w-ink); min-width: 150px; }
+    .cnav { display: flex; gap: 6px; align-items: center; }
+    .cbtn { background: #eef0f5; color: var(--w-ink); padding: 7px 12px; font-size: 13px; border-radius: 10px; }
+    .cbtn:hover { background: #e2e6ee; }
+    .cbtn.on { background: var(--w-ink); color: #fff; }
+    .cviews { margin-left: auto; display: flex; gap: 4px; background: #eef0f5; border-radius: 12px; padding: 3px; }
+    .cviews .cbtn { background: none; }
+    .cviews .cbtn.on { background: #fff; color: var(--w-ink); box-shadow: 0 1px 4px rgba(18,20,28,.12); }
+    .cstats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .cstat { background: var(--w-card); border: 1px solid var(--w-line); border-radius: 12px; padding: 10px 12px; }
+    .cstat .v { font: 700 24px var(--display); color: var(--w-ink); font-variant-numeric: tabular-nums; line-height: 1.15; }
+    .cstat .l { font-size: 12px; color: var(--w-muted); }
+    .cstat.hot .v { color: var(--w-late); }
+    .cfilters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .cf { display: inline-flex; align-items: center; gap: 6px; background: #fff; color: var(--w-text); border: 1px solid var(--w-line); padding: 5px 10px; font-size: 12.5px; font-weight: 600; border-radius: 999px; }
+    .cf i { width: 9px; height: 9px; border-radius: 50%; background: var(--c, #888); flex: none; }
+    .cf.off { opacity: .4; text-decoration: line-through; }
+    .cf.all { color: var(--w-muted); }
+    .ckey { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--w-muted); margin: 0 0 12px; }
+    .ckey span { display: inline-flex; align-items: center; gap: 6px; }
+    .ckey b { display: inline-block; width: 18px; height: 10px; border-radius: 3px; }
+    .grid7 { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border: 1px solid var(--w-line); border-radius: 14px; overflow: hidden; background: var(--w-line); gap: 1px; }
+    .dow { background: #f6f7fa; font: 700 11px var(--font); letter-spacing: .08em; text-transform: uppercase; color: var(--w-muted); text-align: center; padding: 8px 0; }
+    .cday { background: #fff; min-height: 118px; padding: 6px 6px 8px; display: flex; flex-direction: column; gap: 3px; cursor: pointer; min-width: 0; text-align: left; border: 0; border-radius: 0; font: inherit; color: inherit; }
+    .cday:hover { background: #fafbfd; }
+    .cday.wk { background: #fbfbfd; }
+    .cday.other { background: #f7f8fa; }
+    .cday.other .dn { color: #b3b8c4; }
+    .cday.sel { box-shadow: inset 0 0 0 2px var(--w-accent); }
+    .dn { display: flex; align-items: center; justify-content: space-between; font: 600 12.5px var(--font); color: var(--w-ink); font-variant-numeric: tabular-nums; margin-bottom: 2px; }
+    .dn em { font-style: normal; display: inline-grid; place-items: center; min-width: 24px; height: 24px; border-radius: 999px; }
+    .cday.today .dn em { background: var(--w-accent); color: #fff; }
+    .od { font: 700 10.5px var(--font); color: #fff; background: #e5484d; border-radius: 999px; padding: 1px 7px; }
+    .ev { display: block; width: 100%; box-sizing: border-box; font-size: 11.5px; line-height: 1.35; padding: 2px 6px 2px 7px; border-radius: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--w-ink); background: color-mix(in srgb, var(--c) 13%, #fff); border-left: 3px solid var(--c); }
+    .ev.done { text-decoration: line-through; color: var(--w-muted); background: #f3f4f7; }
+    .ev.chase { background: #fff1f1; border-left-color: #e5484d; }
+    .ev.repeat { background: #fff; border: 1px dashed color-mix(in srgb, var(--c) 60%, #fff); border-left: 3px solid var(--c); color: var(--w-text); }
+    .ev.sug { background: #fff8e6; border-left-color: #e0a800; color: #6d4b00; }
+    .ev.late { color: var(--w-late); font-weight: 600; }
+    .more { font: 600 11px var(--font); color: var(--w-muted); padding-left: 4px; }
+    .dots { display: none; flex-wrap: wrap; gap: 3px; }
+    .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
+    .dots i.done { opacity: .35; } .dots i.chase { background: #e5484d; } .dots i.sug { background: #e0a800; }
+    .dots i.repeat { background: none; box-shadow: inset 0 0 0 1.5px var(--c); }
+    /* week view */
+    .wcol { min-height: 300px; }
+    .wcol .ev { white-space: normal; }
+    /* day detail + agenda */
+    .cdetail { margin-top: 16px; border-top: 1px solid var(--w-line); padding-top: 14px; }
+    .cdetail h3 { font: 700 16px var(--display); color: var(--w-ink); margin: 0 0 10px; }
+    .cdetail h3 span { font: 500 13px var(--font); color: var(--w-muted); margin-left: 6px; }
+    .alist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+    .aitem { display: flex; gap: 10px; align-items: flex-start; background: var(--w-card); border: 1px solid var(--w-line); border-left: 4px solid var(--c); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
+    .aitem:hover { border-color: color-mix(in srgb, var(--c) 50%, var(--w-line)); border-left-color: var(--c); }
+    .aitem.done { opacity: .6; } .aitem.done b { text-decoration: line-through; }
+    .aitem.sug { background: #fffbef; }
+    .aitem .ab { flex: 1; min-width: 0; }
+    .aitem b { display: block; color: var(--w-ink); font-size: 14px; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; }
+    .aitem small { display: block; color: var(--w-text); font-size: 12.5px; line-height: 1.45; margin-top: 3px; }
+    .aitem .abrand { flex: none; font: 700 11px var(--font); color: var(--c); text-transform: uppercase; letter-spacing: .05em; margin-top: 3px; width: 92px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .agrp { margin: 18px 0 8px; font: 700 12px var(--font); letter-spacing: .08em; text-transform: uppercase; color: var(--w-muted); display: flex; gap: 8px; align-items: baseline; }
+    .agrp:first-child { margin-top: 0; }
+    .agrp.hot { color: var(--w-late); }
+    .agrp span { text-transform: none; letter-spacing: 0; font-weight: 500; }
+    .cnote { font-size: 12.5px; color: var(--w-muted); margin: 12px 0 0; }
+    @media (max-width: 760px) { .cday { min-height: 92px; } .ev { font-size: 10.5px; padding: 1px 4px 1px 5px; } }
+    @media (max-width: 560px) {
+      #cal .board { padding: 16px 12px; }
+      .cviews { margin-left: 0; width: 100%; } .cviews .cbtn { flex: 1; }
+      .cday { min-height: 58px; padding: 4px; } .cday .ev, .cday .more { display: none; } .cday .dots { display: flex; }
+      .dn { font-size: 11.5px; } .dn em { min-width: 20px; height: 20px; } .od { font-size: 9.5px; padding: 0 5px; }
+      .dow { font-size: 10px; letter-spacing: .02em; }
+      .aitem .abrand { width: auto; } .aitem { flex-wrap: wrap; } .aitem .abrand { order: -1; flex-basis: 100%; margin: 0; }
+      .wgrid { display: block !important; border: 0 !important; background: none !important; }
+      .wgrid .dow { display: none; }
+      .wgrid .cday { min-height: 0; border: 1px solid var(--w-line); border-radius: 10px; margin-bottom: 6px; padding: 8px; }
+      .wgrid .cday .ev { display: block; white-space: normal; font-size: 12px; } .wgrid .cday .dots { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -243,6 +327,7 @@
       <section class="brands" id="brands"></section>
       <section id="panel"></section>
       <div id="scrim" data-act="closeall"></div>
+      <section id="cal" aria-label="Calendar"></section>
       <p class="how">Ticks and edits save straight to Notion (Work page → Brand Tasks), and changes made in Notion show up here. Tap a project to open it. The number is how many tasks are open (red = something needs you within 2 days). Claude checks Slack and Gmail every 30 minutes and puts what it finds in a yellow Suggested tray; nothing is added until you tap Add. Tasks due more than a week out sit in Later, and people you're waiting on move into your tasks as “Chase” after 5 days. Personal tax and admin live under Life Admin, apart from your work.</p>
       <div class="foot"><a href="/learn/">← Back to the learning list</a><button id="lockBtn">Lock</button></div>
     </div>
@@ -443,7 +528,143 @@ function render() {
   pill.hidden = !n; pill.textContent = '✓ ' + n + ' done today';
   const sheet = !!$('#panel').innerHTML && isPhone();
   document.body.classList.toggle('sheet', sheet); $('#scrim').classList.toggle('on', sheet);
+  renderCal();
 }
+
+// ---------- Calendar (below all the cards) ----------
+const isoOf = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const addDays = (s, n) => { const d = day(s); d.setDate(d.getDate() + n); return isoOf(d); };
+const addMonths = (s, n) => { const d = day(s), dd = d.getDate(); d.setDate(1); d.setMonth(d.getMonth() + n); const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate(); d.setDate(Math.min(dd, last)); return isoOf(d); };
+const STEP = { week: s => addDays(s, 7), month: s => addMonths(s, 1), quarter: s => addMonths(s, 3), year: s => addMonths(s, 12) };
+const mondayOf = s => { const d = day(s), w = (d.getDay() + 6) % 7; d.setDate(d.getDate() - w); return isoOf(d); };
+let calHidden; try { calHidden = new Set(JSON.parse(store.get('calHidden') || '[]')); } catch { calHidden = new Set(); }
+const cal = { view: store.get('calView') || (isPhone() ? 'agenda' : 'month'), anchor: isoToday(), sel: isoToday() };
+
+function calEvents(from, to) {
+  const out = [], t0 = isoToday();
+  const brandOf = id => data.brands.find(b => b.id === id || slug(b.name) === slug(id));
+  const push = (date, e) => { if (date >= from && date <= to) out.push({ ...e, date }); };
+  for (const t of data.tasks) {
+    const br = brandOf(t.brand); if (!br) continue;
+    const key = slug(br.name); if (calHidden.has(key)) continue;
+    const base = { id: t.id, brandId: br.id, brand: br.name, c: TINT[key] || '#6b7183', detail: t.detail, source: t.source };
+    if (t.kind === 'waiting') {
+      if (t.done || !t.due) continue;
+      const chase = addDays(t.due, CHASE_AFTER);
+      push(chase, { ...base, type: 'chase', text: `Chase ${t.who}: ${t.text}`, late: chase < t0, kindLabel: `Waiting on ${t.who} since ${short(t.due)}` });
+      continue;
+    }
+    if (!t.due) continue;
+    push(t.due, { ...base, type: t.done ? 'done' : 'task', text: t.text, late: !t.done && t.due < t0, kindLabel: t.done ? 'Done' : t.repeat ? REP[t.repeat] : 'Task' });
+    if (t.repeat && STEP[t.repeat] && !t.done) {
+      let s = STEP[t.repeat](t.due), guard = 0;
+      while (s <= to && guard++ < 400) { push(s, { ...base, type: 'repeat', text: t.text, kindLabel: REP[t.repeat] + ' (coming up)' }); s = STEP[t.repeat](s); }
+    }
+  }
+  for (const s of calHidden.has('__sug') ? [] : data.suggestions || []) {
+    if (!s.due) continue;
+    const br = brandOf(s.brand); if (!br) continue;
+    const key = slug(br.name); if (calHidden.has(key)) continue;
+    push(s.due, { id: s.id, brandId: br.id, brand: br.name, c: TINT[key] || '#6b7183', type: 'sug', text: s.text, detail: s.detail, source: s.source, kindLabel: 'Suggested, not added yet' });
+  }
+  const rank = { chase: 0, task: 1, sug: 2, repeat: 3, done: 4 };
+  return out.sort((a, b) => a.date.localeCompare(b.date) || (b.late - a.late) || rank[a.type] - rank[b.type] || a.brand.localeCompare(b.brand));
+}
+const byDate = list => list.reduce((m, e) => ((m[e.date] = m[e.date] || []).push(e), m), {});
+const evPill = e => `<span class="ev ${e.type} ${e.late ? 'late' : ''}" style="--c:${e.c}" title="${esc(e.brand + ': ' + e.text)}">${esc(e.text)}</span>`;
+const evDot = e => `<i class="${e.type}" style="--c:${e.c}"></i>`;
+const aItem = (e, showDate) => `<li class="aitem ${e.type === 'done' ? 'done' : ''} ${e.type === 'sug' ? 'sug' : ''}" style="--c:${e.c}" data-act="cal-open" data-brand="${e.brandId}" role="button" tabindex="0">
+  <span class="abrand">${esc(e.brand)}</span><div class="ab"><b>${esc(e.text)}</b>
+  <small>${esc(e.kindLabel)}${showDate ? ' · ' + (e.late ? `<span style="color:var(--w-late);font-weight:600">${-diff(e.date)}d late</span>` : esc(day(e.date).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' }))) : ''}${e.detail ? ' · ' + esc(e.detail) : ''}</small></div></li>`;
+
+function renderCal() {
+  if (!data) return;
+  const t0 = isoToday(), v = cal.view;
+  // Range shown
+  let from, to, title;
+  if (v === 'month') {
+    const a = day(cal.anchor), first = isoOf(new Date(a.getFullYear(), a.getMonth(), 1)), last = isoOf(new Date(a.getFullYear(), a.getMonth() + 1, 0));
+    from = mondayOf(first); to = addDays(mondayOf(last), 6);
+    title = a.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  } else if (v === 'week') {
+    from = mondayOf(cal.anchor); to = addDays(from, 6);
+    title = short(from) + ' – ' + short(to);
+  } else { from = t0; to = addDays(t0, 60); title = 'Next 60 days'; }
+
+  // Overdue things (always counted from the past year up to yesterday)
+  const past = calEvents(addDays(t0, -365), addDays(t0, -1)).filter(e => e.late);
+  const evs = calEvents(from, to), map = byDate(evs);
+  // Stats for the next 7 days
+  const wk = calEvents(t0, addDays(t0, 6)).filter(e => e.type !== 'done');
+  const busy = Object.entries(byDate(wk.filter(e => e.type !== 'sug'))).sort((a, b) => b[1].length - a[1].length)[0];
+  const noDate = data.tasks.filter(t => !t.done && !t.due && t.kind !== 'waiting' && !calHidden.has(slug((data.brands.find(b => b.id === t.brand) || {}).name || ''))).length;
+  const stats = `<div class="cstats">
+    <div class="cstat ${past.length ? 'hot' : ''}"><div class="v">${past.length}</div><div class="l">Overdue</div></div>
+    <div class="cstat"><div class="v">${calEvents(t0, t0).filter(e => e.type === 'task' || e.type === 'chase' || e.type === 'repeat').length}</div><div class="l">Due today</div></div>
+    <div class="cstat"><div class="v">${wk.filter(e => e.type === 'task' || e.type === 'repeat').length}</div><div class="l">Due next 7 days</div></div>
+    <div class="cstat"><div class="v">${wk.filter(e => e.type === 'chase').length}</div><div class="l">Chases next 7 days</div></div>
+    <div class="cstat"><div class="v" style="font-size:18px;padding-top:4px">${busy ? esc(day(busy[0]).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' })) : '—'}</div><div class="l">Busiest day this week${busy ? ' (' + busy[1].length + ')' : ''}</div></div>
+    <div class="cstat"><div class="v">${noDate}</div><div class="l">Open with no date</div></div></div>`;
+
+  const filters = `<div class="cfilters">${data.brands.map(b => { const k = slug(b.name); return `<button class="cf ${calHidden.has(k) ? 'off' : ''}" data-act="cal-brand" data-key="${k}" style="--c:${TINT[k] || '#6b7183'}"><i></i>${esc(b.name)}</button>`; }).join('')}<button class="cf ${calHidden.has('__sug') ? 'off' : ''}" data-act="cal-brand" data-key="__sug" style="--c:#e0a800"><i></i>Suggestions</button>${calHidden.size ? '<button class="cf all" data-act="cal-brand" data-key="">Show all</button>' : ''}</div>`;
+  const key = `<p class="ckey"><span><b style="background:#e4f3f1;border-left:3px solid #0f7a6a"></b>Task due</span><span><b style="background:#fff1f1;border-left:3px solid #e5484d"></b>Chase date (5 days after asking)</span><span><b style="border:1px dashed #9aa;border-left:3px solid #0f7a6a"></b>Repeat coming up</span><span><b style="background:#fff8e6;border-left:3px solid #e0a800"></b>Suggestion (not added)</span><span><b style="background:#f3f4f7"></b>Done</span></p>`;
+
+  let body = '';
+  const DOW = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const cell = (s, other) => {
+    const list = map[s] || [], d = day(s), wkend = d.getDay() === 0 || d.getDay() === 6;
+    const max = v === 'week' ? 99 : 3, od = s === t0 && past.length ? `<span class="od" title="${past.length} overdue">${past.length} late</span>` : '';
+    return `<button class="cday ${other ? 'other' : ''} ${wkend ? 'wk' : ''} ${s === t0 ? 'today' : ''} ${s === cal.sel ? 'sel' : ''} ${v === 'week' ? 'wcol' : ''}" data-act="cal-day" data-day="${s}" aria-label="${esc(d.toDateString())}, ${list.length} items">
+      <span class="dn"><em>${v === 'week' ? DOW[(d.getDay() + 6) % 7] + ' ' + d.getDate() : d.getDate()}</em>${od}</span>
+      ${list.slice(0, max).map(evPill).join('')}${list.length > max ? `<span class="more">+${list.length - max} more</span>` : ''}
+      <span class="dots">${list.slice(0, 8).map(evDot).join('')}</span></button>`;
+  };
+  if (v === 'month') {
+    const m = day(cal.anchor).getMonth(); let cells = '';
+    for (let s = from; s <= to; s = addDays(s, 1)) cells += cell(s, day(s).getMonth() !== m);
+    body = `<div class="grid7">${DOW.map(x => `<div class="dow">${x}</div>`).join('')}${cells}</div>`;
+  } else if (v === 'week') {
+    let cells = ''; for (let s = from; s <= to; s = addDays(s, 1)) cells += cell(s, false);
+    body = `<div class="grid7 wgrid">${DOW.map(x => `<div class="dow">${x}</div>`).join('')}${cells}</div>`;
+  }
+
+  // Detail: chosen day (month/week) or the full agenda
+  let detail = '';
+  if (v === 'agenda') {
+    const groups = Object.entries(map);
+    detail = (past.length ? `<p class="agrp hot">Overdue <span>${past.length}</span></p><ul class="alist">${past.map(e => aItem(e, true)).join('')}</ul>` : '') +
+      (groups.length ? groups.map(([s, list]) => `<p class="agrp">${s === t0 ? 'Today' : s === addDays(t0, 1) ? 'Tomorrow' : esc(day(s).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' }))} <span>${list.length}</span></p><ul class="alist">${list.map(e => aItem(e, false)).join('')}</ul>`).join('') : '<p class="empty">Nothing dated in the next 60 days.</p>');
+  } else {
+    const list = (map[cal.sel] || calEvents(cal.sel, cal.sel)), isT = cal.sel === t0;
+    const label = day(cal.sel).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
+    detail = `<div class="cdetail"><h3>${isT ? 'Today' : esc(label)}<span>${isT ? esc(label) + ' · ' : ''}${list.length} item${list.length === 1 ? '' : 's'}</span></h3>
+      ${isT && past.length ? `<p class="agrp hot">Overdue <span>${past.length}</span></p><ul class="alist">${past.map(e => aItem(e, true)).join('')}</ul><p class="agrp">Today</p>` : ''}
+      ${list.length ? `<ul class="alist">${list.map(e => aItem(e, false)).join('')}</ul>` : '<p class="empty">Nothing on this day.</p>'}</div>`;
+  }
+
+  $('#cal').innerHTML = `<article class="board">
+    <div class="chead"><h2>Calendar</h2>
+      <div class="cnav">${v === 'agenda' ? '' : '<button class="cbtn" data-act="cal-prev" aria-label="Previous">‹</button><button class="cbtn" data-act="cal-today">Today</button><button class="cbtn" data-act="cal-next" aria-label="Next">›</button>'}<span class="cmonth">${esc(title)}</span></div>
+      <div class="cviews">${['month', 'week', 'agenda'].map(x => `<button class="cbtn ${v === x ? 'on' : ''}" data-act="cal-view" data-view="${x}">${x[0].toUpperCase() + x.slice(1)}</button>`).join('')}</div></div>
+    ${stats}${filters}${v === 'agenda' ? '' : key}${body}${detail}
+    <p class="cnote">Tap a day to see everything on it; tap a task to open its project card. Waiting-on items show on the day they turn into a chase. Repeating tasks show their next dates dashed. Tasks with no due date aren't on the calendar.</p></article>`;
+}
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act^="cal-"]'); if (!el || !data) return;
+  const a = el.dataset.act, v = cal.view;
+  if (a === 'cal-prev' || a === 'cal-next') { const n = a === 'cal-next' ? 1 : -1; cal.anchor = v === 'week' ? addDays(cal.anchor, 7 * n) : addMonths(cal.anchor, n); }
+  else if (a === 'cal-today') { cal.anchor = cal.sel = isoToday(); }
+  else if (a === 'cal-view') { cal.view = el.dataset.view; store.set('calView', cal.view); }
+  else if (a === 'cal-day') { cal.sel = el.dataset.day; }
+  else if (a === 'cal-brand') { const k = el.dataset.key; if (!k) calHidden.clear(); else calHidden.has(k) ? calHidden.delete(k) : calHidden.add(k); store.set('calHidden', JSON.stringify([...calHidden])); }
+  else if (a === 'cal-open') {
+    openedId = el.dataset.brand; editing = null; render();
+    const pn = $('#panel'); if (isPhone()) { pn.scrollTop = 0; pn.classList.remove('opening'); void pn.offsetWidth; pn.classList.add('opening'); } else pn.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+  renderCal();
+});
+document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.aitem')) { e.preventDefault(); e.target.click(); } });
 function celebrate(id, box) {
   const li = document.querySelector(`.tcard[data-id="${id}"] .tick`); li?.classList.add('pop');
   const pill = $('#donePill'); pill.classList.remove('bump'); void pill.offsetWidth; pill.classList.add('bump');
