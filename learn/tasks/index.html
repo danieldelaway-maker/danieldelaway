@@ -47,6 +47,7 @@
     .proj.open { grid-column: 1 / -1; scroll-margin-top: 16px; }
     .plogo { height: 96px; display: grid; place-items: center; margin-bottom: 14px; }
     .plogo img { max-width: 80%; max-height: 96px; width: auto; height: auto; object-fit: contain; border-radius: 10px; }
+    .plogo img[src*="life-admin"] { max-width: 100%; }
     .plogo.sm { height: 44px; width: 96px; margin: 0; flex: none; }
     .plogo.sm img { max-width: 100%; max-height: 44px; }
     .mono-logo { width: 72px; height: 72px; border-radius: 16px; display: grid; place-items: center; background: #eef0f5; color: var(--w-ink); font: 700 24px var(--display); }
@@ -284,7 +285,7 @@ function render() {
     const adding = editing === 'new:' + br.id;
     const isOpen = opened.has(br.id) || adding || mine.some(t => t.id === editing);
     const key = slug(br.name);
-    const logo = LOGOS.has(key) ? `<img src="logos/${key}.${key === 'life-admin' ? 'svg' : 'png'}" alt="${esc(br.name)} logo">` : `<span class="mono-logo">${esc(br.name.slice(0, 2))}</span>`;
+    const logo = LOGOS.has(key) ? `<img src="logos/${key}.${key === 'life-admin' ? 'svg?v=3' : 'png'}" alt="${esc(br.name)} logo">` : `<span class="mono-logo">${esc(br.name.slice(0, 2))}</span>`;
     const badge = `<span class="badge ${main.length ? (urgent ? 'hot' : 'has') : ''}" title="${main.length} open${urgent ? ', ' + urgent + ' need you in the next 2 days' : ''}">${main.length}</span>`;
     const next = main.find(t => t.due && t.kind !== 'waiting');
     const bits = [main.length ? `${main.length} open${next ? ' · next due ' + (dueChip(next).replace(/<[^>]+>/g, '') || short(next.due)) : ''}` : 'Nothing open'];
