@@ -168,6 +168,9 @@
     :root[data-theme=light] .proj.sel { box-shadow: 0 0 0 3px var(--teal), 0 14px 30px rgba(18,20,28,.12); }
     :root[data-theme=light] .badge { border-color: var(--bg); }
     :root[data-theme=light] #lock input { background: #fff; }
+    .word { display: inline-block; padding-bottom: .12em; margin-bottom: -.12em; transition: opacity .35s ease, transform .35s ease; }
+    .word.out { opacity: 0; transform: translateY(-.35em); }
+    .word.pre { opacity: 0; transform: translateY(.35em); transition: none; }
   </style>
 </head>
 <body>
@@ -185,7 +188,7 @@
 
     <div id="app" hidden>
       <p class="eyebrow">Private · Every project</p>
-      <h1>The little <span class="grad">things.</span></h1>
+      <h1>The little <span class="grad word" id="word">things.</span></h1>
       <div class="syncrow"><p class="sub" id="built"></p><button class="ghostbtn" id="syncBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 4v5h-5"/></svg>Sync</button></div>
 
       <section class="brands" id="brands"></section>
@@ -250,6 +253,18 @@ $('#themeBtn').addEventListener('click', () => {
   document.documentElement.dataset.theme = t; store.set('tasksTheme', t); paintTheme();
 });
 paintTheme();
+// Headline word: things → tasks → jobs → checkups.
+(() => {
+  const words = ['things.', 'tasks.', 'jobs.', 'checkups.'], el = $('#word'); let i = 0;
+  setInterval(() => {
+    if (document.hidden) return;
+    el.classList.add('out');
+    setTimeout(() => {
+      i = (i + 1) % words.length; el.textContent = words[i];
+      el.classList.remove('out'); el.classList.add('pre'); void el.offsetWidth; el.classList.remove('pre');
+    }, 350);
+  }, 2600);
+})();
 // Pick up changes made in Notion.
 setInterval(() => { if (data && !editing && !document.hidden) load(true); }, 60000);
 document.addEventListener('visibilitychange', () => { if (data && !editing && !document.hidden) load(true); });
