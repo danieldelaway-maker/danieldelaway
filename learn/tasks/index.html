@@ -40,7 +40,25 @@
     /* white brand boards */
     .board { background: var(--w-bg); border-radius: 18px; padding: 20px; min-width: 0; color: var(--w-text); box-shadow: 0 10px 30px rgba(0,0,0,.25); }
     .board h2 { font-family: var(--display); color: var(--w-ink); font-size: 20px; margin: 0; flex: 1; min-width: 0; overflow-wrap: anywhere; }
-    .brands { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 16px; align-items: start; }
+    .brands { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 16px; align-items: start; }
+    .proj { position: relative; }
+    .proj[data-act=toggle] { cursor: pointer; transition: transform .2s, box-shadow .2s; text-align: center; padding: 22px 18px 18px; }
+    .proj[data-act=toggle]:hover, .proj[data-act=toggle]:focus-visible { transform: translateY(-4px); box-shadow: 0 18px 40px rgba(0,0,0,.35); outline: none; }
+    .proj.open { grid-column: 1 / -1; scroll-margin-top: 16px; }
+    .plogo { height: 96px; display: grid; place-items: center; margin-bottom: 14px; }
+    .plogo img { max-width: 80%; max-height: 96px; width: auto; height: auto; object-fit: contain; border-radius: 10px; }
+    .plogo.sm { height: 44px; width: 96px; margin: 0; flex: none; }
+    .plogo.sm img { max-width: 100%; max-height: 44px; }
+    .mono-logo { width: 72px; height: 72px; border-radius: 16px; display: grid; place-items: center; background: #eef0f5; color: var(--w-ink); font: 700 24px var(--display); }
+    .proj h2 { font-size: 18px; }
+    .line { margin: 4px 0 0; font-size: 13px; color: var(--w-muted); }
+    .line.hot { color: var(--w-late); font-weight: 600; }
+    .badge { position: absolute; top: -8px; right: -8px; min-width: 28px; height: 28px; padding: 0 8px; box-sizing: border-box; border-radius: 999px; display: grid; place-items: center; font: 700 13px var(--font); font-variant-numeric: tabular-nums; background: #eef0f5; color: var(--w-muted); border: 3px solid #0b0d14; }
+    .badge.has { background: var(--w-accent); color: #fff; }
+    .badge.hot { background: #e5484d; color: #fff; }
+    .ohead { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; padding-right: 20px; }
+    .ohead h2 { font-size: 22px; }
+    .close { margin-left: auto; flex: none; background: #e9ecf2; color: var(--w-ink); padding: 8px 14px; font-size: 13px; }
     .bhead { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
     .count { font: 700 13px var(--font); font-variant-numeric: tabular-nums; padding: 2px 10px; border-radius: 999px; background: #eef0f5; color: var(--w-muted); }
     .count.has { color: #fff; background: var(--w-accent); }
@@ -94,6 +112,7 @@
     .foot a { color: var(--muted); }
     .foot button { background: none; color: var(--muted); padding: 0; font-weight: 500; text-decoration: underline; }
     .how { color: var(--muted); font-size: 13px; margin: 0; }
+    @media (max-width: 560px) { .brands { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; } .proj[data-act=toggle] { padding: 16px 10px 14px; } .plogo { height: 64px; margin-bottom: 10px; } .plogo img { max-height: 64px; max-width: 90%; } .proj h2 { font-size: 15px; } .line { font-size: 12px; } }
   </style>
 </head>
 <body>
@@ -110,14 +129,12 @@
     </div>
 
     <div id="app" hidden>
-      <p class="eyebrow">Private · Every brand</p>
+      <p class="eyebrow">Private · Every project</p>
       <h1>The little <span class="grad">things.</span></h1>
       <p class="sub" id="built"></p>
 
-      <section class="kpis" id="kpis"></section>
-      <section class="board" id="due" hidden><div class="bhead"><h2>Due now</h2></div><ul class="tasks" id="dueList"></ul></section>
       <section class="brands" id="brands"></section>
-      <p class="how">Ticks and edits save straight to Notion (Work page → Brand Tasks), and changes made in Notion show up here. Claude also adds tasks when it reviews each brand.</p>
+      <p class="how">Ticks and edits save straight to Notion (Work page → Brand Tasks), and changes made in Notion show up here. Claude also adds tasks when it reviews each brand. Tap a project to open its tasks; the number is how many are open (red = something due within 2 days).</p>
       <div class="foot"><a href="/learn/">← Back to the learning list</a><button id="lockBtn">Lock</button></div>
     </div>
   </main>
@@ -142,7 +159,11 @@ function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = fal
 
 async function load(quiet) {
   try { data = await api('/tasks'); if (!editing) render(); return true; }
-  catch (e) { if (e.status === 401) throw e; if (!quiet) toast('Could not reach Notion: ' + e.message); return false; }
+  catch (e) {
+    if (e.status === 401) throw e;
+    if (!data) { await new Promise(r => setTimeout(r, 4000)); try { data = await api('/tasks'); render(); return true; } catch {} }
+    if (!quiet) toast('Could not reach Notion: ' + e.message + '. Refresh in a moment.'); return false;
+  }
 }
 async function open(p, remember) {
   pass = p;
@@ -195,27 +216,28 @@ function card(t, brandName) {
 }
 const order = (a, b) => (a.due || '9999').localeCompare(b.due || '9999');
 
+const slug = n => String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const LOGOS = new Set(['sls3', 'zensim', 'true-blue-studies', 'her-naturals', 'sally', 'everyone']);
+const opened = new Set();
 function render() {
   const d = data;
   $('#built').textContent = 'Synced with Notion ' + new Date(d.synced).toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
-  const open = d.tasks.filter(t => !t.done);
-  const late = open.filter(t => t.due && diff(t.due) < 0);
-  const soon = open.filter(t => t.due && diff(t.due) >= 0 && diff(t.due) <= 2);
-  const week = open.filter(t => t.due && diff(t.due) > 2 && diff(t.due) <= 7);
-  $('#kpis').innerHTML = [[open.length, 'Open tasks', ''], [late.length, 'Late', late.length ? 'hot' : ''], [soon.length, 'Due in 2 days', ''], [week.length, 'Later this week', '']]
-    .map(([v, l, c]) => `<div class="panel kpi ${c}"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('');
-
-  const name = Object.fromEntries(d.brands.map(x => [x.id, x.name]));
-  const now = late.concat(soon).sort(order);
-  $('#due').hidden = !now.length;
-  $('#dueList').innerHTML = now.map(t => card(t, name[t.brand])).join('');
-
   $('#brands').innerHTML = d.brands.map(br => {
     const mine = d.tasks.filter(t => t.brand === br.id);
     const o = mine.filter(t => !t.done).sort(order);
     const done = mine.filter(t => t.done);
+    const urgent = o.filter(t => t.due && diff(t.due) <= 2).length;
     const adding = editing === 'new:' + br.id;
-    return `<article class="board"><div class="bhead"><h2>${esc(br.name)}</h2><span class="count ${o.length ? 'has' : ''}" title="${o.length} open">${o.length}</span></div>
+    const isOpen = opened.has(br.id) || adding || o.some(t => t.id === editing) || done.some(t => t.id === editing);
+    const key = slug(br.name);
+    const logo = LOGOS.has(key) ? `<img src="logos/${key}.png" alt="${esc(br.name)} logo">` : `<span class="mono-logo">${esc(br.name.slice(0, 2))}</span>`;
+    const badge = `<span class="badge ${o.length ? (urgent ? 'hot' : 'has') : ''}" title="${o.length} open${urgent ? ', ' + urgent + ' due in the next 2 days' : ''}">${o.length}</span>`;
+    const next = o.find(t => t.due);
+    const line = o.length ? `${o.length} open${next ? ' · next due ' + (dueChip(next).replace(/<[^>]+>/g, '') || short(next.due)) : ''}` : 'Nothing open';
+    if (!isOpen) return `<article class="board proj" data-act="toggle" data-brand="${br.id}" role="button" tabindex="0" aria-label="Open ${esc(br.name)} tasks">${badge}
+      <div class="plogo">${logo}</div><h2>${esc(br.name)}</h2><p class="line ${urgent ? 'hot' : ''}">${esc(line)}</p></article>`;
+    return `<article class="board proj open">${badge}
+      <div class="ohead"><div class="plogo sm">${logo}</div><h2>${esc(br.name)}</h2><button class="close" data-act="toggle" data-brand="${br.id}" aria-label="Close ${esc(br.name)}">Close</button></div>
       ${o.length || adding ? `<ul class="tasks">${o.map(t => card(t)).join('')}${adding ? `<li class="tcard">${form(null, br.id)}</li>` : ''}</ul>` : '<p class="empty">Nothing open.</p>'}
       ${adding ? '' : `<button class="add" data-act="add" data-brand="${br.id}">+ Add task</button>`}
       ${done.length ? `<details><summary>Done (${done.length})</summary><ul class="tasks">${done.map(t => card(t)).join('')}</ul></details>` : ''}</article>`;
@@ -234,7 +256,8 @@ document.addEventListener('change', async e => {
 document.addEventListener('click', async e => {
   const el = e.target.closest('[data-act]'); if (!el || e.target.closest('a')) return;
   const act = el.dataset.act;
-  if (act === 'edit') { if (editing) return; editing = el.closest('.tcard').dataset.id; editIn = el.closest('#dueList') ? 'due' : 'brand'; render(); document.querySelector('.form input[name=text]')?.focus(); }
+  if (act === 'toggle') { const b = el.dataset.brand; if (opened.has(b)) opened.delete(b); else opened.add(b); if (editing && !opened.has(b)) editing = null; render(); if (opened.has(b)) document.querySelector(`.proj.open [data-brand="${b}"]`)?.closest('.proj').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+  if (act === 'edit') { if (editing) return; editing = el.closest('.tcard').dataset.id; editIn = 'brand'; render(); document.querySelector('.form input[name=text]')?.focus(); }
   else if (act === 'add') { editing = 'new:' + el.dataset.brand; render(); }
   else if (act === 'cancel') { editing = null; render(); }
   else if (act === 'delete') {
@@ -258,7 +281,7 @@ document.addEventListener('submit', async e => {
     editing = null; toast('Saved to Notion.'); render();
   } catch (err) { f.closest('.tcard').classList.remove('saving'); f.querySelectorAll('button').forEach(b => b.disabled = false); toast('Not saved: ' + err.message); }
 });
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && editing) { editing = null; render(); } });
+document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.proj[data-act=toggle]')) { e.preventDefault(); e.target.click(); return; } if (e.key === 'Escape' && editing) { editing = null; render(); } });
 </script>
 </body>
 </html>
