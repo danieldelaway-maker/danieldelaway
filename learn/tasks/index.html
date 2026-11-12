@@ -132,6 +132,8 @@
     details.sec { margin-top: 14px; }
     details.sec summary { font-weight: 600; }
     @media (max-width: 560px) { .scard { flex-direction: column; } .sbtns { flex-direction: row; } }
+    .grp { grid-column: 1 / -1; margin: 10px 0 -4px; font: 700 12px var(--font); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+    .grp:first-child { margin-top: 0; }
   </style>
 </head>
 <body>
@@ -264,12 +266,12 @@ const order = (a, b) => (a.due || '9999').localeCompare(b.due || '9999');
 const section = (title, list, open) => list.length ? `<details class="sec" ${open ? 'open' : ''}><summary>${title} (${list.length})</summary><ul class="tasks">${list.join('')}</ul></details>` : '';
 
 const slug = n => String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-const LOGOS = new Set(['sls3', 'zensim', 'true-blue-studies', 'her-naturals', 'sally', 'everyone', 'kitchen-impossible', 'admin']);
+const LOGOS = new Set(['sls3', 'zensim', 'true-blue-studies', 'her-naturals', 'sally', 'everyone', 'kitchen-impossible', 'life-admin']);
 const opened = new Set();
 function render() {
   const d = data;
   $('#built').textContent = 'Synced with Notion ' + new Date(d.synced).toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
-  $('#brands').innerHTML = d.brands.map(br => {
+  const cardHtml = br => {
     const mine = d.tasks.filter(t => t.brand === br.id);
     const sugs = (d.suggestions || []).filter(s => slug(s.brand) === slug(br.name) || s.brand === br.id);
     const openT = mine.filter(t => !t.done);
@@ -298,7 +300,11 @@ function render() {
       ${section('Waiting on others', waiting.map(card), true)}
       ${section('Later', later.map(card), false)}
       ${section('Done', done.map(card), false)}</article>`;
-  }).join('');
+  };
+  // Personal things (tax, super, own admin) sit apart from the client and brand cards.
+  const PERSONAL = new Set(['life-admin']);
+  const work = d.brands.filter(x => !PERSONAL.has(slug(x.name))), personal = d.brands.filter(x => PERSONAL.has(slug(x.name)));
+  $('#brands').innerHTML = `<p class="grp">Work</p>` + work.map(cardHtml).join('') + (personal.length ? `<p class="grp">Personal</p>` + personal.map(cardHtml).join('') : '');
   const f = document.querySelector('.form input[name=text]'); if (f && !f.value) f.focus();
 }
 
