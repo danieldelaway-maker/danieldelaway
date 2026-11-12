@@ -113,6 +113,25 @@
     .foot button { background: none; color: var(--muted); padding: 0; font-weight: 500; text-decoration: underline; }
     .how { color: var(--muted); font-size: 13px; margin: 0; }
     @media (max-width: 560px) { .brands { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; } .proj[data-act=toggle] { padding: 16px 10px 14px; } .plogo { height: 64px; margin-bottom: 10px; } .plogo img { max-height: 64px; max-width: 90%; } .proj h2 { font-size: 15px; } .line { font-size: 12px; } }
+    .acts { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; flex: none; }
+    .chip.rep { color: #5b5bd6; }
+    .who { font-weight: 700; color: var(--w-accent); }
+    .tcard.chase { border-color: #f3b4b4; background: #fff6f6; }
+    .form select { width: 100%; min-width: 0; box-sizing: border-box; font: 400 14px/1.45 var(--font); color: var(--w-ink); background: #fff; border: 1px solid #cfd4df; border-radius: 8px; padding: 8px 10px; }
+    .tray { background: #fff8e6; border: 1px solid #f1dca5; border-radius: 14px; padding: 12px; margin-bottom: 14px; }
+    .trayh { margin: 0 0 10px; font: 700 13px var(--font); color: #8a5a00; text-transform: uppercase; letter-spacing: .05em; }
+    .trayh span { text-transform: none; letter-spacing: 0; font-weight: 500; color: #a07a2a; margin-left: 6px; }
+    .scard { background: #fff; border: 1px solid #f1dca5; border-radius: 12px; padding: 12px; display: flex; gap: 10px; align-items: flex-start; }
+    .scard.saving { opacity: .5; }
+    .kind { flex: none; font: 700 11px var(--font); text-transform: uppercase; letter-spacing: .05em; color: #8a5a00; background: #fdeec4; border-radius: 6px; padding: 3px 7px; margin-top: 1px; }
+    .why { color: var(--w-muted) !important; font-style: italic; }
+    .sbtns { display: flex; flex-direction: column; gap: 6px; flex: none; }
+    .sbtns button { padding: 7px 12px; font-size: 13px; }
+    .sbtns .ghost { background: #f1f2f6; color: var(--w-ink); }
+    .sugline { margin: 6px 0 0; font: 600 12px var(--font); color: #8a5a00; }
+    details.sec { margin-top: 14px; }
+    details.sec summary { font-weight: 600; }
+    @media (max-width: 560px) { .scard { flex-direction: column; } .sbtns { flex-direction: row; } }
   </style>
 </head>
 <body>
@@ -134,7 +153,7 @@
       <p class="sub" id="built"></p>
 
       <section class="brands" id="brands"></section>
-      <p class="how">Ticks and edits save straight to Notion (Work page → Brand Tasks), and changes made in Notion show up here. Claude also adds tasks when it reviews each brand. Tap a project to open its tasks; the number is how many are open (red = something due within 2 days).</p>
+      <p class="how">Ticks and edits save straight to Notion (Work page → Brand Tasks), and changes made in Notion show up here. Claude also adds tasks when it reviews each brand. Tap a project to open it. The number is how many tasks are open (red = something needs you within 2 days). Claude checks Slack and Gmail every 30 minutes and puts what it finds in a yellow Suggested tray; nothing is added until you tap Add. Tasks due more than a week out sit in Later, and people you're waiting on move into your tasks as “Chase” after 5 days.</p>
       <div class="foot"><a href="/learn/">← Back to the learning list</a><button id="lockBtn">Lock</button></div>
     </div>
   </main>
@@ -146,7 +165,7 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} }, del(k) { try { localStorage.removeItem(k); } catch {} } };
 const KEY = 'clientsHQ'; // same password as Clients HQ, so one unlock covers both
-let pass = '', data = null, editing = null, editIn = ''; // editing = task id, or 'new:<brandId>'; editIn = 'due' or 'brand'
+let pass = '', data = null, editing = null; // editing = task id, or 'new:<brandId>'
 
 async function api(path, method = 'GET', body) {
   const r = await fetch(API + path, { method, headers: { 'X-Key': pass, ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
@@ -193,28 +212,56 @@ function dueChip(t) {
 }
 const linkLabel = u => { try { const h = new URL(u).hostname.replace(/^www\./, ''); return h === 'claude.ai' ? 'Open plan' : 'Open ' + h; } catch { return 'Open link'; } };
 
+const REP = { week: 'Weekly', month: 'Monthly', quarter: 'Quarterly', year: 'Yearly' };
+const CHASE_AFTER = 5, LATER_AFTER = 7;
+const isoToday = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+const waitedDays = t => t.due ? -diff(t.due) : 0;
+const isChase = t => t.kind === 'waiting' && !t.done && waitedDays(t) >= CHASE_AFTER;
+const isLater = t => t.kind !== 'waiting' && !t.done && t.due && diff(t.due) > LATER_AFTER;
+
 function form(t, brandId) {
   const isNew = !t;
-  t = t || { text: '', detail: '', due: '', link: '' };
+  t = t || { text: '', detail: '', due: '', link: '', who: '', repeat: '', kind: 'task' };
+  const waiting = t.kind === 'waiting';
   return `<form class="form" data-id="${isNew ? '' : t.id}" data-brand="${brandId || ''}">
     <label>Task<input name="text" value="${esc(t.text)}" placeholder="What needs doing?" required maxlength="1800"></label>
     <label>Details<textarea name="detail" placeholder="Any context (optional)" maxlength="1800">${esc(t.detail)}</textarea></label>
-    <div class="two"><label>Due date<input type="date" name="due" value="${esc(t.due)}"></label>
+    <div class="two"><label>${waiting ? 'Asked / last chased' : 'Due date'}<input type="date" name="due" value="${esc(t.due)}"></label>
+    <label>Repeats<select name="repeat"><option value="">No</option>${Object.entries(REP).map(([k, v]) => `<option value="${k}" ${t.repeat === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label></div>
+    <div class="two"><label>Waiting on someone?<input name="who" value="${esc(t.who)}" placeholder="Their name (optional)"></label>
     <label>Link<input type="url" name="link" value="${esc(t.link)}" placeholder="https://… (optional)"></label></div>
     <div class="btns"><button type="submit">${isNew ? 'Add task' : 'Save'}</button><button type="button" class="ghost" data-act="cancel">Cancel</button>
     ${isNew ? '' : '<button type="button" class="del" data-act="delete">Delete</button>'}</div></form>`;
 }
-function card(t, brandName) {
-  if (editing === t.id && editIn === (brandName ? 'due' : 'brand')) return `<li class="tcard">${form(t)}</li>`;
+function card(t) {
+  if (editing === t.id) return `<li class="tcard">${form(t)}</li>`;
   const safe = /^https?:\/\//.test(t.link || '') ? t.link : '';
   const meta = [t.source && `<span>${esc(t.source)}</span>`, safe && `<a href="${esc(safe)}" target="_blank" rel="noopener">${esc(linkLabel(safe))} ↗</a>`].filter(Boolean).join('');
-  return `<li class="tcard ${t.done ? 'done' : ''}" data-id="${t.id}">
+  let title = esc(t.text), chips = '', extra = '';
+  if (t.kind === 'waiting') {
+    const n = waitedDays(t);
+    title = isChase(t) ? `Chase ${esc(t.who)}: ${esc(t.text)}` : `<span class="who">${esc(t.who)}</span> ${esc(t.text)}`;
+    if (!t.done) chips += `<span class="chip ${isChase(t) ? 'late' : ''}">${n <= 0 ? 'Asked today' : n + 'd waiting'}</span>`;
+    if (!t.done) extra = `<button class="edit" data-act="chased" title="I followed up today">Chased</button>`;
+  } else chips += dueChip(t);
+  if (t.repeat) chips += `<span class="chip rep">${REP[t.repeat] || 'Repeats'}</span>`;
+  return `<li class="tcard ${t.done ? 'done' : ''} ${isChase(t) ? 'chase' : ''}" data-id="${t.id}">
     <input type="checkbox" class="tick" ${t.done ? 'checked' : ''} aria-label="Mark “${esc(t.text)}” done">
-    <div class="tbody" data-act="edit"><div class="trow"><b>${esc(t.text)}</b>${brandName ? `<span class="chip brand">${esc(brandName)}</span>` : ''}${dueChip(t)}</div>
+    <div class="tbody" data-act="edit"><div class="trow"><b>${title}</b>${chips}</div>
     ${t.detail && (!t.done || doneToday(t)) ? `<small>${esc(t.detail)}</small>` : ''}${meta ? `<div class="src">${meta}</div>` : ''}</div>
-    <button class="edit" data-act="edit" aria-label="Edit task">Edit</button></li>`;
+    <div class="acts">${extra}<button class="edit" data-act="edit" aria-label="Edit task">Edit</button></div></li>`;
+}
+function sugCard(s) {
+  const kind = s.kind === 'waiting' ? `Waiting on ${esc(s.who)}` : s.due && diff(s.due) > LATER_AFTER ? 'Later' : 'Task';
+  const safe = /^https?:\/\//.test(s.link || '') ? s.link : '';
+  const chips = (s.kind === 'waiting' ? '' : dueChip(s)) + (s.repeat ? `<span class="chip rep">${REP[s.repeat]}</span>` : '');
+  return `<li class="scard" data-sid="${s.id}"><div class="tbody"><div class="trow"><span class="kind">${kind}</span><b>${esc(s.text)}</b>${chips}</div>
+    ${s.detail ? `<small>${esc(s.detail)}</small>` : ''}${s.why ? `<small class="why">${esc(s.why)}</small>` : ''}
+    <div class="src">${s.source ? `<span>${esc(s.source)}</span>` : ''}${safe ? `<a href="${esc(safe)}" target="_blank" rel="noopener">${esc(linkLabel(safe))} ↗</a>` : ''}</div></div>
+    <div class="sbtns"><button data-act="accept">Add</button><button class="ghost" data-act="dismiss">Dismiss</button></div></li>`;
 }
 const order = (a, b) => (a.due || '9999').localeCompare(b.due || '9999');
+const section = (title, list, open) => list.length ? `<details class="sec" ${open ? 'open' : ''}><summary>${title} (${list.length})</summary><ul class="tasks">${list.join('')}</ul></details>` : '';
 
 const slug = n => String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const LOGOS = new Set(['sls3', 'zensim', 'true-blue-studies', 'her-naturals', 'sally', 'everyone']);
@@ -224,25 +271,33 @@ function render() {
   $('#built').textContent = 'Synced with Notion ' + new Date(d.synced).toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
   $('#brands').innerHTML = d.brands.map(br => {
     const mine = d.tasks.filter(t => t.brand === br.id);
-    const o = mine.filter(t => !t.done).sort(order);
-    const today = mine.filter(t => doneToday(t));
+    const sugs = (d.suggestions || []).filter(s => slug(s.brand) === slug(br.name) || s.brand === br.id);
+    const openT = mine.filter(t => !t.done);
+    const waiting = openT.filter(t => t.kind === 'waiting' && !isChase(t)).sort((a, b) => order(a, b));
+    const later = openT.filter(isLater).sort(order);
+    const main = openT.filter(t => !waiting.includes(t) && !later.includes(t));
+    const shown = main.concat(mine.filter(doneToday)).sort((a, b) => (isChase(b) - isChase(a)) || order(a, b));
     const done = mine.filter(t => t.done && !doneToday(t));
-    const shown = o.concat(today).sort(order);
-    const urgent = o.filter(t => t.due && diff(t.due) <= 2).length;
+    const urgent = main.filter(t => isChase(t) || (t.due && t.kind !== 'waiting' && diff(t.due) <= 2)).length;
     const adding = editing === 'new:' + br.id;
     const isOpen = opened.has(br.id) || adding || mine.some(t => t.id === editing);
     const key = slug(br.name);
     const logo = LOGOS.has(key) ? `<img src="logos/${key}.png" alt="${esc(br.name)} logo">` : `<span class="mono-logo">${esc(br.name.slice(0, 2))}</span>`;
-    const badge = `<span class="badge ${o.length ? (urgent ? 'hot' : 'has') : ''}" title="${o.length} open${urgent ? ', ' + urgent + ' due in the next 2 days' : ''}">${o.length}</span>`;
-    const next = o.find(t => t.due);
-    const line = o.length ? `${o.length} open${next ? ' · next due ' + (dueChip(next).replace(/<[^>]+>/g, '') || short(next.due)) : ''}` : 'Nothing open';
+    const badge = `<span class="badge ${main.length ? (urgent ? 'hot' : 'has') : ''}" title="${main.length} open${urgent ? ', ' + urgent + ' need you in the next 2 days' : ''}">${main.length}</span>`;
+    const next = main.find(t => t.due && t.kind !== 'waiting');
+    const bits = [main.length ? `${main.length} open${next ? ' · next due ' + (dueChip(next).replace(/<[^>]+>/g, '') || short(next.due)) : ''}` : 'Nothing open'];
+    const sub = [waiting.length && `${waiting.length} waiting`, later.length && `${later.length} later`].filter(Boolean).join(' · ');
+    const sugLine = sugs.length ? `<p class="sugline">${sugs.length} new suggestion${sugs.length > 1 ? 's' : ''}</p>` : '';
     if (!isOpen) return `<article class="board proj" data-act="toggle" data-brand="${br.id}" role="button" tabindex="0" aria-label="Open ${esc(br.name)} tasks">${badge}
-      <div class="plogo">${logo}</div><h2>${esc(br.name)}</h2><p class="line ${urgent ? 'hot' : ''}">${esc(line)}</p></article>`;
+      <div class="plogo">${logo}</div><h2>${esc(br.name)}</h2><p class="line ${urgent ? 'hot' : ''}">${esc(bits[0])}</p>${sub ? `<p class="line">${esc(sub)}</p>` : ''}${sugLine}</article>`;
     return `<article class="board proj open">${badge}
       <div class="ohead"><div class="plogo sm">${logo}</div><h2>${esc(br.name)}</h2><button class="close" data-act="toggle" data-brand="${br.id}" aria-label="Close ${esc(br.name)}">Close</button></div>
-      ${shown.length || adding ? `<ul class="tasks">${shown.map(t => card(t)).join('')}${adding ? `<li class="tcard">${form(null, br.id)}</li>` : ''}</ul>` : '<p class="empty">Nothing open.</p>'}
+      ${sugs.length ? `<div class="tray"><p class="trayh">Suggested by Claude <span>Add the ones that are real; dismiss the rest.</span></p><ul class="tasks">${sugs.map(sugCard).join('')}</ul></div>` : ''}
+      ${shown.length || adding ? `<ul class="tasks">${shown.map(card).join('')}${adding ? `<li class="tcard">${form(null, br.id)}</li>` : ''}</ul>` : '<p class="empty">Nothing open right now.</p>'}
       ${adding ? '' : `<button class="add" data-act="add" data-brand="${br.id}">+ Add task</button>`}
-      ${done.length ? `<details><summary>Done (${done.length})</summary><ul class="tasks">${done.map(t => card(t)).join('')}</ul></details>` : ''}</article>`;
+      ${section('Waiting on others', waiting.map(card), true)}
+      ${section('Later', later.map(card), false)}
+      ${section('Done', done.map(card), false)}</article>`;
   }).join('');
   const f = document.querySelector('.form input[name=text]'); if (f && !f.value) f.focus();
 }
@@ -254,14 +309,27 @@ document.addEventListener('change', async e => {
   if (!e.target.classList.contains('tick')) return;
   const li = e.target.closest('.tcard'), t = find(li.dataset.id), done = e.target.checked;
   const was = t.edited; t.done = done; t.edited = new Date().toISOString(); render();
-  try { await api('/tasks/' + t.id, 'PATCH', { done }); toast(done ? 'Ticked off. Saved to Notion.' : 'Moved back to open.'); }
+  try { const r = await api('/tasks/' + t.id, 'PATCH', { done }); toast(done ? (r.next ? 'Ticked off. The next one is lined up.' : 'Ticked off. Saved to Notion.') : 'Moved back to open.'); if (r.next) load(true); }
   catch (err) { t.done = !done; t.edited = was; render(); toast('Not saved: ' + err.message); }
 });
 document.addEventListener('click', async e => {
   const el = e.target.closest('[data-act]'); if (!el || e.target.closest('a')) return;
   const act = el.dataset.act;
   if (act === 'toggle') { const b = el.dataset.brand; if (opened.has(b)) opened.delete(b); else opened.add(b); if (editing && !opened.has(b)) editing = null; render(); if (opened.has(b)) document.querySelector(`.proj.open [data-brand="${b}"]`)?.closest('.proj').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
-  if (act === 'edit') { if (editing) return; editing = el.closest('.tcard').dataset.id; editIn = 'brand'; render(); document.querySelector('.form input[name=text]')?.focus(); }
+  if (act === 'edit') { if (editing) return; editing = el.closest('.tcard').dataset.id; render(); document.querySelector('.form input[name=text]')?.focus(); }
+  else if (act === 'chased') {
+    const t = find(el.closest('.tcard').dataset.id), was = t.due; t.due = isoToday(); render();
+    try { await api('/tasks/' + t.id, 'PATCH', { due: t.due }); toast('Noted. The waiting clock starts again today.'); }
+    catch (err) { t.due = was; render(); toast('Not saved: ' + err.message); }
+  }
+  else if (act === 'accept' || act === 'dismiss') {
+    const li = el.closest('.scard'), sid = li.dataset.sid; li.classList.add('saving');
+    try {
+      await api(`/suggestions/${sid}/${act}`, 'POST', {});
+      data.suggestions = data.suggestions.filter(x => x.id !== sid);
+      if (act === 'accept') { toast('Added to Notion.'); await load(true); } else { toast('Dismissed. It won’t be suggested again.'); render(); }
+    } catch (err) { li.classList.remove('saving'); toast('Not saved: ' + err.message); }
+  }
   else if (act === 'add') { editing = 'new:' + el.dataset.brand; render(); }
   else if (act === 'cancel') { editing = null; render(); }
   else if (act === 'delete') {
@@ -276,7 +344,8 @@ document.addEventListener('submit', async e => {
   const f = e.target; if (!f.classList.contains('form')) return;
   e.preventDefault();
   const v = Object.fromEntries(new FormData(f));
-  v.text = v.text.trim(); v.detail = v.detail.trim(); v.link = v.link.trim();
+  v.text = v.text.trim(); v.detail = v.detail.trim(); v.link = v.link.trim(); v.who = (v.who || '').trim(); v.kind = v.who ? 'waiting' : 'task';
+  if (v.kind === 'waiting' && !v.due) v.due = isoToday();
   if (!v.text) return;
   f.closest('.tcard').classList.add('saving'); f.querySelectorAll('button').forEach(b => b.disabled = true);
   try {
