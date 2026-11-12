@@ -284,7 +284,7 @@ function render() {
     const adding = editing === 'new:' + br.id;
     const isOpen = opened.has(br.id) || adding || mine.some(t => t.id === editing);
     const key = slug(br.name);
-    const logo = LOGOS.has(key) ? `<img src="logos/${key}.png" alt="${esc(br.name)} logo">` : `<span class="mono-logo">${esc(br.name.slice(0, 2))}</span>`;
+    const logo = LOGOS.has(key) ? `<img src="logos/${key}.${key === 'life-admin' ? 'svg' : 'png'}" alt="${esc(br.name)} logo">` : `<span class="mono-logo">${esc(br.name.slice(0, 2))}</span>`;
     const badge = `<span class="badge ${main.length ? (urgent ? 'hot' : 'has') : ''}" title="${main.length} open${urgent ? ', ' + urgent + ' need you in the next 2 days' : ''}">${main.length}</span>`;
     const next = main.find(t => t.due && t.kind !== 'waiting');
     const bits = [main.length ? `${main.length} open${next ? ' · next due ' + (dueChip(next).replace(/<[^>]+>/g, '') || short(next.due)) : ''}` : 'Nothing open'];

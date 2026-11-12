@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="Life Admin">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffb347"/>
+      <stop offset=".55" stop-color="#ff6f61"/>
+      <stop offset="1" stop-color="#c2417e"/>
+    </linearGradient>
+    <linearGradient id="sun" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff6c9"/>
+      <stop offset="1" stop-color="#ffd36b"/>
+    </linearGradient>
+    <linearGradient id="house" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#ffe9e4"/>
+    </linearGradient>
+    <clipPath id="tile"><rect width="240" height="240" rx="56"/></clipPath>
+  </defs>
+  <g clip-path="url(#tile)">
+    <rect width="240" height="240" fill="url(#sky)"/>
+    <!-- sun -->
+    <circle cx="176" cy="66" r="30" fill="url(#sun)"/>
+    <circle cx="176" cy="66" r="44" fill="#fff6c9" opacity=".18"/>
+    <!-- rolling hill -->
+    <path d="M-10 196 C 50 160, 120 170, 250 150 L250 250 L-10 250 Z" fill="#7a2357" opacity=".35"/>
+    <!-- house -->
+    <g transform="translate(52 78)">
+      <rect x="92" y="4" width="16" height="34" rx="3" fill="#ffe9e4"/>
+      <path d="M68 0 L136 56 L124 56 L124 122 L12 122 L12 56 L0 56 Z" fill="url(#house)"/>
+      <path d="M68 0 L136 56 L124 56 L68 10 L12 56 L0 56 Z" fill="#3b1240" opacity=".14"/>
+      <!-- document in the doorway, with a tick -->
+      <rect x="44" y="64" width="48" height="58" rx="6" fill="#3b1240"/>
+      <path d="M55 92 L65 102 L82 82" fill="none" stroke="#ffd36b" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+</svg>
