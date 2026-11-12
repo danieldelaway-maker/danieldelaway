@@ -44,7 +44,9 @@
     .proj { position: relative; }
     .proj[data-act=toggle] { cursor: pointer; transition: transform .2s, box-shadow .2s; text-align: center; padding: 22px 18px 18px; }
     .proj[data-act=toggle]:hover, .proj[data-act=toggle]:focus-visible { transform: translateY(-4px); box-shadow: 0 18px 40px rgba(0,0,0,.35); outline: none; }
-    .proj.open { grid-column: 1 / -1; scroll-margin-top: 16px; }
+    .proj.sel { box-shadow: 0 0 0 3px var(--teal), 0 18px 40px rgba(0,0,0,.35); transform: translateY(-4px); }
+    #panel { margin-top: 22px; scroll-margin-top: 16px; }
+    #panel:empty { display: none; }
     .plogo { height: 96px; display: grid; place-items: center; margin-bottom: 14px; }
     .plogo img { max-width: 80%; max-height: 96px; width: auto; height: auto; object-fit: contain; border-radius: 10px; }
     .plogo img[src*="life-admin"] { max-width: 100%; }
@@ -156,6 +158,7 @@
       <p class="sub" id="built"></p>
 
       <section class="brands" id="brands"></section>
+      <section id="panel"></section>
       <p class="how">Ticks and edits save straight to Notion (Work page → Brand Tasks), and changes made in Notion show up here. Tap a project to open it. The number is how many tasks are open (red = something needs you within 2 days). Claude checks Slack and Gmail every 30 minutes and puts what it finds in a yellow Suggested tray; nothing is added until you tap Add. Tasks due more than a week out sit in Later, and people you're waiting on move into your tasks as “Chase” after 5 days. Personal tax and admin live under Life Admin, apart from your work.</p>
       <div class="foot"><a href="/learn/">← Back to the learning list</a><button id="lockBtn">Lock</button></div>
     </div>
@@ -268,7 +271,7 @@ const section = (title, list, open) => list.length ? `<details class="sec" ${ope
 
 const slug = n => String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const LOGOS = new Set(['sls3', 'zensim', 'true-blue-studies', 'her-naturals', 'sally', 'everyone', 'kitchen-impossible', 'life-admin']);
-const opened = new Set();
+let openedId = null; // one project open at a time, shown below all the cards
 function render() {
   const d = data;
   $('#built').textContent = 'Synced with Notion ' + new Date(d.synced).toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
@@ -283,7 +286,7 @@ function render() {
     const done = mine.filter(t => t.done && !doneToday(t));
     const urgent = main.filter(t => isChase(t) || (t.due && t.kind !== 'waiting' && diff(t.due) <= 2)).length;
     const adding = editing === 'new:' + br.id;
-    const isOpen = opened.has(br.id) || adding || mine.some(t => t.id === editing);
+    const isOpen = openedId === br.id || adding || mine.some(t => t.id === editing);
     const key = slug(br.name);
     const logo = LOGOS.has(key) ? `<img src="logos/${key}.${key === 'life-admin' ? 'svg?v=3' : 'png'}" alt="${esc(br.name)} logo">` : `<span class="mono-logo">${esc(br.name.slice(0, 2))}</span>`;
     const badge = `<span class="badge ${main.length ? (urgent ? 'hot' : 'has') : ''}" title="${main.length} open${urgent ? ', ' + urgent + ' need you in the next 2 days' : ''}">${main.length}</span>`;
@@ -291,9 +294,10 @@ function render() {
     const bits = [main.length ? `${main.length} open${next ? ' · next due ' + (dueChip(next).replace(/<[^>]+>/g, '') || short(next.due)) : ''}` : 'Nothing open'];
     const sub = [waiting.length && `${waiting.length} waiting`, later.length && `${later.length} later`].filter(Boolean).join(' · ');
     const sugLine = sugs.length ? `<p class="sugline">${sugs.length} new suggestion${sugs.length > 1 ? 's' : ''}</p>` : '';
-    if (!isOpen) return `<article class="board proj" data-act="toggle" data-brand="${br.id}" role="button" tabindex="0" aria-label="Open ${esc(br.name)} tasks">${badge}
+    const tile = `<article class="board proj ${isOpen ? 'sel' : ''}" aria-expanded="${isOpen}" data-act="toggle" data-brand="${br.id}" role="button" tabindex="0" aria-label="Open ${esc(br.name)} tasks">${badge}
       <div class="plogo">${logo}</div><h2>${esc(br.name)}</h2><p class="line ${urgent ? 'hot' : ''}">${esc(bits[0])}</p>${sub ? `<p class="line">${esc(sub)}</p>` : ''}${sugLine}</article>`;
-    return `<article class="board proj open">${badge}
+    if (!isOpen) return { tile, panel: '' };
+    const panel = `<article class="board open">
       <div class="ohead"><div class="plogo sm">${logo}</div><h2>${esc(br.name)}</h2><button class="close" data-act="toggle" data-brand="${br.id}" aria-label="Close ${esc(br.name)}">Close</button></div>
       ${sugs.length ? `<div class="tray"><p class="trayh">Suggested by Claude <span>Add the ones that are real; dismiss the rest.</span></p><ul class="tasks">${sugs.map(sugCard).join('')}</ul></div>` : ''}
       ${shown.length || adding ? `<ul class="tasks">${shown.map(card).join('')}${adding ? `<li class="tcard">${form(null, br.id)}</li>` : ''}</ul>` : '<p class="empty">Nothing open right now.</p>'}
@@ -301,11 +305,14 @@ function render() {
       ${section('Waiting on others', waiting.map(card), true)}
       ${section('Later', later.map(card), false)}
       ${section('Done', done.map(card), false)}</article>`;
+    return { tile, panel };
   };
   // Personal things (tax, super, own admin) sit apart from the client and brand cards.
   const PERSONAL = new Set(['life-admin']);
   const work = d.brands.filter(x => !PERSONAL.has(slug(x.name))), personal = d.brands.filter(x => PERSONAL.has(slug(x.name)));
-  $('#brands').innerHTML = `<p class="grp">Work</p>` + work.map(cardHtml).join('') + (personal.length ? `<p class="grp">Personal</p>` + personal.map(cardHtml).join('') : '');
+  const W = work.map(cardHtml), P = personal.map(cardHtml);
+  $('#brands').innerHTML = `<p class="grp">Work</p>` + W.map(x => x.tile).join('') + (P.length ? `<p class="grp">Personal</p>` + P.map(x => x.tile).join('') : '');
+  $('#panel').innerHTML = W.concat(P).map(x => x.panel).join('');
   const f = document.querySelector('.form input[name=text]'); if (f && !f.value) f.focus();
 }
 
@@ -322,7 +329,7 @@ document.addEventListener('change', async e => {
 document.addEventListener('click', async e => {
   const el = e.target.closest('[data-act]'); if (!el || e.target.closest('a')) return;
   const act = el.dataset.act;
-  if (act === 'toggle') { const b = el.dataset.brand; if (opened.has(b)) opened.delete(b); else opened.add(b); if (editing && !opened.has(b)) editing = null; render(); if (opened.has(b)) document.querySelector(`.proj.open [data-brand="${b}"]`)?.closest('.proj').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+  if (act === 'toggle') { const b = el.dataset.brand; openedId = openedId === b ? null : b; editing = null; render(); if (openedId) $('#panel').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
   if (act === 'edit') { if (editing) return; editing = el.closest('.tcard').dataset.id; render(); document.querySelector('.form input[name=text]')?.focus(); }
   else if (act === 'chased') {
     const t = find(el.closest('.tcard').dataset.id), was = t.due; t.due = isoToday(); render();
