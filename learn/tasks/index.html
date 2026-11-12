@@ -171,6 +171,36 @@
     .word { display: inline-block; padding-bottom: .12em; margin-bottom: -.12em; transition: opacity .35s ease, transform .35s ease; }
     .word.out { opacity: 0; transform: translateY(-.35em); }
     .word.pre { opacity: 0; transform: translateY(.35em); transition: none; }
+
+    /* brand tints */
+    .proj[style*="--tint"] { background: linear-gradient(180deg, #fff 58%, color-mix(in srgb, var(--tint) 13%, #fff) 100%); }
+    .proj .badge { z-index: 2; }
+    .proj[style*="--tint"]::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 4px; border-radius: 18px 18px 0 0; background: var(--tint); opacity: .55; }
+
+    /* done-today counter + tick celebration */
+    .donepill { display: inline-flex; align-items: center; gap: 6px; font: 600 13px var(--font); color: var(--teal); background: color-mix(in srgb, var(--teal) 12%, transparent); border-radius: 999px; padding: 6px 12px; }
+    .donepill[hidden] { display: none; }
+    .donepill.bump { animation: bump .5s cubic-bezier(.3,1.6,.5,1); }
+    @keyframes bump { 40% { transform: scale(1.18); } }
+    .tick.pop { animation: tickpop .45s cubic-bezier(.3,1.6,.5,1); }
+    @keyframes tickpop { 0% { transform: scale(.6); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
+    .spark { position: fixed; width: 7px; height: 7px; border-radius: 2px; pointer-events: none; z-index: 30; animation: spark .7s cubic-bezier(.2,.7,.3,1) forwards; }
+    @keyframes spark { to { transform: translate(var(--dx), var(--dy)) rotate(var(--r)); opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .spark { display: none; } .tick.pop, .donepill.bump { animation: none; } }
+
+    /* phone: opened card slides up as a sheet */
+    #scrim { display: none; }
+    @media (max-width: 560px) {
+      #panel:not(:empty) { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; margin: 0; max-height: 88vh; overflow-y: auto; overscroll-behavior: contain; border-radius: 20px 20px 0 0; box-shadow: 0 -12px 40px rgba(0,0,0,.25); }
+      #panel .board.open { border-radius: 20px 20px 0 0; padding: 10px 16px calc(24px + env(safe-area-inset-bottom)); min-height: 40vh; border: 0; }
+      #panel .board.open::before { content: ''; display: block; width: 40px; height: 5px; border-radius: 3px; background: #d5d9e2; margin: 0 auto 12px; }
+      #panel .ohead { position: sticky; top: -10px; background: var(--w-bg); z-index: 1; padding: 6px 0 10px; margin-bottom: 8px; }
+      #panel.opening { animation: sheetup .32s cubic-bezier(.2,.8,.3,1); }
+      #scrim.on { display: block; position: fixed; inset: 0; z-index: 19; background: rgba(10,12,20,.45); animation: fadein .25s; }
+      body.sheet { overflow: hidden; }
+    }
+    @keyframes sheetup { from { transform: translateY(100%); } }
+    @keyframes fadein { from { opacity: 0; } }
   </style>
 </head>
 <body>
@@ -189,10 +219,11 @@
     <div id="app" hidden>
       <p class="eyebrow">Private · Every project</p>
       <h1>The little <span class="grad word" id="word">things.</span></h1>
-      <div class="syncrow"><p class="sub" id="built"></p><button class="ghostbtn" id="syncBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 4v5h-5"/></svg>Sync</button></div>
+      <div class="syncrow"><p class="sub" id="built"></p><button class="ghostbtn" id="syncBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 4v5h-5"/></svg>Sync</button><span class="donepill" id="donePill" hidden></span></div>
 
       <section class="brands" id="brands"></section>
       <section id="panel"></section>
+      <div id="scrim" data-act="closeall"></div>
       <p class="how">Ticks and edits save straight to Notion (Work page → Brand Tasks), and changes made in Notion show up here. Tap a project to open it. The number is how many tasks are open (red = something needs you within 2 days). Claude checks Slack and Gmail every 30 minutes and puts what it finds in a yellow Suggested tray; nothing is added until you tap Add. Tasks due more than a week out sit in Later, and people you're waiting on move into your tasks as “Chase” after 5 days. Personal tax and admin live under Life Admin, apart from your work.</p>
       <div class="foot"><a href="/learn/">← Back to the learning list</a><button id="lockBtn">Lock</button></div>
     </div>
@@ -334,6 +365,8 @@ const section = (title, list, open) => list.length ? `<details class="sec" ${ope
 
 const slug = n => String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const LOGOS = new Set(['sls3', 'zensim', 'true-blue-studies', 'her-naturals', 'sally', 'everyone', 'kitchen-impossible', 'life-admin']);
+const TINT = { 'sls3': '#d7263d', 'zensim': '#3a3f4f', 'true-blue-studies': '#2bb5d6', 'her-naturals': '#2f6b4f', 'sally': '#7d5f8a', 'everyone': '#0f7a6a', 'kitchen-impossible': '#9a3fd1', 'life-admin': '#5b7bff' };
+const isPhone = () => matchMedia('(max-width: 560px)').matches;
 let openedId = null; // one project open at a time, shown below all the cards
 function render() {
   const d = data;
@@ -357,9 +390,12 @@ function render() {
     const bits = [main.length ? `${main.length} open${next ? ' · next due ' + (dueChip(next).replace(/<[^>]+>/g, '') || short(next.due)) : ''}` : 'Nothing open'];
     const sub = [waiting.length && `${waiting.length} waiting`, later.length && `${later.length} later`].filter(Boolean).join(' · ');
     const sugLine = sugs.length ? `<p class="sugline">${sugs.length} new suggestion${sugs.length > 1 ? 's' : ''}</p>` : '';
-    const tile = `<article class="board proj ${isOpen ? 'sel' : ''}" aria-expanded="${isOpen}" data-act="toggle" data-brand="${br.id}" role="button" tabindex="0" aria-label="Open ${esc(br.name)} tasks">${badge}
+    const tile = `<article class="board proj ${isOpen ? 'sel' : ''}" ${TINT[key] ? `style="--tint:${TINT[key]}"` : ''} aria-expanded="${isOpen}" data-act="toggle" data-brand="${br.id}" role="button" tabindex="0" aria-label="Open ${esc(br.name)} tasks">${badge}
       <div class="plogo">${logo}</div><h2>${esc(br.name)}</h2><p class="line ${urgent ? 'hot' : ''}">${esc(bits[0])}</p>${sub ? `<p class="line">${esc(sub)}</p>` : ''}${sugLine}</article>`;
-    if (!isOpen) return { tile, panel: '' };
+    // urgency: overdue/chase first, then due within 2 days, then soonest due, then most open
+    const late = main.filter(t => isChase(t) || (t.due && t.kind !== 'waiting' && diff(t.due) < 0)).length;
+    const rank = [late ? 0 : 1, urgent ? 0 : 1, next ? next.due : '9999', -main.length];
+    if (!isOpen) return { tile, panel: '', rank };
     const panel = `<article class="board open">
       <div class="ohead"><div class="plogo sm">${logo}</div><h2>${esc(br.name)}</h2><button class="close" data-act="toggle" data-brand="${br.id}" aria-label="Close ${esc(br.name)}">Close</button></div>
       ${sugs.length ? `<div class="tray"><p class="trayh">Suggested by Claude <span>Add the ones that are real; dismiss the rest.</span></p><ul class="tasks">${sugs.map(sugCard).join('')}</ul></div>` : ''}
@@ -368,15 +404,32 @@ function render() {
       ${section('Waiting on others', waiting.map(card), true)}
       ${section('Later', later.map(card), false)}
       ${section('Done', done.map(card), false)}</article>`;
-    return { tile, panel };
+    return { tile, panel, rank };
   };
+  const byUrgency = (a, b) => { for (let i = 0; i < 4; i++) { if (a.rank[i] < b.rank[i]) return -1; if (a.rank[i] > b.rank[i]) return 1; } return 0; };
   // Personal things (tax, super, own admin) sit apart from the client and brand cards.
   const PERSONAL = new Set(['life-admin']);
   const work = d.brands.filter(x => !PERSONAL.has(slug(x.name))), personal = d.brands.filter(x => PERSONAL.has(slug(x.name)));
-  const W = work.map(cardHtml), P = personal.map(cardHtml);
+  const W = work.map(cardHtml).sort(byUrgency), P = personal.map(cardHtml).sort(byUrgency);
   $('#brands').innerHTML = `<p class="grp">Work</p>` + W.map(x => x.tile).join('') + (P.length ? `<p class="grp">Personal</p>` + P.map(x => x.tile).join('') : '');
   $('#panel').innerHTML = W.concat(P).map(x => x.panel).join('');
   const f = document.querySelector('.form input[name=text]'); if (f && !f.value) f.focus();
+  const n = d.tasks.filter(doneToday).length, pill = $('#donePill');
+  pill.hidden = !n; pill.textContent = '✓ ' + n + ' done today';
+  const sheet = !!$('#panel').innerHTML && isPhone();
+  document.body.classList.toggle('sheet', sheet); $('#scrim').classList.toggle('on', sheet);
+}
+function celebrate(id, box) {
+  const li = document.querySelector(`.tcard[data-id="${id}"] .tick`); li?.classList.add('pop');
+  const pill = $('#donePill'); pill.classList.remove('bump'); void pill.offsetWidth; pill.classList.add('bump');
+  if (!box) return;
+  const cx = box.left + box.width / 2, cy = box.top + box.height / 2, cols = ['#2fd3a8', '#5b7bff', '#ffb45b', '#ff5f6d', '#0f9f86'];
+  for (let i = 0; i < 14; i++) {
+    const s = document.createElement('i'), a = (i / 14) * Math.PI * 2, r = 28 + Math.random() * 26;
+    s.className = 'spark'; s.style.left = cx + 'px'; s.style.top = cy + 'px'; s.style.background = cols[i % cols.length];
+    s.style.setProperty('--dx', Math.cos(a) * r + 'px'); s.style.setProperty('--dy', Math.sin(a) * r + 'px'); s.style.setProperty('--r', (Math.random() * 360) + 'deg');
+    document.body.appendChild(s); setTimeout(() => s.remove(), 800);
+  }
 }
 
 const find = id => data.tasks.find(t => t.id === id);
@@ -385,14 +438,17 @@ function doneToday(t) { return t.done && t.edited && new Date(t.edited).toDateSt
 document.addEventListener('change', async e => {
   if (!e.target.classList.contains('tick')) return;
   const li = e.target.closest('.tcard'), t = find(li.dataset.id), done = e.target.checked;
-  const was = t.edited; t.done = done; t.edited = new Date().toISOString(); render();
+  const was = t.edited, box = e.target.getBoundingClientRect(); t.done = done; t.edited = new Date().toISOString(); render(); if (done) celebrate(t.id, box);
   try { const r = await api('/tasks/' + t.id, 'PATCH', { done }); toast(done ? (r.next ? 'Ticked off. The next one is lined up.' : 'Ticked off. Saved to Notion.') : 'Moved back to open.'); if (r.next) load(true); }
   catch (err) { t.done = !done; t.edited = was; render(); toast('Not saved: ' + err.message); }
 });
 document.addEventListener('click', async e => {
   const el = e.target.closest('[data-act]'); if (!el || e.target.closest('a')) return;
   const act = el.dataset.act;
-  if (act === 'toggle') { const b = el.dataset.brand; openedId = openedId === b ? null : b; editing = null; render(); if (openedId) $('#panel').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+  if (act === 'toggle') { const b = el.dataset.brand; openedId = openedId === b ? null : b; editing = null; render();
+    if (openedId) { const pn = $('#panel'); if (isPhone()) { pn.scrollTop = 0; pn.classList.remove('opening'); void pn.offsetWidth; pn.classList.add('opening'); } else pn.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    return; }
+  if (act === 'closeall') { openedId = null; editing = null; render(); return; }
   if (act === 'edit') { if (editing) return; editing = el.closest('.tcard').dataset.id; render(); document.querySelector('.form input[name=text]')?.focus(); }
   else if (act === 'chased') {
     const t = find(el.closest('.tcard').dataset.id), was = t.due; t.due = isoToday(); render();
