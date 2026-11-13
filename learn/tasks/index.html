@@ -305,6 +305,27 @@
       .wgrid .cday { min-height: 0; border: 1px solid var(--w-line); border-radius: 10px; margin-bottom: 6px; padding: 8px; }
       .wgrid .cday .ev { display: block; white-space: normal; font-size: 12px; } .wgrid .cday .dots { display: none; }
     }
+    /* habit tracker (Life Admin) */
+    .habits { background: #f2fbf6; border: 1px solid #d5eedf; border-radius: 14px; padding: 12px; margin-bottom: 14px; }
+    .habh { margin: 0 0 4px; font: 700 13px var(--font); color: #1f6b45; text-transform: uppercase; letter-spacing: .05em; }
+    .habh span { text-transform: none; letter-spacing: 0; font-weight: 500; color: #5c8a71; margin-left: 6px; }
+    .habsub { margin: 12px 0 6px; font: 600 12px var(--font); color: #5c8a71; text-transform: uppercase; letter-spacing: .05em; }
+    .hlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+    .hrow { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #d5eedf; border-radius: 10px; padding: 8px 10px; }
+    .hdays { flex: none; width: 54px; text-align: center; line-height: 1; }
+    .hdays b { display: block; font: 800 22px var(--font); color: #1f8a55; }
+    .hdays.mid b { color: #c98a00; } .hdays.low b { color: #d64545; }
+    .hdays small { font-size: 10.5px; color: var(--w-muted); }
+    .hname { flex: 1; min-width: 0; font: 600 14.5px/1.35 var(--font); color: var(--w-ink); overflow-wrap: anywhere; }
+    .hname small { display: block; font-weight: 400; font-size: 12px; color: var(--w-muted); }
+    .hrow .hbtn { flex: none; background: none; border: 1px solid #d5eedf; color: #5c8a71; font-size: 12px; font-weight: 600; padding: 5px 9px; border-radius: 8px; }
+    .hrow .hbtn:hover { border-color: #1f8a55; color: #1f6b45; }
+    .hcheck { flex: none; width: 30px; height: 30px; border-radius: 50%; border: 2px solid #b9dcc8; background: #fff; color: transparent; font-weight: 800; font-size: 15px; padding: 0; }
+    .hrow.on .hcheck { background: #1f8a55; border-color: #1f8a55; color: #fff; }
+    .hrow.on .hname { color: var(--w-muted); }
+    .streak { flex: none; font-size: 12px; font-weight: 700; color: #c2410c; }
+    .hadds { display: flex; gap: 8px; margin-top: 8px; } .hadds .nadd { margin: 0; border-color: #b9dcc8; color: #5c8a71; }
+    .htoday { font-weight: 500; text-transform: none; letter-spacing: 0; }
     /* always remember notes */
     .notes { background: #f3f6ff; border: 1px solid #dfe5f7; border-radius: 14px; padding: 12px; margin-bottom: 14px; }
     .notesh { margin: 0 0 8px; font: 700 13px var(--font); color: #3b4a8a; text-transform: uppercase; letter-spacing: .05em; }
@@ -510,6 +531,27 @@ function notesBox(br) {
     ${list.length || adding ? `<ul class="nlist">${list.map(item).join('')}${adding ? `<li class="ncard">${noteForm(null, br.id)}</li>` : ''}</ul>` : ''}
     ${adding ? '' : `<button class="nadd" data-act="nadd" data-brand="${br.id}">+ Add something to remember</button>`}</div>`;
 }
+const daysSince = d => Math.round((Date.parse(isoToday() + 'T12:00:00') - Date.parse(d + 'T12:00:00')) / 864e5);
+function streak(h) {
+  const set = new Set(h.days || []); let n = 0; const d = new Date();
+  if (!set.has(isoToday())) d.setDate(d.getDate() - 1); // today not ticked yet: count up to yesterday
+  for (;;) { const k = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); if (!set.has(k)) return n; n++; d.setDate(d.getDate() - 1); }
+}
+function habitsBox() {
+  const hs = data.habits || [], avoid = hs.filter(h => h.kind === 'avoid'), daily = hs.filter(h => h.kind === 'daily'), t0 = isoToday();
+  const ticked = daily.filter(h => (h.days || []).includes(t0)).length;
+  const av = h => { const n = h.last ? daysSince(h.last) : null;
+    return `<li class="hrow" data-hid="${h.id}"><span class="hdays ${n === null ? '' : n < 7 ? 'low' : n < 30 ? 'mid' : ''}"><b>${n === null ? '–' : n}</b><small>${n === 1 ? 'day' : 'days'}</small></span>
+      <span class="hname">${esc(h.name)}<small>${h.last ? 'Last slipped ' + new Date(h.last + 'T12:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: h.last.slice(0, 4) === t0.slice(0, 4) ? undefined : 'numeric' }) : 'Never slipped'}</small></span>
+      <button class="hbtn" data-act="hslip" title="Slipped today: start the count again">Slipped</button><button class="hbtn" data-act="hedit">Edit</button></li>`; };
+  const dl = h => { const on = (h.days || []).includes(t0), st = streak(h);
+    return `<li class="hrow ${on ? 'on' : ''}" data-hid="${h.id}"><button class="hcheck" data-act="htick" aria-pressed="${on}" aria-label="Done today: ${esc(h.name)}">✓</button>
+      <span class="hname">${esc(h.name)}</span>${st > 1 ? `<span class="streak" title="${st} days in a row">🔥 ${st}</span>` : ''}<button class="hbtn" data-act="hedit">Edit</button></li>`; };
+  return `<div class="habits"><p class="habh">🌱 Habit tracker <span>Days since you last slipped, and today's ticks.</span></p>
+    <p class="habsub">Habits to avoid</p><ul class="hlist">${avoid.map(av).join('')}</ul>
+    <p class="habsub">Daily habits <span class="htoday">· today ${ticked}/${daily.length}</span></p><ul class="hlist">${daily.map(dl).join('')}</ul>
+    <div class="hadds"><button class="nadd" data-act="hadd" data-kind="avoid">+ Habit to avoid</button><button class="nadd" data-act="hadd" data-kind="daily">+ Daily habit</button></div></div>`;
+}
 const slug = n => String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const LOGOS = new Set(['sls3', 'zensim', 'true-blue-studies', 'her-naturals', 'sally', 'everyone', 'kitchen-impossible', 'life-admin', 'standish-co']);
 const TINT = { 'sls3': '#d7263d', 'zensim': '#3a3f4f', 'true-blue-studies': '#2bb5d6', 'her-naturals': '#2f6b4f', 'sally': '#7d5f8a', 'everyone': '#0f7a6a', 'kitchen-impossible': '#9a3fd1', 'life-admin': '#5b7bff', 'standish-co': '#1d1db3' };
@@ -546,6 +588,7 @@ function render() {
     if (!isOpen) return { tile, panel: '', rank };
     const panel = `<article class="board open">
       <div class="ohead"><div class="plogo sm">${logo}</div><h2>${esc(br.name)}</h2><button class="close" data-act="toggle" data-brand="${br.id}" aria-label="Close ${esc(br.name)}">Close</button></div>
+      ${key === 'life-admin' ? habitsBox() : ''}
       ${notesBox(br)}
       ${sugs.length ? `<div class="tray"><p class="trayh">Suggested by Claude <span>Add the ones that are real; dismiss the rest.</span></p><ul class="tasks">${sugs.map(sugCard).join('')}</ul></div>` : ''}
       ${shown.length || adding ? `<ul class="tasks">${shown.map(card).join('')}${adding ? `<li class="tcard">${form(null, br.id)}</li>` : ''}</ul>` : '<p class="empty">Nothing open right now.</p>'}
@@ -732,6 +775,42 @@ document.addEventListener('change', async e => {
   try { const r = await api('/tasks/' + t.id, 'PATCH', { done }); toast(done ? (r.next ? 'Ticked off. The next one is lined up.' : 'Ticked off.') : 'Moved back to open.'); if (r.next) load(true); }
   catch (err) { t.done = !done; t.edited = was; render(); toast('Not saved: ' + err.message); }
 });
+async function habitAct(act, el) {
+  const id = el.closest('.hrow')?.dataset.hid, h = (data.habits || []).find(x => x.id === id), t0 = isoToday();
+  const save = async (path, method, body, undo, okMsg) => {
+    render();
+    try { const r = await api(path, method, body); if (okMsg) toast(okMsg); return r; } catch (err) { undo(); render(); toast('Not saved: ' + err.message); }
+  };
+  if (act === 'htick') {
+    const on = (h.days || []).includes(t0), was = h.days || [];
+    h.days = on ? was.filter(d => d !== t0) : [...was, t0];
+    save('/habits/' + id, 'PATCH', { day: t0, done: !on }, () => { h.days = was; });
+  } else if (act === 'hslip') {
+    if (!confirm(`Slipped on “${h.name}” today? The count goes back to 0.`)) return;
+    const was = h.last; h.last = t0;
+    save('/habits/' + id, 'PATCH', { last: t0 }, () => { h.last = was; }, 'Back to day 0. You’ve got this.');
+  } else if (act === 'hedit') {
+    const name = prompt('Habit name (clear it to delete the habit):', h.name); if (name === null) return;
+    if (!name.trim()) {
+      if (!confirm(`Delete “${h.name}”?`)) return;
+      const was = data.habits; data.habits = was.filter(x => x !== h);
+      return save('/habits/' + id, 'DELETE', undefined, () => { data.habits = was; }, 'Deleted.');
+    }
+    const body = { name: name.trim() };
+    if (h.kind === 'avoid') {
+      const last = prompt('Last slipped (YYYY-MM-DD, or leave blank):', h.last || ''); if (last === null) return;
+      if (last.trim() && !/^\d{4}-\d{2}-\d{2}$/.test(last.trim())) { toast('Use a date like ' + t0); return; }
+      body.last = last.trim();
+    }
+    const was = { ...h }; Object.assign(h, body);
+    save('/habits/' + id, 'PATCH', body, () => Object.assign(h, was), 'Saved.');
+  } else if (act === 'hadd') {
+    const kind = el.dataset.kind;
+    const name = prompt(kind === 'avoid' ? 'Habit to avoid (e.g. No sugary drinks):' : 'Daily habit (e.g. Read 10 pages):'); if (!name || !name.trim()) return;
+    try { const r = await api('/habits', 'POST', { kind, name: name.trim(), last: kind === 'avoid' ? t0 : '' }); (data.habits ||= []).push(r.habit); render(); toast('Added.'); }
+    catch (err) { toast('Not added: ' + err.message); }
+  }
+}
 document.addEventListener('click', async e => {
   const el = e.target.closest('[data-act]'); if (!el || e.target.closest('a')) return;
   const act = el.dataset.act;
@@ -753,6 +832,7 @@ document.addEventListener('click', async e => {
       if (act === 'accept') { if (r.task && !find(r.task.id)) data.tasks.push(r.task); toast('Added to your tasks.'); render(); } else { toast('Dismissed. It won’t be suggested again.'); render(); }
     } catch (err) { li.classList.remove('saving'); toast('Not saved: ' + err.message); }
   }
+  else if (act.startsWith('h') && ['hslip', 'htick', 'hedit', 'hadd'].includes(act)) { habitAct(act, el); return; }
   else if (act === 'add') { if (editing) return; editing = 'new:' + el.dataset.brand; render(); }
   else if (act === 'ntoggle') { const id = el.closest('.ncard').dataset.nid; openNotes.has(id) ? openNotes.delete(id) : openNotes.add(id); render(); }
   else if (act === 'nadd') { if (editing) return; editing = 'newnote:' + el.dataset.brand; render(); }
