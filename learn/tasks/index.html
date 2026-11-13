@@ -520,7 +520,7 @@ function render() {
     const waiting = openT.filter(t => t.kind === 'waiting' && !isChase(t)).sort((a, b) => order(a, b));
     const later = openT.filter(isLater).sort(order);
     const main = openT.filter(t => !waiting.includes(t) && !later.includes(t));
-    const shown = main.concat(mine.filter(doneToday)).sort((a, b) => (isChase(b) - isChase(a)) || order(a, b));
+    const shown = main.concat(mine.filter(doneToday)).sort((a, b) => (a.done - b.done) || (isChase(b) - isChase(a)) || order(a, b));
     const done = mine.filter(t => t.done && !doneToday(t));
     const urgent = main.filter(t => isChase(t) || (t.due && t.kind !== 'waiting' && diff(t.due) <= 2)).length;
     const adding = editing === 'new:' + br.id;
