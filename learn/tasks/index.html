@@ -334,7 +334,7 @@
       <p class="eyebrow">Private</p>
       <h1>Brand Tasks</h1>
       <form id="unlock"><input id="pw" type="password" placeholder="Password" autocomplete="current-password" aria-label="Password"><button>Open</button></form>
-      <p class="sub" id="loading" hidden>Loading from Notion…</p>
+      <p class="sub" id="loading" hidden>Loading…</p>
       <div class="err" id="err"></div>
     </div>
 
@@ -347,7 +347,7 @@
       <section id="panel"></section>
       <div id="scrim" data-act="closeall"></div>
       <section id="cal" aria-label="Calendar"></section>
-      <p class="how">Ticks and edits save straight to Notion (Work page → Brand Tasks), and changes made in Notion show up here. Tap a project to open it. Each project has an “Always remember” list at the top for little standing rules (tap one for the details; they're the bullet points under that project in Notion). The number is how many tasks are open (red = something needs you within 2 days). Claude checks Slack and Gmail every 30 minutes and puts what it finds in a yellow Suggested tray; nothing is added until you tap Add. Tasks due more than a week out sit in Later, and people you're waiting on move into your tasks as “Chase” after 5 days. Personal tax and admin live under Life Admin, apart from your work.</p>
+      <p class="how">Everything lives right here on this page: ticks, edits and new tasks save instantly. Tap a project to open it. Each project has an “Always remember” list at the top for little standing rules (tap one for the details). The number is how many tasks are open (red = something needs you within 2 days). Claude checks Slack and Gmail every 30 minutes and puts what it finds in a yellow Suggested tray; nothing is added until you tap Add. Tasks due more than a week out sit in Later, and people you're waiting on move into your tasks as “Chase” after 5 days. Personal tax and admin live under Life Admin, apart from your work.</p>
       <div class="foot"><a href="/learn/">← Back to the learning list</a><button id="lockBtn" type="button">Sign out</button></div>
     </div>
   </main>
@@ -376,7 +376,7 @@ async function load(quiet, fresh) {
   catch (e) {
     if (e.status === 401) throw e;
     if (!data) { await new Promise(r => setTimeout(r, 4000)); try { data = await api('/tasks'); render(); return true; } catch {} }
-    if (!quiet) toast('Could not reach Notion: ' + e.message + '. Refresh in a moment.'); return false;
+    if (!quiet) toast('Could not load your tasks: ' + e.message + '. Refresh in a moment.'); return false;
   }
 }
 async function open(p, remember) {
@@ -394,11 +394,11 @@ async function open(p, remember) {
 $('#unlock').addEventListener('submit', e => { e.preventDefault(); $('#err').textContent = ''; $('#loading').hidden = false; open($('#pw').value.trim(), true).then(() => $('#loading').hidden = true); });
 $('#lockBtn').addEventListener('click', () => { store.del(KEY); location.reload(); });
 const saved = store.get(KEY);
-if (saved) { $('#lock').hidden = true; $('#app').hidden = false; $('#built').textContent = 'Loading your tasks from Notion…'; open(saved, false); } // already signed in on this browser: skip the password screen
+if (saved) { $('#lock').hidden = true; $('#app').hidden = false; $('#built').textContent = 'Loading your tasks…'; open(saved, false); } // already signed in on this browser: skip the password screen
 $('#syncBtn').addEventListener('click', async () => {
   const b = $('#syncBtn'); if (editing) { toast('Save or cancel your edit first.'); return; }
   b.disabled = true; b.classList.add('spin'); const ok = await load(false, true).catch(() => false);
-  b.disabled = false; b.classList.remove('spin'); if (ok) toast('Synced with Notion.');
+  b.disabled = false; b.classList.remove('spin'); if (ok) toast('Up to date.');
 });
 function paintTheme() {
   const dark = document.documentElement.dataset.theme === 'dark';
@@ -424,7 +424,7 @@ paintTheme();
     }, 350);
   }, 2600);
 })();
-// Pick up changes made in Notion.
+// Pick up changes Claude's sweeps made.
 setInterval(() => { if (data && !editing && !document.hidden) load(true); }, 60000);
 document.addEventListener('visibilitychange', () => { if (data && !editing && !document.hidden) load(true); });
 
@@ -517,7 +517,7 @@ const isPhone = () => matchMedia('(max-width: 560px)').matches;
 let openedId = null, firstPaint = true; const prevCount = {}; // one project open at a time, shown below all the cards
 function render() {
   const d = data;
-  $('#built').textContent = 'Synced with Notion ' + new Date(d.synced).toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+  $('#built').textContent = 'Updated ' + new Date(d.synced).toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
   const cardHtml = br => {
     const mine = d.tasks.filter(t => t.brand === br.id);
     const sugs = (d.suggestions || []).filter(s => slug(s.brand) === slug(br.name) || s.brand === br.id);
@@ -729,7 +729,7 @@ document.addEventListener('change', async e => {
   if (!e.target.classList.contains('tick')) return;
   const li = e.target.closest('.tcard'), t = find(li.dataset.id), done = e.target.checked;
   const was = t.edited, box = e.target.getBoundingClientRect(); t.done = done; t.edited = new Date().toISOString(); render(); if (done) celebrate(t.id, box);
-  try { const r = await api('/tasks/' + t.id, 'PATCH', { done }); toast(done ? (r.next ? 'Ticked off. The next one is lined up.' : 'Ticked off. Saved to Notion.') : 'Moved back to open.'); if (r.next) load(true); }
+  try { const r = await api('/tasks/' + t.id, 'PATCH', { done }); toast(done ? (r.next ? 'Ticked off. The next one is lined up.' : 'Ticked off.') : 'Moved back to open.'); if (r.next) load(true); }
   catch (err) { t.done = !done; t.edited = was; render(); toast('Not saved: ' + err.message); }
 });
 document.addEventListener('click', async e => {
@@ -748,9 +748,9 @@ document.addEventListener('click', async e => {
   else if (act === 'accept' || act === 'dismiss') {
     const li = el.closest('.scard'), sid = li.dataset.sid; li.classList.add('saving');
     try {
-      await api(`/suggestions/${sid}/${act}`, 'POST', {});
+      const r = await api(`/suggestions/${sid}/${act}`, 'POST', {});
       data.suggestions = data.suggestions.filter(x => x.id !== sid);
-      if (act === 'accept') { toast('Added to Notion.'); await load(true); } else { toast('Dismissed. It won’t be suggested again.'); render(); }
+      if (act === 'accept') { if (r.task && !find(r.task.id)) data.tasks.push(r.task); toast('Added to your tasks.'); render(); } else { toast('Dismissed. It won’t be suggested again.'); render(); }
     } catch (err) { li.classList.remove('saving'); toast('Not saved: ' + err.message); }
   }
   else if (act === 'add') { if (editing) return; editing = 'new:' + el.dataset.brand; render(); }
@@ -759,7 +759,7 @@ document.addEventListener('click', async e => {
   else if (act === 'nedit') { if (editing) return; editing = 'note:' + el.closest('.ncard').dataset.nid; render(); }
   else if (act === 'ndelete') {
     const id = el.closest('form').dataset.nid, n = data.notes.find(x => x.id === id);
-    if (!confirm(`Delete “${n.text}”? It goes to Notion’s trash, so you can still get it back there.`)) return;
+    if (!confirm(`Delete “${n.text}”? Claude can still get it back for you if you change your mind.`)) return;
     el.closest('.ncard').classList.add('saving');
     try { await api('/notes/' + id, 'DELETE'); data.notes = data.notes.filter(x => x.id !== id); editing = null; render(); toast('Deleted.'); }
     catch (err) { el.closest('.ncard').classList.remove('saving'); toast('Not deleted: ' + err.message); }
@@ -767,7 +767,7 @@ document.addEventListener('click', async e => {
   else if (act === 'cancel') { editing = null; render(); }
   else if (act === 'delete') {
     const id = el.closest('form').dataset.id, t = find(id);
-    if (!confirm(`Delete “${t.text}”? It goes to Notion’s trash, so you can still get it back there.`)) return;
+    if (!confirm(`Delete “${t.text}”? Claude can still get it back for you if you change your mind.`)) return;
     el.closest('.tcard').classList.add('saving');
     try { await api('/tasks/' + id, 'DELETE'); data.tasks = data.tasks.filter(x => x.id !== id); editing = null; render(); toast('Deleted.'); }
     catch (err) { el.closest('.tcard').classList.remove('saving'); toast('Not deleted: ' + err.message); }
@@ -782,7 +782,7 @@ document.addEventListener('submit', async e => {
     try {
       if (f.dataset.nid) { await api('/notes/' + f.dataset.nid, 'PATCH', v); Object.assign(data.notes.find(x => x.id === f.dataset.nid), v); }
       else { const r = await api('/notes', 'POST', { ...v, brand: f.dataset.brand }); (data.notes ||= []).push({ ...v, id: r.id, brand: f.dataset.brand }); }
-      editing = null; toast('Saved to Notion.'); render();
+      editing = null; toast('Saved.'); render();
     } catch (err) { f.querySelectorAll('button').forEach(b => b.disabled = false); toast('Not saved: ' + err.message); }
     return;
   }
@@ -793,8 +793,8 @@ document.addEventListener('submit', async e => {
   f.closest('.tcard').classList.add('saving'); f.querySelectorAll('button').forEach(b => b.disabled = true);
   try {
     if (f.dataset.id) { await api('/tasks/' + f.dataset.id, 'PATCH', v); Object.assign(find(f.dataset.id), v); }
-    else { const r = await api('/tasks', 'POST', { ...v, brand: f.dataset.brand }); data.tasks.push({ ...v, id: r.id, brand: f.dataset.brand, done: false, source: 'added on the site' }); }
-    editing = null; toast('Saved to Notion.'); render();
+    else { const r = await api('/tasks', 'POST', { ...v, brand: f.dataset.brand }); data.tasks.push(r.task || { ...v, id: r.id, brand: f.dataset.brand, done: false, source: 'added on the site' }); }
+    editing = null; toast('Saved.'); render();
   } catch (err) { f.closest('.tcard').classList.remove('saving'); f.querySelectorAll('button').forEach(b => b.disabled = false); toast('Not saved: ' + err.message); }
 });
 document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.proj[data-act=toggle]')) { e.preventDefault(); e.target.click(); return; } if (e.key === 'Escape' && editing) { editing = null; render(); } });
