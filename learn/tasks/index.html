@@ -26,6 +26,7 @@
     section { margin-bottom: 28px; }
 
     /* lock screen (same as Clients HQ) */
+    [hidden] { display: none !important; }
     #lock { max-width: 420px; margin: 8vh auto 0; text-align: center; }
     #lock form { display: flex; gap: 10px; margin-top: 18px; }
     #lock input { flex: 1; min-width: 0; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: rgba(255,255,255,.06); color: var(--ink); font: inherit; }
@@ -347,7 +348,7 @@
       <div id="scrim" data-act="closeall"></div>
       <section id="cal" aria-label="Calendar"></section>
       <p class="how">Ticks and edits save straight to Notion (Work page → Brand Tasks), and changes made in Notion show up here. Tap a project to open it. Each project has an “Always remember” list at the top for little standing rules (tap one for the details; they're the bullet points under that project in Notion). The number is how many tasks are open (red = something needs you within 2 days). Claude checks Slack and Gmail every 30 minutes and puts what it finds in a yellow Suggested tray; nothing is added until you tap Add. Tasks due more than a week out sit in Later, and people you're waiting on move into your tasks as “Chase” after 5 days. Personal tax and admin live under Life Admin, apart from your work.</p>
-      <div class="foot"><a href="/learn/">← Back to the learning list</a><button id="lockBtn">Lock</button></div>
+      <div class="foot"><a href="/learn/">← Back to the learning list</a><button id="lockBtn" type="button">Sign out</button></div>
     </div>
   </main>
   <div id="toast" hidden role="status"></div>
@@ -384,12 +385,16 @@ async function open(p, remember) {
     await load();
     if (remember) store.set(KEY, p);
     $('#lock').hidden = true; $('#app').hidden = false;
-  } catch (e) { if (remember) $('#err').textContent = 'That password didn’t work.'; }
+  } catch (e) {
+    $('#app').hidden = true; $('#lock').hidden = false; $('#loading').hidden = true;
+    if (remember) $('#err').textContent = 'That password didn’t work.';
+    else { store.del(KEY); pass = ''; $('#err').textContent = 'Please sign in again.'; } // saved login no longer works (e.g. password changed)
+  }
 }
 $('#unlock').addEventListener('submit', e => { e.preventDefault(); $('#err').textContent = ''; $('#loading').hidden = false; open($('#pw').value.trim(), true).then(() => $('#loading').hidden = true); });
 $('#lockBtn').addEventListener('click', () => { store.del(KEY); location.reload(); });
 const saved = store.get(KEY);
-if (saved) { $('#unlock').hidden = true; $('#err').textContent = ''; $('#loading').hidden = false; open(saved, false).then(() => { $('#unlock').hidden = false; $('#loading').hidden = true; }); }
+if (saved) { $('#lock').hidden = true; $('#app').hidden = false; $('#built').textContent = 'Loading your tasks from Notion…'; open(saved, false); } // already signed in on this browser: skip the password screen
 $('#syncBtn').addEventListener('click', async () => {
   const b = $('#syncBtn'); if (editing) { toast('Save or cancel your edit first.'); return; }
   b.disabled = true; b.classList.add('spin'); const ok = await load(false, true).catch(() => false);
