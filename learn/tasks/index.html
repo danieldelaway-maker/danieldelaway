@@ -304,6 +304,24 @@
       .wgrid .cday { min-height: 0; border: 1px solid var(--w-line); border-radius: 10px; margin-bottom: 6px; padding: 8px; }
       .wgrid .cday .ev { display: block; white-space: normal; font-size: 12px; } .wgrid .cday .dots { display: none; }
     }
+    /* always remember notes */
+    .notes { background: #f3f6ff; border: 1px solid #dfe5f7; border-radius: 14px; padding: 12px; margin-bottom: 14px; }
+    .notesh { margin: 0 0 8px; font: 700 13px var(--font); color: #3b4a8a; text-transform: uppercase; letter-spacing: .05em; }
+    .notesh span { text-transform: none; letter-spacing: 0; font-weight: 500; color: #6a76a8; margin-left: 6px; }
+    .nlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+    .ncard { background: #fff; border: 1px solid #dfe5f7; border-radius: 10px; }
+    .nrow { display: flex; gap: 8px; align-items: flex-start; width: 100%; background: none; color: var(--w-ink); padding: 9px 10px; border-radius: 10px; text-align: left; font: 600 14.5px/1.4 var(--font); }
+    .nrow:hover { background: #f8f9ff; }
+    .nrow .dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: #5b7bff; margin-top: 8px; }
+    .nrow .nt { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+    .nrow .chev { flex: none; color: var(--w-muted); font-size: 12px; margin-top: 3px; transition: transform .2s; }
+    .ncard.open .chev { transform: rotate(90deg); }
+    .nmore { padding: 0 12px 10px 25px; }
+    .nmore p { margin: 0 0 6px; color: var(--w-text); font-size: 13.5px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .nmore .nacts { display: flex; gap: 6px; }
+    .ncard .form { padding: 10px; }
+    .nadd { margin-top: 8px; width: 100%; background: none; border: 1.5px dashed #c9d2ee; color: #6a76a8; font-weight: 600; padding: 7px 12px; font-size: 13px; }
+    .nadd:hover { border-color: #5b7bff; color: #3b4a8a; }
   </style>
 </head>
 <body>
@@ -328,7 +346,7 @@
       <section id="panel"></section>
       <div id="scrim" data-act="closeall"></div>
       <section id="cal" aria-label="Calendar"></section>
-      <p class="how">Ticks and edits save straight to Notion (Work page → Brand Tasks), and changes made in Notion show up here. Tap a project to open it. The number is how many tasks are open (red = something needs you within 2 days). Claude checks Slack and Gmail every 30 minutes and puts what it finds in a yellow Suggested tray; nothing is added until you tap Add. Tasks due more than a week out sit in Later, and people you're waiting on move into your tasks as “Chase” after 5 days. Personal tax and admin live under Life Admin, apart from your work.</p>
+      <p class="how">Ticks and edits save straight to Notion (Work page → Brand Tasks), and changes made in Notion show up here. Tap a project to open it. Each project has an “Always remember” list at the top for little standing rules (tap one for the details; they're the bullet points under that project in Notion). The number is how many tasks are open (red = something needs you within 2 days). Claude checks Slack and Gmail every 30 minutes and puts what it finds in a yellow Suggested tray; nothing is added until you tap Add. Tasks due more than a week out sit in Later, and people you're waiting on move into your tasks as “Chase” after 5 days. Personal tax and admin live under Life Admin, apart from your work.</p>
       <div class="foot"><a href="/learn/">← Back to the learning list</a><button id="lockBtn">Lock</button></div>
     </div>
   </main>
@@ -340,7 +358,8 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} }, del(k) { try { localStorage.removeItem(k); } catch {} } };
 const KEY = 'clientsHQ'; // same password as Clients HQ, so one unlock covers both
-let pass = '', data = null, editing = null; // editing = task id, or 'new:<brandId>'
+let pass = '', data = null, editing = null; // editing = task id, 'new:<brandId>', 'note:<id>' or 'newnote:<brandId>'
+const openNotes = new Set();
 
 async function api(path, method = 'GET', body) {
   const r = await fetch(API + path, { method, headers: { 'X-Key': pass, ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
@@ -467,6 +486,25 @@ function sugCard(s) {
 const order = (a, b) => (a.due || '9999').localeCompare(b.due || '9999');
 const section = (title, list, open) => list.length ? `<details class="sec" ${open ? 'open' : ''}><summary>${title} (${list.length})</summary><ul class="tasks">${list.join('')}</ul></details>` : '';
 
+function noteForm(n, brandId) {
+  return `<form class="form nform" data-nid="${n ? n.id : ''}" data-brand="${brandId || ''}">
+    <label>Always remember<input name="text" value="${esc(n ? n.text : '')}" placeholder="Short rule, e.g. Put the UTM string on every ad" required maxlength="1800"></label>
+    <label>More context<textarea name="detail" placeholder="Why, exact wording, links (optional)" maxlength="3000">${esc(n ? n.detail : '')}</textarea></label>
+    <div class="btns"><button type="submit">${n ? 'Save' : 'Add note'}</button><button type="button" class="ghost" data-act="cancel">Cancel</button>
+    ${n ? '<button type="button" class="del" data-act="ndelete">Delete</button>' : ''}</div></form>`;
+}
+function notesBox(br) {
+  const list = (data.notes || []).filter(n => n.brand === br.id), adding = editing === 'newnote:' + br.id;
+  const item = n => {
+    if (editing === 'note:' + n.id) return `<li class="ncard">${noteForm(n)}</li>`;
+    const op = openNotes.has(n.id);
+    return `<li class="ncard ${op ? 'open' : ''}" data-nid="${n.id}"><button class="nrow" data-act="ntoggle" aria-expanded="${op}"><i class="dot"></i><span class="nt">${esc(n.text)}</span><span class="chev">▶</span></button>
+      ${op ? `<div class="nmore">${n.detail ? `<p>${esc(n.detail)}</p>` : ''}<div class="nacts"><button class="edit" data-act="nedit">Edit</button></div></div>` : ''}</li>`;
+  };
+  return `<div class="notes"><p class="notesh">📌 Always remember <span>${list.length ? 'Tap one for the details.' : 'Little rules for this project that must not get lost.'}</span></p>
+    ${list.length || adding ? `<ul class="nlist">${list.map(item).join('')}${adding ? `<li class="ncard">${noteForm(null, br.id)}</li>` : ''}</ul>` : ''}
+    ${adding ? '' : `<button class="nadd" data-act="nadd" data-brand="${br.id}">+ Add something to remember</button>`}</div>`;
+}
 const slug = n => String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const LOGOS = new Set(['sls3', 'zensim', 'true-blue-studies', 'her-naturals', 'sally', 'everyone', 'kitchen-impossible', 'life-admin', 'standish-co']);
 const TINT = { 'sls3': '#d7263d', 'zensim': '#3a3f4f', 'true-blue-studies': '#2bb5d6', 'her-naturals': '#2f6b4f', 'sally': '#7d5f8a', 'everyone': '#0f7a6a', 'kitchen-impossible': '#9a3fd1', 'life-admin': '#5b7bff', 'standish-co': '#1d1db3' };
@@ -486,7 +524,7 @@ function render() {
     const done = mine.filter(t => t.done && !doneToday(t));
     const urgent = main.filter(t => isChase(t) || (t.due && t.kind !== 'waiting' && diff(t.due) <= 2)).length;
     const adding = editing === 'new:' + br.id;
-    const isOpen = openedId === br.id || adding || mine.some(t => t.id === editing);
+    const isOpen = openedId === br.id || adding || mine.some(t => t.id === editing) || editing === 'newnote:' + br.id || (d.notes || []).some(n => n.brand === br.id && editing === 'note:' + n.id);
     const key = slug(br.name);
     const logo = LOGOS.has(key) ? `<img src="logos/${key}.${key === 'life-admin' ? 'svg?v=3' : 'png'}" alt="${esc(br.name)} logo">` : `<span class="mono-logo">${esc(br.name.slice(0, 2))}</span>`;
     const badge = `<span class="badge ${main.length ? (urgent ? 'hot' : 'has') : ''}" title="${main.length} open${urgent ? ', ' + urgent + ' need you in the next 2 days' : ''}"><span class="bnum ${prevCount[br.id] === undefined || prevCount[br.id] === main.length ? '' : main.length > prevCount[br.id] ? 'up' : 'down'}">${main.length}</span></span>`;
@@ -503,6 +541,7 @@ function render() {
     if (!isOpen) return { tile, panel: '', rank };
     const panel = `<article class="board open">
       <div class="ohead"><div class="plogo sm">${logo}</div><h2>${esc(br.name)}</h2><button class="close" data-act="toggle" data-brand="${br.id}" aria-label="Close ${esc(br.name)}">Close</button></div>
+      ${notesBox(br)}
       ${sugs.length ? `<div class="tray"><p class="trayh">Suggested by Claude <span>Add the ones that are real; dismiss the rest.</span></p><ul class="tasks">${sugs.map(sugCard).join('')}</ul></div>` : ''}
       ${shown.length || adding ? `<ul class="tasks">${shown.map(card).join('')}${adding ? `<li class="tcard">${form(null, br.id)}</li>` : ''}</ul>` : '<p class="empty">Nothing open right now.</p>'}
       ${adding ? '' : `<button class="add" data-act="add" data-brand="${br.id}">+ Add task</button>`}
@@ -709,7 +748,17 @@ document.addEventListener('click', async e => {
       if (act === 'accept') { toast('Added to Notion.'); await load(true); } else { toast('Dismissed. It won’t be suggested again.'); render(); }
     } catch (err) { li.classList.remove('saving'); toast('Not saved: ' + err.message); }
   }
-  else if (act === 'add') { editing = 'new:' + el.dataset.brand; render(); }
+  else if (act === 'add') { if (editing) return; editing = 'new:' + el.dataset.brand; render(); }
+  else if (act === 'ntoggle') { const id = el.closest('.ncard').dataset.nid; openNotes.has(id) ? openNotes.delete(id) : openNotes.add(id); render(); }
+  else if (act === 'nadd') { if (editing) return; editing = 'newnote:' + el.dataset.brand; render(); }
+  else if (act === 'nedit') { if (editing) return; editing = 'note:' + el.closest('.ncard').dataset.nid; render(); }
+  else if (act === 'ndelete') {
+    const id = el.closest('form').dataset.nid, n = data.notes.find(x => x.id === id);
+    if (!confirm(`Delete “${n.text}”? It goes to Notion’s trash, so you can still get it back there.`)) return;
+    el.closest('.ncard').classList.add('saving');
+    try { await api('/notes/' + id, 'DELETE'); data.notes = data.notes.filter(x => x.id !== id); editing = null; render(); toast('Deleted.'); }
+    catch (err) { el.closest('.ncard').classList.remove('saving'); toast('Not deleted: ' + err.message); }
+  }
   else if (act === 'cancel') { editing = null; render(); }
   else if (act === 'delete') {
     const id = el.closest('form').dataset.id, t = find(id);
@@ -722,6 +771,16 @@ document.addEventListener('click', async e => {
 document.addEventListener('submit', async e => {
   const f = e.target; if (!f.classList.contains('form')) return;
   e.preventDefault();
+  if (f.classList.contains('nform')) {
+    const v = { text: f.elements.text.value.trim(), detail: f.elements.detail.value.trim() }; if (!v.text) return;
+    f.querySelectorAll('button').forEach(b => b.disabled = true);
+    try {
+      if (f.dataset.nid) { await api('/notes/' + f.dataset.nid, 'PATCH', v); Object.assign(data.notes.find(x => x.id === f.dataset.nid), v); }
+      else { const r = await api('/notes', 'POST', { ...v, brand: f.dataset.brand }); (data.notes ||= []).push({ ...v, id: r.id, brand: f.dataset.brand }); }
+      editing = null; toast('Saved to Notion.'); render();
+    } catch (err) { f.querySelectorAll('button').forEach(b => b.disabled = false); toast('Not saved: ' + err.message); }
+    return;
+  }
   const v = Object.fromEntries(new FormData(f));
   v.text = v.text.trim(); v.detail = v.detail.trim(); v.link = v.link.trim(); v.who = (v.who || '').trim(); v.kind = v.who ? 'waiting' : 'task';
   if (v.kind === 'waiting' && !v.due) v.due = isoToday();
