@@ -305,6 +305,8 @@
       .wgrid .cday { min-height: 0; border: 1px solid var(--w-line); border-radius: 10px; margin-bottom: 6px; padding: 8px; }
       .wgrid .cday .ev { display: block; white-space: normal; font-size: 12px; } .wgrid .cday .dots { display: none; }
     }
+    .startcc { flex: none; display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; border: 1px solid #f0c9b4; background: #fff6f1; color: #b4532a; font: 600 12px var(--font); text-decoration: none; white-space: nowrap; }
+    .startcc:hover { background: #d97757; border-color: #d97757; color: #fff; }
     /* habit tracker (Life Admin) */
     .habits { background: #f2fbf6; border: 1px solid #d5eedf; border-radius: 14px; padding: 12px; margin-bottom: 14px; }
     .habh { margin: 0 0 4px; font: 700 13px var(--font); color: #1f6b45; text-transform: uppercase; letter-spacing: .05em; }
@@ -482,6 +484,23 @@ function form(t, brandId) {
     <div class="btns"><button type="submit">${isNew ? 'Add task' : 'Save'}</button><button type="button" class="ghost" data-act="cancel">Cancel</button>
     ${isNew ? '' : '<button type="button" class="del" data-act="delete">Delete</button>'}</div></form>`;
 }
+// "Start" button: opens a new Claude Code session (desktop app) with the task filled in, ready to send.
+const CC_FOLDER = '/Users/danie/Desktop/Files/Claude Code';
+function ccLink(t) {
+  const br = (data.brands || []).find(b => b.id === t.brand);
+  const B = '\u2063'; // marks a deliberate blank line
+  const lines = [
+    "Let's start on this task from my Brand Tasks board (danieldelaway.com/learn/tasks).", B,
+    'Brand: ' + (br ? br.name : ''),
+    'Task: ' + (t.kind === 'waiting' ? `chase ${t.who} about: ` : '') + t.text,
+    t.due ? (t.kind === 'waiting' ? 'Asked / last chased: ' : 'Due: ') + t.due : '',
+    t.detail ? 'Details: ' + t.detail : '',
+    t.link ? 'Link: ' + t.link : '',
+    t.source ? 'Where it came from: ' + t.source : '', B,
+    `Task id: ${t.id}. Read tasks/README.md for the Brand Tasks API. When it's finished, tick it done there (PATCH /tasks/<id> {"done":true}).`,
+  ].filter(Boolean).map(x => (x === B ? '' : x));
+  return 'claude://code/new?' + new URLSearchParams({ q: lines.join('\n').slice(0, 3500), folder: CC_FOLDER }).toString();
+}
 function card(t) {
   if (editing === t.id) return `<li class="tcard">${form(t)}</li>`;
   const safe = /^https?:\/\//.test(t.link || '') ? t.link : '';
@@ -498,7 +517,7 @@ function card(t) {
     <input type="checkbox" class="tick" ${t.done ? 'checked' : ''} aria-label="Mark “${esc(t.text)}” done">
     <div class="tbody" data-act="edit"><div class="trow"><b>${title}</b>${chips}</div>
     ${t.detail && (!t.done || doneToday(t)) ? `<small>${esc(t.detail)}</small>` : ''}${meta ? `<div class="src">${meta}</div>` : ''}</div>
-    <div class="acts">${extra}<button class="edit" data-act="edit" aria-label="Edit task">Edit</button></div></li>`;
+    <div class="acts">${t.done ? '' : `<a class="startcc" href="${esc(ccLink(t))}" title="Open a new Claude Code session with this task filled in">Start ▶</a>`}${extra}<button class="edit" data-act="edit" aria-label="Edit task">Edit</button></div></li>`;
 }
 function sugCard(s) {
   const kind = s.kind === 'waiting' ? `Waiting on ${esc(s.who)}` : s.due && diff(s.due) > LATER_AFTER ? 'Later' : 'Task';
