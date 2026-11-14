@@ -133,6 +133,13 @@
     .sbtns { display: flex; flex-direction: column; gap: 6px; flex: none; }
     .sbtns button { padding: 7px 12px; font-size: 13px; }
     .sbtns .ghost { background: #f1f2f6; color: var(--w-ink); }
+    .scom { margin-top: 8px; padding: 8px 10px; background: #f4f6fb; border-radius: 8px; font: 400 13px/1.45 var(--font); color: var(--w-ink); }
+    .scom i { color: var(--w-muted); }
+    .scomform { margin-top: 8px; }
+    .scomform textarea { width: 100%; box-sizing: border-box; font: 400 14px/1.45 var(--font); border: 1px solid #cfd4df; border-radius: 8px; padding: 8px 10px; resize: vertical; }
+    .scomb { display: flex; gap: 6px; margin-top: 6px; }
+    .scomb button { padding: 7px 12px; font-size: 13px; }
+    .scomb .ghost { background: #f1f2f6; color: var(--w-ink); }
     .sugline { margin: 6px 0 0; font: 600 12px var(--font); color: #8a5a00; }
     details.sec { margin-top: 14px; }
     details.sec summary { font-weight: 600; }
@@ -525,8 +532,11 @@ function sugCard(s) {
   const chips = (s.kind === 'waiting' ? '' : dueChip(s)) + (s.repeat ? `<span class="chip rep">${REP[s.repeat]}</span>` : '');
   return `<li class="scard" data-sid="${s.id}"><div class="tbody"><div class="trow"><span class="kind">${kind}</span><b>${esc(s.text)}</b>${chips}</div>
     ${s.detail ? `<small>${esc(s.detail)}</small>` : ''}${s.why ? `<small class="why">${esc(s.why)}</small>` : ''}
-    <div class="src">${s.source ? `<span>${esc(s.source)}</span>` : ''}${safe ? `<a href="${esc(safe)}" target="_blank" rel="noopener">${esc(linkLabel(safe))} ↗</a>` : ''}</div></div>
-    <div class="sbtns"><button data-act="accept">Add</button><button class="ghost" data-act="dismiss">Dismiss</button></div></li>`;
+    <div class="src">${s.source ? `<span>${esc(s.source)}</span>` : ''}${safe ? `<a href="${esc(safe)}" target="_blank" rel="noopener">${esc(linkLabel(safe))} ↗</a>` : ''}</div>
+    ${s.comment && editing !== 'comment:' + s.id ? `<div class="scom"><b>💬 You:</b> ${esc(s.comment)}${s.reply ? `<br><b>Claude:</b> ${esc(s.reply)}` : `<br><i>Claude will sort this on its next check.</i>`}</div>` : ''}
+    ${editing === 'comment:' + s.id ? `<form class="scomform" data-sid="${s.id}"><textarea name="comment" rows="3" placeholder="e.g. This belongs under Sally, not SLS3" required>${esc(s.comment || '')}</textarea>
+      <div class="scomb"><button type="submit">Send to Claude</button><button type="button" class="ghost" data-act="cancel">Cancel</button></div></form>` : ''}</div>
+    <div class="sbtns"><button data-act="accept">Add</button><button class="ghost" data-act="dismiss">Dismiss</button><button class="ghost" data-act="scomment">💬 Comment</button></div></li>`;
 }
 const order = (a, b) => (a.due || '9999').localeCompare(b.due || '9999');
 const section = (title, list, open) => list.length ? `<details class="sec" ${open ? 'open' : ''}><summary>${title} (${list.length})</summary><ul class="tasks">${list.join('')}</ul></details>` : '';
@@ -852,6 +862,7 @@ document.addEventListener('click', async e => {
     } catch (err) { li.classList.remove('saving'); toast('Not saved: ' + err.message); }
   }
   else if (act.startsWith('h') && ['hslip', 'htick', 'hedit', 'hadd'].includes(act)) { habitAct(act, el); return; }
+  else if (act === 'scomment') { if (editing) return; editing = 'comment:' + el.closest('.scard').dataset.sid; render(); document.querySelector('.scomform textarea')?.focus(); }
   else if (act === 'add') { if (editing) return; editing = 'new:' + el.dataset.brand; render(); }
   else if (act === 'ntoggle') { const id = el.closest('.ncard').dataset.nid; openNotes.has(id) ? openNotes.delete(id) : openNotes.add(id); render(); }
   else if (act === 'nadd') { if (editing) return; editing = 'newnote:' + el.dataset.brand; render(); }
@@ -873,6 +884,17 @@ document.addEventListener('click', async e => {
   }
 });
 document.addEventListener('submit', async e => {
+  if (e.target.matches('.scomform')) {
+    e.preventDefault();
+    const f = e.target, sid = f.dataset.sid, text = f.comment.value.trim(); if (!text) return;
+    f.classList.add('saving');
+    try {
+      const r = await api(`/suggestions/${sid}/comment`, 'POST', { text });
+      const i = data.suggestions.findIndex(x => x.id === sid); if (i > -1) data.suggestions[i] = r.suggestion;
+      editing = null; render(); toast('Sent. Claude will sort it on its next check.');
+    } catch (err) { f.classList.remove('saving'); toast('Not saved: ' + err.message); }
+    return;
+  }
   const f = e.target; if (!f.classList.contains('form')) return;
   e.preventDefault();
   if (f.classList.contains('nform')) {
