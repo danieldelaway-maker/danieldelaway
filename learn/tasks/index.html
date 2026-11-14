@@ -887,12 +887,18 @@ document.addEventListener('submit', async e => {
   if (e.target.matches('.scomform')) {
     e.preventDefault();
     const f = e.target, sid = f.dataset.sid, text = f.comment.value.trim(); if (!text) return;
-    f.classList.add('saving');
+    f.classList.add('saving'); const btn = f.querySelector('button[type=submit]'); if (btn) { btn.disabled = true; btn.textContent = 'Claude is fixing it…'; }
     try {
       const r = await api(`/suggestions/${sid}/comment`, 'POST', { text });
-      const i = data.suggestions.findIndex(x => x.id === sid); if (i > -1) data.suggestions[i] = r.suggestion;
-      editing = null; render(); toast('Sent. Claude will sort it on its next check.');
-    } catch (err) { f.classList.remove('saving'); toast('Not saved: ' + err.message); }
+      const sg = r.suggestion, i = data.suggestions.findIndex(x => x.id === sid);
+      if (sg && sg.status && sg.status !== 'pending') data.suggestions.splice(i, 1);
+      else if (i > -1 && sg) data.suggestions[i] = sg;
+      if (r.task && !find(r.task.id)) data.tasks.push(r.task);
+      if (r.note) (data.notes = data.notes || []).push(r.note);
+      if (sg && i > -1 && slug(sg.brand) !== slug(data.brands.find(b => b.id === openedId)?.name)) { const nb = data.brands.find(b => slug(b.name) === slug(sg.brand)); if (nb) openedId = nb.id; }
+      editing = null; render();
+      toast(r.instant ? (sg?.reply || 'Done.') : 'Saved. Claude will sort it on its next check.');
+    } catch (err) { f.classList.remove('saving'); if (btn) { btn.disabled = false; btn.textContent = 'Send to Claude'; } toast('Not saved: ' + err.message); }
     return;
   }
   const f = e.target; if (!f.classList.contains('form')) return;
