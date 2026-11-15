@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Invoice Maker</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#f4f6fb">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@600;700&family=Didact+Gothic&family=Inter:wght@400;500;600;700&display=swap">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    /* Light only (Dan: no dark versions). Brand = Delaway Digital mint → blue. */
+    :root {
+      --bg: #f4f6fb; --card: #ffffff; --line: #e3e6ee; --ink: #12141c; --text: #3d4352; --muted: #6b7183;
+      --mint: #bff3da; --blue: #9cc1f7; --accent: #4f6fe0; --late: #c62f2f; --ok: #0f8f86;
+      --font: 'Inter', system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--font); }
+    [hidden] { display: none !important; }
+    a { color: var(--accent); }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 24px 16px 80px; }
+    .top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+    .top h1 { font: 700 clamp(26px, 4vw, 38px) 'League Spartan', sans-serif; color: var(--ink); margin: 0; flex: 1; }
+    .back { text-decoration: none; font-weight: 600; font-size: 14px; }
+    .pill { background: linear-gradient(135deg, var(--mint), var(--blue)); color: var(--ink); border-radius: 999px; padding: 6px 14px; font-weight: 700; font-size: 14px; }
+
+    button { cursor: pointer; padding: 10px 16px; border-radius: 12px; border: 0; font: 600 14px var(--font); color: var(--ink); background: linear-gradient(135deg, var(--mint), var(--blue)); }
+    button.ghost { background: #fff; border: 1px solid var(--line); color: var(--text); }
+    button.small { padding: 6px 10px; font-size: 13px; border-radius: 9px; }
+    button.sure { background: #ffe1e1; color: var(--late); border-color: #f3b4b4; }
+    button:disabled { opacity: .5; cursor: default; }
+
+    #lock { max-width: 420px; margin: 10vh auto 0; text-align: center; }
+    #lock form { display: flex; gap: 10px; margin-top: 18px; }
+    #lock input { flex: 1; min-width: 0; }
+    .err { color: var(--late); font-size: 14px; min-height: 20px; margin-top: 10px; }
+
+    .grid { display: grid; grid-template-columns: minmax(0, 440px) minmax(0, 1fr); gap: 22px; align-items: start; }
+    @media (max-width: 960px) { .grid { grid-template-columns: 1fr; } }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px; margin-bottom: 18px; }
+    .card h2 { font: 700 17px 'League Spartan', sans-serif; color: var(--ink); margin: 0 0 12px; letter-spacing: .02em; }
+    .hint { color: var(--muted); font-size: 13px; margin: 6px 0 0; }
+
+    label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin: 12px 0 4px; }
+    input, select, textarea { width: 100%; padding: 9px 11px; border-radius: 10px; border: 1px solid var(--line); background: #fbfcfe; color: var(--ink); font: 15px var(--font); }
+    textarea { resize: vertical; min-height: 60px; }
+    input:focus, select:focus, textarea:focus { outline: 2px solid var(--blue); border-color: var(--accent); }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+    .clients { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { background: #fff; border: 1px solid var(--line); color: var(--text); padding: 8px 12px; border-radius: 999px; font-weight: 600; font-size: 14px; }
+    .chip.on { background: linear-gradient(135deg, var(--mint), var(--blue)); color: var(--ink); border-color: transparent; box-shadow: 0 0 0 2px var(--accent) inset; }
+
+    .item { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px 12px; margin-top: 10px; background: #fbfcfe; }
+    .item .ihead { display: flex; justify-content: space-between; align-items: center; }
+    .item .ihead b { font-size: 13px; color: var(--muted); }
+    .amount-big { font-size: 20px; font-weight: 700; }
+    .toggle { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 14px; color: var(--text); text-transform: none; letter-spacing: 0; font-weight: 500; }
+    .toggle input { width: 18px; height: 18px; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .actions .main { flex: 1; font-size: 16px; padding: 13px 16px; }
+
+    .hist { list-style: none; margin: 0; padding: 0; }
+    .hist li { display: grid; grid-template-columns: 60px 1fr auto; gap: 8px; align-items: center; padding: 9px 0; border-top: 1px solid var(--line); font-size: 14px; }
+    .hist li:first-child { border-top: 0; }
+    .hist .no { font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .hist .who small { display: block; color: var(--muted); }
+    .hist .btns { display: flex; gap: 6px; }
+    details summary { cursor: pointer; font-weight: 700; color: var(--ink); font-family: 'League Spartan', sans-serif; font-size: 17px; }
+
+    /* Preview: the invoice itself is a fixed A4 page (794 × 1123 px), scaled to fit. */
+    .stage { position: sticky; top: 16px; }
+    .scaler { width: 100%; overflow: hidden; border-radius: 6px; box-shadow: 0 12px 40px rgba(20,30,60,.18); background: #fff; }
+    .scaler > .page { transform-origin: top left; }
+
+    .page { width: 794px; height: 1123px; background: #fff; position: relative; color: #4a4a4a; font-family: 'Didact Gothic', sans-serif; overflow: hidden; }
+    .page .hd { height: 280px; background: url(head.jpg) center / cover no-repeat; }
+    .page .body { padding: 50px 108px 0; }
+    .page h1 { font: 700 50px/1 'League Spartan', sans-serif; color: #3d3d3d; margin: 0 0 18px; letter-spacing: .005em; }
+    .page .meta { display: flex; justify-content: space-between; align-items: flex-end; }
+    .page .meta .l, .page .meta .r { font-size: 13.5px; letter-spacing: .14em; text-transform: uppercase; line-height: 1.75; }
+    .page .meta .r { text-align: right; }
+    .page .meta .r b { font: 700 14px 'League Spartan', sans-serif; letter-spacing: .14em; color: #3d3d3d; }
+    .page .meta .r .bt { white-space: pre-line; font-size: 12px; }
+    .page table { width: 100%; border-collapse: collapse; margin-top: 80px; table-layout: fixed; }
+    .page th { font: 700 15.5px 'League Spartan', sans-serif; letter-spacing: .17em; color: #111; text-transform: uppercase; text-align: left; padding: 0 0 26px; }
+    .page th.c, .page td.c { text-align: center; }
+    .page th.a, .page td.a { text-align: right; }
+    .page td { font-size: 13.5px; letter-spacing: .14em; text-transform: uppercase; vertical-align: top; padding: 0 0 18px; line-height: 1.6; }
+    .page td ul { margin: 2px 0 0; padding-left: 8px; list-style: none; }
+    .page td li { position: relative; padding-left: 18px; }
+    .page td li::before { content: '•'; position: absolute; left: 0; top: 0; }
+    .page .tot { margin-top: 40px; display: grid; grid-template-columns: 1fr 210px; row-gap: 10px; font-size: 13.5px; letter-spacing: .14em; text-transform: uppercase; }
+    .page .tot .k { text-align: right; padding-right: 0; }
+    .page .tot .v { text-align: right; }
+    .page .tot .big { font: 700 15px 'League Spartan', sans-serif; letter-spacing: .16em; color: #111; }
+    .page .tot .note { grid-column: 1 / -1; text-align: right; font-size: 11.5px; color: #777; }
+    .page .ft { position: absolute; left: 108px; right: 108px; bottom: 60px; display: flex; justify-content: space-between; gap: 30px; font-size: 13px; letter-spacing: .13em; text-transform: uppercase; line-height: 1.85; }
+    .page .ft .r { text-align: right; white-space: pre-line; }
+    .page .ft .l { max-width: 330px; }
+
+    #toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: #fff; color: var(--ink); border: 1px solid var(--line); box-shadow: 0 10px 30px rgba(0,0,0,.15); padding: 12px 18px; border-radius: 12px; font-weight: 600; z-index: 9; max-width: calc(100% - 32px); }
+    .saved-burst { animation: burst .7s ease; }
+    @keyframes burst { 0% { transform: scale(1); } 40% { transform: scale(1.04); box-shadow: 0 0 0 6px var(--mint); } 100% { transform: scale(1); } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div id="lock" hidden>
+    <h1 style="font:700 32px 'League Spartan',sans-serif;color:var(--ink)">Invoice Maker</h1>
+    <p>Same password as your Tasks HQ.</p>
+    <form id="unlock"><input id="pw" type="password" placeholder="Password" autocomplete="current-password"><button>Open</button></form>
+    <p class="err" id="err"></p>
+  </div>
+
+  <div id="app" hidden>
+    <div class="top">
+      <a class="back" href="../">← Tasks HQ</a>
+      <h1>Invoice Maker</h1>
+      <span class="pill" id="nextPill">Next no. …</span>
+    </div>
+
+    <div class="grid">
+      <div>
+        <div class="card">
+          <h2>1. Who is it for?</h2>
+          <div class="clients" id="clients"></div>
+          <p class="hint">Picking a client fills in their usual lines and price. Whatever you save becomes their usual for next time.</p>
+        </div>
+
+        <div class="card" id="editor">
+          <h2>2. Invoice details</h2>
+          <div class="row">
+            <div><label for="f-no">Invoice no.</label><input id="f-no" inputmode="numeric"></div>
+            <div><label for="f-date">Date</label><input id="f-date" type="date"></div>
+          </div>
+          <div class="row">
+            <div><label for="f-client">Client name on invoice</label><input id="f-client"></div>
+            <div><label for="f-cad">Billing</label>
+              <select id="f-cad"><option value="week">Weekly</option><option value="month">Monthly</option><option value="once">One-off</option></select></div>
+          </div>
+          <label for="f-billto">Extra client details (optional: address, ABN…)</label>
+          <textarea id="f-billto" rows="2"></textarea>
+
+          <div class="row3">
+            <div><label for="f-col">Middle column</label>
+              <select id="f-col"><option>Week</option><option>Month</option><option>Details</option><option>Notes</option><option value="">(none)</option></select></div>
+            <div><label for="f-cur">Currency</label>
+              <select id="f-cur"><option>USD</option><option>AUD</option><option>EUR</option><option>GBP</option><option>CAD</option><option>NZD</option></select></div>
+            <div><label for="f-bank">Pay into</label><select id="f-bank"></select></div>
+          </div>
+
+          <div id="items"></div>
+          <button class="ghost small" id="addItem" style="margin-top:10px">+ Add another line</button>
+
+          <label class="toggle"><input type="checkbox" id="f-gst"> Tax invoice with GST (Australian client)</label>
+          <div id="gstBox" hidden>
+            <label class="toggle"><input type="checkbox" id="f-gstIncl"> Price already includes GST</label>
+            <label for="f-gstAud">GST in AUD (only if billing in USD, optional)</label>
+            <input id="f-gstAud" placeholder="e.g. A$62.40">
+          </div>
+
+          <div class="actions">
+            <button class="main" id="saveBtn">Save &amp; download PDF</button>
+            <button class="ghost" id="dlBtn">Download only</button>
+          </div>
+          <p class="hint" id="saveHint">Saving logs the number so the next invoice gets the next one.</p>
+        </div>
+
+        <div class="card">
+          <h2>Past invoices</h2>
+          <ul class="hist" id="hist"></ul>
+        </div>
+
+        <div class="card">
+          <details id="settings">
+            <summary>Settings: numbers, my details, bank accounts</summary>
+            <label for="s-next">Next invoice number</label><input id="s-next" inputmode="numeric">
+            <div class="row">
+              <div><label for="s-phone">Phone</label><input id="s-phone"></div>
+              <div><label for="s-email">Email</label><input id="s-email"></div>
+            </div>
+            <div class="row">
+              <div><label for="s-addr">Address</label><textarea id="s-addr" rows="2"></textarea></div>
+              <div><label for="s-abn">ABN (shows on tax invoices)</label><input id="s-abn"></div>
+            </div>
+            <div id="banks"></div>
+            <div class="actions"><button id="saveSettings">Save settings</button></div>
+          </details>
+        </div>
+      </div>
+
+      <div class="stage">
+        <div class="scaler" id="scaler"><div class="page" id="page"></div></div>
+        <p class="hint" style="text-align:center">Live preview. This is exactly what the PDF looks like.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast" hidden role="status"></div>
+
+<script>
+const API = 'https://brand-tasks-api.danieldelaway.workers.dev';
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// 30-day sliding login, shared with the Tasks HQ (same localStorage key "clientsHQ").
+const KEY = 'clientsHQ', DAYS = 30;
+const REMEMBER = {
+  get(k) {
+    let v = null; try { const exp = +localStorage.getItem(k + '__exp') || 0; v = localStorage.getItem(k); if (v && exp && exp < Date.now()) { v = null; localStorage.removeItem(k); } } catch {}
+    if (!v) { const m = document.cookie.match(new RegExp('(?:^|; )r_' + k + '=([^;]*)')); if (m) v = decodeURIComponent(m[1]); }
+    if (v) this.set(k, v); return v;
+  },
+  set(k, v) {
+    try { localStorage.setItem(k, v); localStorage.setItem(k + '__exp', String(Date.now() + DAYS * 864e5)); } catch {}
+    document.cookie = 'r_' + k + '=' + encodeURIComponent(v) + '; Max-Age=' + DAYS * 86400 + '; Path=/; Secure; SameSite=None; Partitioned';
+  },
+  del(k) { try { localStorage.removeItem(k); localStorage.removeItem(k + '__exp'); } catch {} document.cookie = 'r_' + k + '=; Max-Age=0; Path=/; Secure; SameSite=None; Partitioned'; },
+};
+let pass = '', inv = null, doc = null, clientId = '';
+
+async function api(path, method = 'GET', body) {
+  const r = await fetch(API + path, { method, headers: { 'X-Key': pass, ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(d.error || 'Something went wrong'), { status: r.status });
+  return d;
+}
+let toastT;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 4500); }
+
+// ---------- helpers ----------
+const pad4 = n => String(parseInt(String(n).replace(/\D/g, ''), 10) || 0).padStart(4, '0');
+const isoToday = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); };
+const parseISO = s => { const [y, m, d] = String(s || isoToday()).split('-').map(Number); return new Date(y, m - 1, d); };
+const dmy = s => { const d = parseISO(s); return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear(); };
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+function periodFor(cad, iso) {
+  const d = parseISO(iso);
+  if (cad === 'month') return MONTHS[d.getMonth()];
+  if (cad === 'week') { // Monday–Sunday week of the invoice date
+    const mon = new Date(d); mon.setDate(d.getDate() - ((d.getDay() + 6) % 7)); const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+    const m = x => MONTHS[x.getMonth()].slice(0, 3);
+    return mon.getMonth() === sun.getMonth() ? `${mon.getDate()}–${sun.getDate()} ${m(sun)}` : `${mon.getDate()} ${m(mon)} – ${sun.getDate()} ${m(sun)}`;
+  }
+  return '';
+}
+const colFor = cad => cad === 'week' ? 'Week' : cad === 'month' ? 'Month' : 'Details';
+function money(n) { n = Math.round((Number(n) || 0) * 100) / 100; return '$' + n.toLocaleString('en-US', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }); }
+function totals(d) {
+  const sum = d.items.reduce((a, it) => a + (Number(it.amount) || 0), 0);
+  if (!d.gst) return { sub: sum, gst: 0, total: sum };
+  if (d.gstIncl) { const gst = Math.round(sum / 11 * 100) / 100; return { sub: Math.round((sum - gst) * 100) / 100, gst, total: sum }; }
+  const gst = Math.round(sum * 0.1 * 100) / 100; return { sub: sum, gst, total: Math.round((sum + gst) * 100) / 100 };
+}
+
+// ---------- build a doc from a client's usual settings ----------
+function fromClient(c) {
+  const date = doc?.date || isoToday();
+  return {
+    clientId: c.id, client: c.name, billTo: c.billTo || '', no: pad4(inv.next), date, cadence: c.cadence,
+    colHead: colFor(c.cadence), currency: c.currency, bank: c.bank, gst: !!c.gst, gstIncl: c.gstIncl !== false, gstAud: c.gstAud || '',
+    items: (c.items.length ? c.items : [{ title: '', bullets: [], amount: 0 }]).map(it => ({ title: it.title, bullets: [...(it.bullets || [])], amount: it.amount, period: c.cadence === 'once' ? (c.note || '') : periodFor(c.cadence, date) })),
+  };
+}
+
+// ---------- render ----------
+function renderClients() {
+  $('#clients').innerHTML = inv.clients.map(c => `<button class="chip ${c.id === clientId ? 'on' : ''}" data-client="${c.id}">${esc(c.name)}</button>`).join('') +
+    `<button class="chip" data-client="new">+ New client</button>`;
+}
+function renderForm() {
+  $('#f-no').value = doc.no; $('#f-date').value = doc.date; $('#f-client').value = doc.client; $('#f-billto').value = doc.billTo;
+  $('#f-cad').value = doc.cadence || 'month'; $('#f-col').value = doc.colHead; $('#f-cur').value = doc.currency;
+  $('#f-bank').innerHTML = inv.banks.map(b => `<option value="${esc(b.id)}">${esc(b.label)}</option>`).join(''); $('#f-bank').value = doc.bank;
+  $('#f-gst').checked = doc.gst; $('#f-gstIncl').checked = doc.gstIncl; $('#f-gstAud').value = doc.gstAud; $('#gstBox').hidden = !doc.gst;
+  $('#items').innerHTML = doc.items.map((it, i) => `<div class="item" data-i="${i}">
+      <div class="ihead"><b>Line ${i + 1}</b>${doc.items.length > 1 ? `<button class="ghost small" data-rm="${i}">Remove</button>` : ''}</div>
+      <label>What it's for</label><input data-k="title" value="${esc(it.title)}">
+      <label>Bullet points (one per line, optional)</label><textarea data-k="bullets" rows="3">${esc((it.bullets || []).join('\n'))}</textarea>
+      <div class="row"><div><label>${esc(doc.colHead || 'Middle column')}</label><input data-k="period" value="${esc(it.period)}"></div>
+      <div><label>Amount (${esc(doc.currency)})</label><input class="amount-big" data-k="amount" inputmode="decimal" value="${it.amount || ''}"></div></div>
+    </div>`).join('');
+  renderPreview();
+}
+function renderPreview() {
+  const d = doc, me = inv.me, bank = inv.banks.find(b => b.id === d.bank) || inv.banks[0], t = totals(d), col = d.colHead;
+  const rows = d.items.map(it => `<tr><td>${esc(it.title)}${it.bullets?.length ? `<ul>${it.bullets.map(b => `<li>${esc(b)}</li>`).join('')}</ul>` : ''}</td>${col ? `<td class="c">${esc(it.period)}</td>` : ''}<td class="a">${it.amount === '' || it.amount == null ? '' : money(it.amount)}</td></tr>`).join('');
+  $('#page').innerHTML = `<div class="hd"></div><div class="body">
+    <h1>${d.gst ? 'Tax Invoice' : 'Invoice'}</h1>
+    <div class="meta"><div class="l">Invoice No. ${esc(d.no)}<br>Date: ${dmy(d.date)}${d.gst && me.abn ? `<br>ABN: ${esc(me.abn)}` : ''}</div>
+      <div class="r"><b>${esc(d.client)}</b>${d.billTo ? `<div class="bt">${esc(d.billTo)}</div>` : ''}</div></div>
+    <table><colgroup><col style="width:${col ? '42%' : '70%'}">${col ? '<col style="width:30%">' : ''}<col></colgroup>
+      <thead><tr><th>Description</th>${col ? `<th class="c">${esc(col)}</th>` : ''}<th class="a">Amount</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="tot">
+      ${d.gst ? `<span class="k">Subtotal</span><span class="v">${money(t.sub)}</span><span class="k">GST (10%)</span><span class="v">${money(t.gst)}</span>` : ''}
+      <span class="k big">Total</span><span class="v big">${money(t.total)} ${esc(d.currency)}</span>
+      ${d.gst && d.gstAud ? `<span class="note">GST in AUD: ${esc(d.gstAud)}</span>` : ''}
+    </div></div>
+    <div class="ft"><div class="l">${(bank?.lines || []).map(esc).join('<br>')}</div>
+      <div class="r">${esc(me.phone)}${me.email ? '\n' + esc(me.email) : ''}${me.address ? '\n' + esc(me.address) : ''}</div></div>`;
+  fit();
+}
+function fit() { const s = $('#scaler'), w = s.clientWidth, k = w / 794; $('#page').style.transform = `scale(${k})`; s.style.height = 1123 * k + 'px'; }
+window.addEventListener('resize', fit);
+
+function renderHist() {
+  const list = [...inv.issued].sort((a, b) => b.no.localeCompare(a.no));
+  $('#hist').innerHTML = list.length ? list.map(x => `<li><span class="no">${esc(x.no)}</span>
+    <span class="who">${esc(x.client)} · ${money(x.total)} ${esc(x.currency || '')}<small>${dmy(x.date)}${x.fromCanva ? ' · made in Canva' : ''}</small></span>
+    <span class="btns">${x.doc ? `<button class="ghost small" data-open="${x.id}">Open</button><button class="ghost small" data-again="${x.id}">Copy as new</button>` : ''}<button class="ghost small" data-del="${x.id}">🗑</button></span></li>`).join('') : '<li>No invoices yet.</li>';
+  $('#nextPill').textContent = 'Next no. ' + pad4(inv.next);
+}
+function renderSettings() {
+  $('#s-next').value = pad4(inv.next); $('#s-phone').value = inv.me.phone || ''; $('#s-email').value = inv.me.email || '';
+  $('#s-addr').value = inv.me.address || ''; $('#s-abn').value = inv.me.abn || '';
+  $('#banks').innerHTML = inv.banks.map((b, i) => `<div class="row" data-bank="${i}"><div><label>Bank name in the menu</label><input data-b="label" value="${esc(b.label)}"></div>
+    <div><label>Lines on the invoice</label><textarea data-b="lines" rows="4">${esc(b.lines.join('\n'))}</textarea></div></div>`).join('');
+}
+
+function pick(id) {
+  const c = inv.clients.find(x => x.id === id); if (!c) return;
+  clientId = id; doc = fromClient(c); renderClients(); renderForm();
+}
+
+// ---------- form events ----------
+$('#editor').addEventListener('input', e => {
+  const el = e.target, item = el.closest('.item');
+  if (item) {
+    const it = doc.items[+item.dataset.i], k = el.dataset.k;
+    if (k === 'bullets') it.bullets = el.value.split('\n').map(s => s.trim()).filter(Boolean);
+    else if (k === 'amount') it.amount = el.value.trim() === '' ? '' : Number(el.value.replace(/[^0-9.\-]/g, '')) || 0;
+    else it[k] = el.value;
+    return renderPreview();
+  }
+  const map = { 'f-no': 'no', 'f-client': 'client', 'f-billto': 'billTo', 'f-gstAud': 'gstAud' };
+  if (map[el.id]) { doc[map[el.id]] = el.value; return renderPreview(); }
+});
+$('#editor').addEventListener('change', e => {
+  const el = e.target;
+  if (el.id === 'f-date') { const old = doc.date; doc.date = el.value || isoToday(); doc.items.forEach(it => { if (it.period === periodFor(doc.cadence, old)) it.period = periodFor(doc.cadence, doc.date); }); return renderForm(); }
+  if (el.id === 'f-cad') { doc.cadence = el.value; doc.colHead = colFor(el.value); doc.items.forEach(it => it.period = periodFor(el.value, doc.date)); return renderForm(); }
+  if (el.id === 'f-col') { doc.colHead = el.value; return renderForm(); }
+  if (el.id === 'f-cur') { doc.currency = el.value; return renderForm(); }
+  if (el.id === 'f-bank') { doc.bank = el.value; return renderPreview(); }
+  if (el.id === 'f-gst') { doc.gst = el.checked; return renderForm(); }
+  if (el.id === 'f-gstIncl') { doc.gstIncl = el.checked; return renderPreview(); }
+  if (el.id === 'f-no') { doc.no = pad4(el.value); el.value = doc.no; return renderPreview(); }
+});
+$('#editor').addEventListener('click', e => {
+  const rm = e.target.closest('[data-rm]');
+  if (rm) { doc.items.splice(+rm.dataset.rm, 1); renderForm(); }
+});
+$('#addItem').addEventListener('click', () => { doc.items.push({ title: '', bullets: [], amount: '', period: periodFor(doc.cadence, doc.date) }); renderForm(); });
+
+$('#clients').addEventListener('click', async e => {
+  const b = e.target.closest('[data-client]'); if (!b) return;
+  if (b.dataset.client !== 'new') return pick(b.dataset.client);
+  // New client: add a blank one, then fill it in right here in the form.
+  b.disabled = true;
+  try {
+    const before = new Set(inv.clients.map(c => c.id));
+    inv = await api('/invoices/clients', 'POST', { client: { name: 'New client', currency: 'USD', cadence: 'week', bank: 'us', items: [{ title: '', bullets: [], amount: 0 }] } });
+    const made = inv.clients.find(c => !before.has(c.id)); pick(made.id);
+    $('#f-client').select(); toast('New client added. Type their name and details, then save.');
+  } catch (err) { toast('Could not add: ' + err.message); b.disabled = false; }
+});
+
+// ---------- PDF ----------
+async function makePdf() {
+  await document.fonts.ready;
+  const holder = document.createElement('div'); holder.style.cssText = 'position:fixed;left:-10000px;top:0;';
+  const copy = $('#page').cloneNode(true); copy.style.transform = 'none'; holder.appendChild(copy); document.body.appendChild(holder);
+  try {
+    const canvas = await html2canvas(copy, { scale: 2, backgroundColor: '#ffffff', useCORS: true, width: 794, height: 1123 });
+    const pdf = new jspdf.jsPDF({ unit: 'pt', format: 'a4' });
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 595.28, 841.89);
+    const name = `Invoice ${doc.no} - ${doc.client}`.replace(/[\\/:*?"<>|]/g, '');
+    pdf.setProperties({ title: name }); pdf.save(name + '.pdf');
+  } finally { holder.remove(); }
+}
+function check() {
+  if (!doc.client.trim()) return 'Add the client name first.';
+  if (!doc.items.some(it => it.title.trim() || Number(it.amount))) return 'Add at least one line.';
+  return '';
+}
+$('#saveBtn').addEventListener('click', async e => {
+  const bad = check(); if (bad) return toast(bad);
+  const btn = e.currentTarget; btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const clash = inv.issued.find(x => x.no === pad4(doc.no) && x.client !== doc.client);
+    if (clash && btn.dataset.sure !== '1') { btn.dataset.sure = '1'; btn.classList.add('sure'); btn.textContent = `No. ${doc.no} is ${clash.client}'s. Tap again to replace`; btn.disabled = false; return; }
+    if (clientId && doc.client) await api('/invoices/clients', 'POST', { client: { id: clientId, name: doc.client, billTo: doc.billTo, cadence: doc.cadence, note: doc.cadence === 'once' ? (doc.items[0]?.period || '') : undefined } });
+    inv = await api('/invoices/issue', 'POST', { doc: { ...doc, items: doc.items.map(it => ({ ...it, amount: Number(it.amount) || 0 })) } });
+    await makePdf();
+    toast(`Saved invoice ${doc.no}. Next one will be ${pad4(inv.next)}.`);
+    $('#editor').classList.add('saved-burst'); setTimeout(() => $('#editor').classList.remove('saved-burst'), 800);
+    renderHist(); renderSettings(); renderClients();
+  } catch (err) { toast('Not saved: ' + err.message); }
+  finally { btn.disabled = false; btn.textContent = 'Save & download PDF'; btn.classList.remove('sure'); delete btn.dataset.sure; }
+});
+$('#dlBtn').addEventListener('click', async () => { const bad = check(); if (bad) return toast(bad); try { await makePdf(); } catch (err) { toast('Could not make the PDF: ' + err.message); } });
+
+// ---------- history ----------
+$('#hist').addEventListener('click', async e => {
+  const o = e.target.closest('[data-open]'), a = e.target.closest('[data-again]'), d = e.target.closest('[data-del]');
+  const row = id => inv.issued.find(x => x.id === id);
+  if (o || a) {
+    const x = row((o || a).dataset.open || (o || a).dataset.again);
+    doc = JSON.parse(JSON.stringify(x.doc)); doc.cadence = doc.cadence || 'month'; clientId = x.clientId || '';
+    if (a) { doc.no = pad4(inv.next); doc.date = isoToday(); doc.items.forEach(it => { if (doc.cadence !== 'once') it.period = periodFor(doc.cadence, doc.date); }); toast('Copied as a new invoice, no. ' + doc.no); }
+    else toast('Opened invoice ' + doc.no + '. Saving again updates it (same number).');
+    renderClients(); renderForm(); window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  if (d) { // tap twice to delete, no pop-ups
+    if (d.dataset.sure !== '1') { d.dataset.sure = '1'; d.classList.add('sure'); d.textContent = 'Delete?'; setTimeout(() => { if (d.isConnected) { d.dataset.sure = ''; d.classList.remove('sure'); d.textContent = '🗑'; } }, 3000); return; }
+    try { inv = await api('/invoices/issued/' + d.dataset.del, 'DELETE'); renderHist(); toast('Deleted. (Kept in the trash, just ask Claude to bring it back.)'); } catch (err) { toast('Not deleted: ' + err.message); }
+  }
+});
+
+// ---------- settings ----------
+$('#saveSettings').addEventListener('click', async e => {
+  const btn = e.currentTarget; btn.disabled = true;
+  try {
+    const banks = [...document.querySelectorAll('[data-bank]')].map((r, i) => ({ id: inv.banks[i].id, label: r.querySelector('[data-b=label]').value, lines: r.querySelector('[data-b=lines]').value.split('\n') }));
+    inv = await api('/invoices/settings', 'POST', { next: $('#s-next').value, me: { phone: $('#s-phone').value, email: $('#s-email').value, address: $('#s-addr').value, abn: $('#s-abn').value }, banks });
+    if (doc && !inv.issued.some(x => x.no === doc.no)) doc.no = pad4(inv.next);
+    renderHist(); renderSettings(); renderForm(); toast('Settings saved.');
+  } catch (err) { toast('Not saved: ' + err.message); }
+  btn.disabled = false;
+});
+
+// ---------- sign in ----------
+async function start(p, remember) {
+  pass = p;
+  try {
+    inv = await api('/invoices');
+    if (remember) REMEMBER.set(KEY, p);
+    $('#lock').hidden = true; $('#app').hidden = false;
+    const want = new URLSearchParams(location.search).get('client');
+    const first = inv.clients.find(c => c.name.toLowerCase() === (want || '').toLowerCase()) || inv.clients[0];
+    renderHist(); renderSettings(); pick(first.id);
+  } catch (e) {
+    $('#app').hidden = true; $('#lock').hidden = false;
+    if (remember) $('#err').textContent = e.status === 401 ? 'That password didn’t work.' : 'Could not load: ' + e.message;
+    else if (e.status === 401) { REMEMBER.del(KEY); $('#err').textContent = 'Please sign in again.'; }
+    else $('#err').textContent = 'Could not load: ' + e.message;
+  }
+}
+$('#unlock').addEventListener('submit', e => { e.preventDefault(); $('#err').textContent = ''; start($('#pw').value.trim(), true); });
+const saved = REMEMBER.get(KEY);
+if (saved) start(saved, false); else $('#lock').hidden = false;
+</script>
+</body>
+</html>

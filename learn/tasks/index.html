@@ -46,6 +46,9 @@
     .proj { position: relative; }
     .proj[data-act=toggle] { cursor: pointer; transition: transform .2s, box-shadow .2s; text-align: center; padding: 22px 18px 18px; }
     .proj[data-act=toggle]:hover, .proj[data-act=toggle]:focus-visible { transform: translateY(-4px); box-shadow: 0 18px 40px rgba(0,0,0,.35); outline: none; }
+    a.proj.tool { display: block; text-decoration: none; cursor: pointer; transition: transform .2s, box-shadow .2s; text-align: center; padding: 22px 18px 18px; }
+    a.proj.tool:hover, a.proj.tool:focus-visible { transform: translateY(-4px); box-shadow: 0 18px 40px rgba(0,0,0,.35); outline: none; }
+    @media (max-width: 560px) { a.proj.tool { padding: 16px 10px 14px; } }
     .proj.sel { box-shadow: 0 0 0 3px var(--teal), 0 18px 40px rgba(0,0,0,.35); transform: translateY(-4px); }
     #panel { margin-top: 22px; scroll-margin-top: 16px; }
     #panel:empty { display: none; }
@@ -813,7 +816,9 @@ function render() {
   const PERSONAL = new Set(['life-admin']);
   const work = d.brands.filter(x => !PERSONAL.has(slug(x.name))), personal = d.brands.filter(x => PERSONAL.has(slug(x.name)));
   const W = work.map(cardHtml).sort(byUrgency), P = personal.map(cardHtml).sort(byUrgency);
-  $('#brands').innerHTML = `<p class="grp">Work</p>` + W.map(x => x.tile).join('') + (P.length ? `<p class="grp">Personal</p>` + P.map(x => x.tile).join('') : '');
+  // Tools: the Invoice maker card (15 Nov 2026) opens its own page, invoices/.
+  const invTile = `<a class="board proj tool" href="invoices/" style="--tint:#7aa9f0" aria-label="Open the Invoice maker"><div class="plogo"><img src="logos/invoices.svg" alt=""></div><h2>Invoices</h2><p class="line">Next no. ${esc(d.invoiceNext || '…')}</p>${d.invoiceLast ? `<p class="line">Last saved: ${esc(d.invoiceLast)}</p>` : ''}</a>`;
+  $('#brands').innerHTML = `<p class="grp">Work</p>` + W.map(x => x.tile).join('') + `<p class="grp">Tools</p>` + invTile + (P.length ? `<p class="grp">Personal</p>` + P.map(x => x.tile).join('') : '');
   $('#panel').innerHTML = W.concat(P).map(x => x.panel).join('');
   if (firstPaint) {
     firstPaint = false; const bx = $('#brands');
