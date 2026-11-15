@@ -133,6 +133,9 @@
     .sbtns { display: flex; flex-direction: column; gap: 6px; flex: none; }
     .sbtns button { padding: 7px 12px; font-size: 13px; }
     .sbtns .ghost { background: #f1f2f6; color: var(--w-ink); }
+    .scard { position: relative; }
+    body { overflow-x: clip; }
+    .dstamp { position: absolute; left: 50%; top: 50%; border: 4px solid #E24B4A; color: #E24B4A; background: rgba(255,255,255,.85); font: 800 26px var(--font); letter-spacing: 3px; padding: 4px 14px; border-radius: 8px; pointer-events: none; z-index: 5; opacity: 0; white-space: nowrap; }
     .sbtns .startcc { justify-content: center; padding: 7px 12px; font-size: 13px; }
     .scom { margin-top: 8px; padding: 8px 10px; background: #f4f6fb; border-radius: 8px; font: 400 13px/1.45 var(--font); color: var(--w-ink); }
     .scom i { color: var(--w-muted); }
@@ -530,6 +533,21 @@ function card(t) {
     ${t.detail && (!t.done || doneToday(t)) ? `<small>${esc(t.detail)}</small>` : ''}${meta ? `<div class="src">${meta}</div>` : ''}</div>
     <div class="acts">${t.done ? '' : `<a class="startcc" href="${esc(ccLink(t))}" title="Open a new Claude Code session with this task filled in">Start ▶</a>`}${extra}<button class="edit" data-act="edit" aria-label="Edit task">Edit</button></div></li>`;
 }
+// Dismiss animation: red DISMISSED stamp slams on, then the card is flicked off to the right.
+function stampAndFlick(li) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { li.classList.add('saving'); return { done: Promise.resolve(), undo() {} }; }
+  li.style.pointerEvents = 'none';
+  const st = document.createElement('div'); st.className = 'dstamp'; st.textContent = 'DISMISSED'; li.appendChild(st);
+  const anims = [];
+  anims.push(st.animate([{ transform: 'translate(-50%,-50%) scale(3) rotate(-12deg)', opacity: 0 }, { transform: 'translate(-50%,-50%) scale(1) rotate(-12deg)', opacity: 1 }], { duration: 260, easing: 'ease-in', fill: 'forwards' }));
+  li.animate([{ transform: 'none' }, { transform: 'translateY(3px)', offset: .3 }, { transform: 'none' }], { duration: 300, delay: 200 });
+  const flick = new Promise(res => setTimeout(() => {
+    const w = innerWidth;
+    const a = li.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateX(-14px) rotate(-2deg)', offset: .2 }, { transform: `translate(${w}px,-40px) rotate(22deg)`, opacity: .5 }], { duration: 520, easing: 'ease-in', fill: 'forwards' });
+    anims.push(a); a.finished.then(res, res);
+  }, 700));
+  return { done: flick, undo() { anims.forEach(a => a.cancel()); st.remove(); li.style.pointerEvents = ''; } };
+}
 function sugCard(s) {
   const kind = s.kind === 'waiting' ? `Waiting on ${esc(s.who)}` : s.due && diff(s.due) > LATER_AFTER ? 'Later' : 'Task';
   const safe = /^https?:\/\//.test(s.link || '') ? s.link : '';
@@ -858,12 +876,15 @@ document.addEventListener('click', async e => {
     catch (err) { t.due = was; render(); toast('Not saved: ' + err.message); }
   }
   else if (act === 'accept' || act === 'dismiss') {
-    const li = el.closest('.scard'), sid = li.dataset.sid; li.classList.add('saving');
+    const li = el.closest('.scard'), sid = li.dataset.sid;
+    const anim = act === 'dismiss' ? stampAndFlick(li) : null;
+    if (!anim) li.classList.add('saving');
     try {
       const r = await api(`/suggestions/${sid}/${act}`, 'POST', {});
+      if (anim) await anim.done;
       data.suggestions = data.suggestions.filter(x => x.id !== sid);
       if (act === 'accept') { if (r.task && !find(r.task.id)) data.tasks.push(r.task); toast('Added to your tasks.'); render(); } else { toast('Dismissed. It won’t be suggested again.'); render(); }
-    } catch (err) { li.classList.remove('saving'); toast('Not saved: ' + err.message); }
+    } catch (err) { if (anim) anim.undo(); li.classList.remove('saving'); toast('Not saved: ' + err.message); }
   }
   else if (act.startsWith('h') && ['hslip', 'htick', 'hedit', 'hadd'].includes(act)) { habitAct(act, el); return; }
   else if (act === 'scomment') { if (editing) return; editing = 'comment:' + el.closest('.scard').dataset.sid; render(); document.querySelector('.scomform textarea')?.focus(); }
