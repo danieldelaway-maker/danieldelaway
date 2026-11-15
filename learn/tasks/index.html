@@ -776,9 +776,9 @@ function render() {
     const sugLine = sugs.length ? `<p class="sugline"><i class="sdot"></i>${sugs.length} suggestion${sugs.length > 1 ? 's' : ''}</p>` : '';
     const tile = `<article class="board proj ${isOpen ? 'sel' : ''} ${DASH[key] ? 'hasdash' : ''}" ${TINT[key] ? `style="--tint:${TINT[key]}"` : ''} aria-expanded="${isOpen}" data-act="toggle" data-brand="${br.id}" role="button" tabindex="0" aria-label="Open ${esc(br.name)} tasks">${badge}${DASH[key] ? `<a class="dashlink" href="${DASH[key]}" target="_blank" rel="noopener" title="Open the ${esc(br.name)} dashboard">📊<span class="dl-t"> Dashboard</span> ↗</a>` : ''}
       <div class="plogo">${logo}</div><h2>${esc(br.name)}</h2>${main.length ? `<p class="line ${urgent ? 'hot' : ''}">${esc(bits[0])}</p>` : '<p class="clear">All clear ✓</p>'}${sub ? `<p class="line">${esc(sub)}</p>` : ''}${sugLine}</article>`;
-    // urgency: overdue/chase first, then due within 2 days, then soonest due, then most open
+    // most open tasks first; ties: overdue/chase, then due within 2 days, then soonest due
     const late = main.filter(t => isChase(t) || (t.due && t.kind !== 'waiting' && diff(t.due) < 0)).length;
-    const rank = [late ? 0 : 1, urgent ? 0 : 1, next ? next.due : '9999', -main.length];
+    const rank = [-main.length, late ? 0 : 1, urgent ? 0 : 1, next ? next.due : '9999'];
     if (!isOpen) return { tile, panel: '', rank };
     const panel = `<article class="board open">
       <div class="ohead"><div class="plogo sm">${logo}</div><h2>${esc(br.name)}</h2>${DASH[key] ? `<a class="dashlink" href="${DASH[key]}" target="_blank" rel="noopener" style="--tint:${TINT[key] || '#5b7bff'}">📊 Dashboard ↗</a>` : ''}<button class="close" data-act="toggle" data-brand="${br.id}" aria-label="Close ${esc(br.name)}">Close</button></div>
