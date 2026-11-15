@@ -1087,7 +1087,12 @@ document.addEventListener('click', async e => {
         const from = li.getBoundingClientRect(), text = li.querySelector('.trow b')?.textContent || '';
         if (r.task && !find(r.task.id)) data.tasks.push(r.task); render(); toast('Added to your tasks. 🎉');
         const row = r.task && await afterPaint(`.tcard[data-id="${r.task.id}"]`);
-        if (row && added) { row.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); row.style.opacity = 0; await fx.fly(from, row, text); row.style.opacity = ''; fx.popIn(row, true); const [x, y] = fx.center(row); fx.float(x, y - 10, '+1 task'); }
+        if (row && added) {
+          // Never scroll: fly into the new row only if it's on screen; otherwise celebrate where the suggestion was.
+          const rb = row.getBoundingClientRect(), seen = rb.bottom > 0 && rb.top < innerHeight;
+          if (seen) { row.style.opacity = 0; await fx.fly(from, row, text); row.style.opacity = ''; fx.popIn(row, true); const [x, y] = fx.center(row); fx.float(x, y - 10, '+1 task'); }
+          else { const x = from.left + from.width / 2, y = from.top + from.height / 2; fx.burst(x, y, 22, 70); fx.float(x, y - 10, '+1 task ' + (rb.top >= innerHeight ? '↓' : '↑')); fx.popIn(row); }
+        }
       } else { toast('Dismissed. It won’t be suggested again.'); render(); }
     } catch (err) { if (anim) anim.undo(); added?.remove(); li.style.pointerEvents = ''; li.classList.remove('saving'); toast('Not saved: ' + err.message); }
   }
