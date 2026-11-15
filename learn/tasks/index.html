@@ -134,6 +134,10 @@
     .sbtns button { padding: 7px 12px; font-size: 13px; }
     .sbtns .ghost { background: #f1f2f6; color: var(--w-ink); }
     .scard { position: relative; }
+    .tcard { position: relative; }
+    .confetti { position: fixed; border-radius: 2px; pointer-events: none; z-index: 30; }
+    .mswipe { position: absolute; height: 16px; border-radius: 5px; background: rgba(47,211,168,.45); transform-origin: left; transform: scaleX(0); pointer-events: none; z-index: 1; }
+    .dstamp.done { border-color: #0f9f86; color: #0f9f86; font-size: 20px; padding: 2px 10px; }
     body { overflow-x: clip; }
     .dstamp { position: absolute; left: 50%; top: 50%; border: 4px solid #E24B4A; color: #E24B4A; background: rgba(255,255,255,.85); font: 800 26px var(--font); letter-spacing: 3px; padding: 4px 14px; border-radius: 8px; pointer-events: none; z-index: 5; opacity: 0; white-space: nowrap; }
     .sbtns .startcc { justify-content: center; padding: 7px 12px; font-size: 13px; }
@@ -827,16 +831,31 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.aitem')) { e.preventDefault(); e.target.click(); } });
 function celebrate(id, box) {
-  const li = document.querySelector(`.tcard[data-id="${id}"] .tick`); li?.classList.add('pop');
+  const li = id ? document.querySelector(`.tcard[data-id="${id}"]`) : null; li?.querySelector('.tick')?.classList.add('pop');
   const sn = $('#scoreN'); if (sn) { sn.classList.remove('bump'); void sn.offsetWidth; sn.classList.add('bump'); }
-  if (!box) return;
-  const cx = box.left + box.width / 2, cy = box.top + box.height / 2, cols = ['#2fd3a8', '#5b7bff', '#ffb45b', '#ff5f6d', '#0f9f86'];
-  for (let i = 0; i < 14; i++) {
-    const s = document.createElement('i'), a = (i / 14) * Math.PI * 2, r = 28 + Math.random() * 26;
-    s.className = 'spark'; s.style.left = cx + 'px'; s.style.top = cy + 'px'; s.style.background = cols[i % cols.length];
-    s.style.setProperty('--dx', Math.cos(a) * r + 'px'); s.style.setProperty('--dy', Math.sin(a) * r + 'px'); s.style.setProperty('--r', (Math.random() * 360) + 'deg');
-    document.body.appendChild(s); setTimeout(() => s.remove(), 800);
+  if (!box || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  // 1) Confetti cannon: a burst from the tick that rains down with gravity.
+  const cx = box.left + box.width / 2, cy = box.top + box.height / 2, cols = ['#2fd3a8', '#5b7bff', '#ffb45b', '#ff5f6d', '#0f9f86', '#b06bff'];
+  for (let i = 0; i < 70; i++) {
+    const s = document.createElement('i'), w = 5 + Math.random() * 5;
+    s.className = 'confetti'; Object.assign(s.style, { left: cx + 'px', top: cy + 'px', width: w + 'px', height: w * 1.6 + 'px', background: cols[i % cols.length] });
+    document.body.appendChild(s);
+    const vx = (Math.random() - .35) * 520, vy = -(260 + Math.random() * 320), T = 1400 + Math.random() * 600, k = [];
+    for (let f = 0; f <= 10; f++) { const t = f / 10 * T / 1000; k.push({ transform: `translate(${vx * t}px,${vy * t + 520 * t * t}px) rotate(${f * 70 * (i % 2 ? 1 : -1)}deg)`, opacity: f > 7 ? 1 - (f - 7) / 3 : 1 }); }
+    s.animate(k, { duration: T, easing: 'linear', fill: 'forwards' }).onfinish = () => s.remove();
   }
+  // 2) Marker swipe across the task, then a green DONE stamp.
+  const title = li?.querySelector('.trow b'); if (!title) return;
+  const lb = li.getBoundingClientRect(), tb = title.getBoundingClientRect();
+  const hl = document.createElement('i'); hl.className = 'mswipe';
+  Object.assign(hl.style, { left: tb.left - lb.left - 4 + 'px', top: tb.top - lb.top + tb.height / 2 - 8 + 'px', width: tb.width + 8 + 'px' });
+  const st = document.createElement('i'); st.className = 'dstamp done'; st.textContent = 'DONE';
+  Object.assign(st.style, { left: Math.min(tb.right - lb.left, lb.width - 70) + 'px', top: tb.top - lb.top + tb.height / 2 + 'px' });
+  li.append(hl, st);
+  hl.animate([{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 350, easing: 'ease-out', fill: 'forwards' });
+  st.animate([{ transform: 'translate(-50%,-50%) scale(3) rotate(-10deg)', opacity: 0 }, { transform: 'translate(-50%,-50%) scale(1) rotate(-10deg)', opacity: 1 }], { duration: 260, delay: 330, easing: 'ease-in', fill: 'both' });
+  li.animate([{ transform: 'none' }, { transform: 'translateY(3px)' }, { transform: 'none' }], { duration: 250, delay: 570 });
+  setTimeout(() => [hl, st].forEach(e => e.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 500, fill: 'forwards' }).onfinish = () => e.remove()), 2200);
 }
 
 const find = id => data.tasks.find(t => t.id === id);
