@@ -298,8 +298,9 @@ function renderPreview() {
     <table><colgroup><col style="width:${col ? '42%' : '70%'}">${col ? '<col style="width:30%">' : ''}<col></colgroup>
       <thead><tr><th>Description</th>${col ? `<th class="c">${esc(col)}</th>` : ''}<th class="a">Amount</th></tr></thead><tbody>${rows}</tbody></table>
     <div class="tot">
-      ${d.gst ? `<span class="k">Subtotal</span><span class="v">${money(t.sub)}</span><span class="k">GST (10%)</span><span class="v">${money(t.gst)}</span>` : ''}
-      <span class="k big">Total</span><span class="v big">${money(t.total)} ${esc(d.currency)}</span>
+      ${d.gst && !d.gstIncl ? `<span class="k">Subtotal</span><span class="v">${money(t.sub)}</span><span class="k">GST (10%)</span><span class="v">${money(t.gst)}</span>` : ''}
+      <span class="k big">Total${d.gst ? (d.gstIncl ? ' (inc. GST)' : '') : ''}</span><span class="v big">${money(t.total)} ${esc(d.currency)}</span>
+      ${d.gst && d.gstIncl ? `<span class="note">Includes GST of ${money(t.gst)}</span>` : ''}
       ${d.gst && d.gstAud ? `<span class="note">GST in AUD: ${esc(d.gstAud)}</span>` : ''}
     </div></div>
     <div class="ft"><div class="l">${(bank?.lines || []).map(esc).join('<br>')}</div>
