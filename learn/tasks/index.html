@@ -194,7 +194,12 @@
     /* brand tints */
     .proj[style*="--tint"] { background: linear-gradient(180deg, #fff 58%, color-mix(in srgb, var(--tint) 13%, #fff) 100%); }
     .proj .badge { z-index: 2; }
-    .proj[style*="--tint"]::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 4px; border-radius: 18px 18px 0 0; background: var(--tint); opacity: .55; }
+    .proj[style*="--tint"]::after { content: ''; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 4px 0 color-mix(in srgb, var(--tint) 55%, transparent); pointer-events: none; }
+    .dashlink { position: absolute; top: 12px; left: 12px; z-index: 2; display: inline-flex; align-items: center; gap: 4px; padding: 4px 9px; border-radius: 999px; font: 600 11.5px var(--font); text-decoration: none; color: color-mix(in srgb, var(--tint, #5b7bff) 80%, #12141c); background: color-mix(in srgb, var(--tint, #5b7bff) 10%, #fff); border: 1px solid color-mix(in srgb, var(--tint, #5b7bff) 25%, #fff); transition: background .15s, color .15s, transform .15s; white-space: nowrap; }
+    @media (max-width: 560px) { .proj .dashlink { top: 8px; left: 8px; padding: 3px 7px; } .proj .dashlink .dl-t { display: none; } }
+    .dashlink:hover { background: var(--tint, #5b7bff); color: #fff; transform: translateY(-1px); }
+    .ohead .dashlink { position: static; margin-left: auto; font-size: 13px; padding: 6px 12px; }
+    .ohead .dashlink + .close { margin-left: 8px; }
 
     /* done-today counter + tick celebration */
     .donepill { display: inline-flex; align-items: center; gap: 6px; font: 600 13px var(--font); color: var(--teal); background: color-mix(in srgb, var(--teal) 12%, transparent); border-radius: 999px; padding: 6px 12px; }
@@ -722,6 +727,7 @@ function habitsBox() {
 }
 const slug = n => String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const LOGOS = new Set(['sls3', 'zensim', 'true-blue-studies', 'her-naturals', 'sally', 'everyone', 'kitchen-impossible', 'life-admin', 'standish-co', 'tinct']);
+const DASH = { 'sls3': 'https://admin.sls3.us', 'zensim': 'https://zensim.danieldelaway.com', 'true-blue-studies': 'https://tbs.danieldelaway.com', 'everyone': 'https://downloadeveryone.com/stats/', 'kitchen-impossible': 'https://impossiblecards.com/pages/hq', 'sally': 'https://takesally.com/pages/hq' };
 const TINT = { 'sls3': '#d7263d', 'zensim': '#3a3f4f', 'true-blue-studies': '#2bb5d6', 'her-naturals': '#2f6b4f', 'sally': '#7d5f8a', 'everyone': '#0f7a6a', 'kitchen-impossible': '#9a3fd1', 'life-admin': '#5b7bff', 'standish-co': '#1d1db3', 'tinct': '#4a5a94' };
 const isPhone = () => matchMedia('(max-width: 560px)').matches;
 let openedId = null, firstPaint = true; const prevCount = {}; // one project open at a time, shown below all the cards
@@ -748,14 +754,14 @@ function render() {
     const bits = [main.length ? `${main.length} open${next ? ' · next due ' + (dueChip(next).replace(/<[^>]+>/g, '') || short(next.due)) : ''}` : 'Nothing open'];
     const sub = [waiting.length && `${waiting.length} waiting`, later.length && `${later.length} later`].filter(Boolean).join(' · ');
     const sugLine = sugs.length ? `<p class="sugline">${sugs.length} new suggestion${sugs.length > 1 ? 's' : ''}</p>` : '';
-    const tile = `<article class="board proj ${isOpen ? 'sel' : ''}" ${TINT[key] ? `style="--tint:${TINT[key]}"` : ''} aria-expanded="${isOpen}" data-act="toggle" data-brand="${br.id}" role="button" tabindex="0" aria-label="Open ${esc(br.name)} tasks">${badge}
+    const tile = `<article class="board proj ${isOpen ? 'sel' : ''}" ${TINT[key] ? `style="--tint:${TINT[key]}"` : ''} aria-expanded="${isOpen}" data-act="toggle" data-brand="${br.id}" role="button" tabindex="0" aria-label="Open ${esc(br.name)} tasks">${badge}${DASH[key] ? `<a class="dashlink" href="${DASH[key]}" target="_blank" rel="noopener" title="Open the ${esc(br.name)} dashboard">📊<span class="dl-t"> Dashboard</span> ↗</a>` : ''}
       <div class="plogo">${logo}</div><h2>${esc(br.name)}</h2>${main.length ? `<p class="line ${urgent ? 'hot' : ''}">${esc(bits[0])}</p>` : '<p class="clear">All clear ✓</p>'}${sub ? `<p class="line">${esc(sub)}</p>` : ''}${sugLine}</article>`;
     // urgency: overdue/chase first, then due within 2 days, then soonest due, then most open
     const late = main.filter(t => isChase(t) || (t.due && t.kind !== 'waiting' && diff(t.due) < 0)).length;
     const rank = [late ? 0 : 1, urgent ? 0 : 1, next ? next.due : '9999', -main.length];
     if (!isOpen) return { tile, panel: '', rank };
     const panel = `<article class="board open">
-      <div class="ohead"><div class="plogo sm">${logo}</div><h2>${esc(br.name)}</h2><button class="close" data-act="toggle" data-brand="${br.id}" aria-label="Close ${esc(br.name)}">Close</button></div>
+      <div class="ohead"><div class="plogo sm">${logo}</div><h2>${esc(br.name)}</h2>${DASH[key] ? `<a class="dashlink" href="${DASH[key]}" target="_blank" rel="noopener" style="--tint:${TINT[key] || '#5b7bff'}">📊 Dashboard ↗</a>` : ''}<button class="close" data-act="toggle" data-brand="${br.id}" aria-label="Close ${esc(br.name)}">Close</button></div>
       ${key === 'life-admin' ? habitsBox() : ''}
       ${notesBox(br)}
       ${sugs.length ? `<div class="tray"><p class="trayh">Suggested by Claude <span>Add the ones that are real; dismiss the rest.</span></p><ul class="tasks">${sugs.map(sugCard).join('')}</ul></div>` : ''}
