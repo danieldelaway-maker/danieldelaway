@@ -135,6 +135,8 @@
     .sbtns .ghost { background: #f1f2f6; color: var(--w-ink); }
     .scard { position: relative; }
     .tcard { position: relative; }
+    .fxfloat { position: fixed; pointer-events: none; z-index: 40; font: 800 18px var(--font); white-space: nowrap; font-style: normal; text-shadow: 0 1px 0 #fff; }
+    .fxghost { position: fixed; z-index: 35; pointer-events: none; transform-origin: top left; background: #fff; border: 2px solid #2fd3a8; border-radius: 12px; padding: 10px 12px; font: 600 14px var(--font); color: #12141c; overflow: hidden; box-shadow: 0 10px 30px rgba(15,159,134,.25); }
     .confetti { position: fixed; border-radius: 2px; pointer-events: none; z-index: 30; }
     .mswipe { position: absolute; height: 16px; border-radius: 5px; background: rgba(47,211,168,.45); transform-origin: left; transform: scaleX(0); pointer-events: none; z-index: 1; }
     .dstamp.done { border-color: #0f9f86; color: #0f9f86; font-size: 20px; padding: 2px 10px; }
@@ -459,7 +461,7 @@ if (saved) { $('#lock').hidden = true; $('#app').hidden = false; $('#built').tex
 $('#syncBtn').addEventListener('click', async () => {
   const b = $('#syncBtn'); if (editing) { toast('Save or cancel your edit first.'); return; }
   b.disabled = true; b.classList.add('spin'); const ok = await load(false, true).catch(() => false);
-  b.disabled = false; b.classList.remove('spin'); if (ok) toast('Up to date.');
+  b.disabled = false; b.classList.remove('spin'); if (ok) { toast('Up to date. ✨'); if (FX_OK()) { const bx = $('#brands'); bx.querySelectorAll('.proj').forEach((el, i) => el.style.setProperty('--i', i)); bx.classList.remove('wave'); void bx.offsetWidth; bx.classList.add('wave'); setTimeout(() => bx.classList.remove('wave'), 1600); const [x, y] = fx.center(b); fx.burst(x, y, 12, 40); } }
 });
 function paintTheme() {
   const dark = document.documentElement.dataset.theme === 'dark';
@@ -560,6 +562,68 @@ function card(t) {
     ${t.detail && (!t.done || doneToday(t)) ? `<small>${esc(t.detail)}</small>` : ''}${meta ? `<div class="src">${meta}</div>` : ''}</div>
     <div class="acts">${t.done ? '' : `<a class="startcc" href="${esc(ccLink(t))}" title="Open a new Claude Code session with this task filled in">Start ▶</a>`}${extra}<button class="edit" data-act="edit" aria-label="Edit task">Edit</button></div></li>`;
 }
+// ---------- Fun effects for actions (all skipped when the device asks for reduced motion) ----------
+const FX_OK = () => !matchMedia('(prefers-reduced-motion: reduce)').matches;
+const FX_COLS = ['#2fd3a8', '#5b7bff', '#ffb45b', '#ff5f6d', '#0f9f86', '#b06bff'];
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const fx = {
+  burst(x, y, n = 18, spread = 50, cols = FX_COLS) {
+    if (!FX_OK()) return;
+    for (let i = 0; i < n; i++) {
+      const s = document.createElement('i'), a = Math.random() * Math.PI * 2, r = spread * (.5 + Math.random() * .7);
+      s.className = 'confetti'; Object.assign(s.style, { left: x + 'px', top: y + 'px', width: '6px', height: '6px', background: cols[i % cols.length] });
+      document.body.appendChild(s);
+      s.animate([{ transform: 'none', opacity: 1 }, { transform: `translate(${Math.cos(a) * r}px,${Math.sin(a) * r}px) rotate(${Math.random() * 360}deg)`, opacity: 0 }], { duration: 650 + Math.random() * 250, easing: 'cubic-bezier(.2,.7,.3,1)', fill: 'forwards' }).onfinish = () => s.remove();
+    }
+  },
+  float(x, y, text, color = '#0f9f86', size = 18) {
+    if (!FX_OK()) return;
+    const e = document.createElement('i'); e.className = 'fxfloat'; e.textContent = text;
+    Object.assign(e.style, { left: x + 'px', top: y + 'px', color, fontSize: size + 'px' }); document.body.appendChild(e);
+    e.animate([{ transform: 'translate(-50%,0) scale(.5)', opacity: 0 }, { transform: 'translate(-50%,-28px) scale(1.15)', opacity: 1, offset: .3 }, { transform: 'translate(-50%,-62px) scale(1)', opacity: 0 }], { duration: 1200, easing: 'ease-out', fill: 'forwards' }).onfinish = () => e.remove();
+  },
+  center(el) { const b = el.getBoundingClientRect(); return [b.left + b.width / 2, b.top + b.height / 2]; },
+  // A new or changed item pops in with a glow.
+  popIn(el, big) {
+    if (!el || !FX_OK()) return;
+    el.animate([{ transform: big ? 'scale(.7) translateY(-14px)' : 'scale(.96)', opacity: big ? 0 : 1, boxShadow: '0 0 0 0 rgba(47,211,168,.8)' }, { transform: 'scale(1.03)', opacity: 1, offset: .55, boxShadow: '0 0 0 8px rgba(47,211,168,.35)' }, { transform: 'none', boxShadow: '0 0 0 16px rgba(47,211,168,0)' }], { duration: 700, easing: 'cubic-bezier(.3,1.4,.5,1)' });
+    if (big) { const [x, y] = fx.center(el); fx.burst(x, y, 22, 70); }
+  },
+  // Deleting: the item crumples into a ball and drops away.
+  crumple(el) {
+    if (!el || !FX_OK()) return Promise.resolve();
+    el.style.pointerEvents = 'none';
+    return el.animate([{ transform: 'none', opacity: 1 }, { transform: 'scale(.55,.35) rotate(-6deg)', borderRadius: '40%', offset: .35 }, { transform: 'translate(30px,-30px) scale(.12) rotate(220deg)', borderRadius: '50%', offset: .65 }, { transform: 'translate(70px,140px) scale(.08) rotate(480deg)', borderRadius: '50%', opacity: 0 }], { duration: 750, easing: 'ease-in', fill: 'forwards' }).finished.catch(() => {});
+  },
+  shake(el) { if (el && FX_OK()) el.animate([{ transform: 'none' }, { transform: 'translateX(-7px) rotate(-1deg)' }, { transform: 'translateX(7px) rotate(1deg)' }, { transform: 'translateX(-4px)' }, { transform: 'translateX(4px)' }, { transform: 'none' }], { duration: 450 }); },
+  // A paper plane flies off from an element.
+  plane(el) {
+    if (!el || !FX_OK()) return;
+    const [x, y] = fx.center(el), p = document.createElement('i'); p.className = 'fxfloat'; p.textContent = '✈️';
+    Object.assign(p.style, { left: x + 'px', top: y + 'px', fontSize: '22px' }); document.body.appendChild(p);
+    p.animate([{ transform: 'translate(-50%,-50%) scale(.4) rotate(0)', opacity: 0 }, { transform: 'translate(-50%,-50%) scale(1.1) rotate(-10deg)', opacity: 1, offset: .15 }, { transform: 'translate(40px,10px) rotate(5deg)', offset: .4 }, { transform: `translate(${innerWidth - x + 60}px,-160px) rotate(-25deg)`, opacity: 1 }], { duration: 1300, easing: 'ease-in-out', fill: 'forwards' }).onfinish = () => p.remove();
+  },
+  // A stamp slams onto a card (ADDED, DONE…).
+  stamp(card, text, color) {
+    if (!card || !FX_OK()) return null;
+    const st = document.createElement('i'); st.className = 'dstamp'; st.textContent = text;
+    Object.assign(st.style, { borderColor: color, color }); card.appendChild(st);
+    st.animate([{ transform: 'translate(-50%,-50%) scale(3) rotate(-12deg)', opacity: 0 }, { transform: 'translate(-50%,-50%) scale(1) rotate(-12deg)', opacity: 1 }], { duration: 260, easing: 'ease-in', fill: 'forwards' });
+    card.animate([{ transform: 'none' }, { transform: 'translateY(3px)', offset: .3 }, { transform: 'none' }], { duration: 300, delay: 200 });
+    return st;
+  },
+  // A ghost of one box flies into another spot on the page.
+  fly(fromRect, toEl, text) {
+    if (!toEl || !FX_OK()) return;
+    const to = toEl.getBoundingClientRect(), g = document.createElement('div'); g.className = 'fxghost'; g.textContent = text;
+    Object.assign(g.style, { left: fromRect.left + 'px', top: fromRect.top + 'px', width: fromRect.width + 'px', height: fromRect.height + 'px' });
+    document.body.appendChild(g);
+    const dx = to.left - fromRect.left, dy = to.top - fromRect.top, sx = to.width / fromRect.width, sy = to.height / fromRect.height;
+    return g.animate([{ transform: 'none', opacity: 1 }, { transform: `translate(${dx * .4}px,${dy * .4 - 60}px) scale(${(1 + sx) / 2},${(1 + sy) / 2}) rotate(-4deg)`, offset: .45 }, { transform: `translate(${dx}px,${dy}px) scale(${sx},${sy})`, opacity: .2 }], { duration: 700, easing: 'cubic-bezier(.5,0,.3,1)', fill: 'forwards' }).finished.then(() => g.remove());
+  },
+};
+const afterPaint = sel => new Promise(r => requestAnimationFrame(() => r(document.querySelector(sel))));
+
 // Dismiss animation: red DISMISSED stamp slams on, then the card is flicked off to the right.
 function stampAndFlick(li) {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) { li.classList.add('saving'); return { done: Promise.resolve(), undo() {} }; }
@@ -906,7 +970,7 @@ function doneToday(t) { return t.done && t.edited && new Date(t.edited).toDateSt
 document.addEventListener('change', async e => {
   if (!e.target.classList.contains('tick')) return;
   const li = e.target.closest('.tcard'), t = find(li.dataset.id), done = e.target.checked;
-  const was = t.edited, box = e.target.getBoundingClientRect(); const wasAt = t.doneAt, before = scoreStats(); t.done = done; t.edited = new Date().toISOString(); t.doneAt = done ? t.edited : ''; render(); if (done) { celebrate(t.id, box); recordCheck(before); }
+  const was = t.edited, box = e.target.getBoundingClientRect(); const wasAt = t.doneAt, before = scoreStats(); t.done = done; t.edited = new Date().toISOString(); t.doneAt = done ? t.edited : ''; render(); if (done) { celebrate(t.id, box); recordCheck(before); } else afterPaint(`.tcard[data-id="${t.id}"] .tick`).then(c => c && FX_OK() && c.animate([{ transform: 'rotate(0)' }, { transform: 'rotate(-360deg) scale(1.2)' }, { transform: 'rotate(-360deg)' }], { duration: 500, easing: 'ease-out' }));
   try { const r = await api('/tasks/' + t.id, 'PATCH', { done }); toast(done ? (r.next ? 'Ticked off. The next one is lined up.' : 'Ticked off.') : 'Moved back to open.'); if (r.next) load(true); }
   catch (err) { t.done = !done; t.edited = was; t.doneAt = wasAt; render(); toast('Not saved: ' + err.message); }
 });
@@ -919,10 +983,12 @@ async function habitAct(act, el) {
   if (act === 'htick') {
     const on = (h.days || []).includes(t0), was = h.days || [];
     h.days = on ? was.filter(d => d !== t0) : [...was, t0];
+    if (!on) { const [x, y] = fx.center(el); fx.burst(x, y, 26, 60); fx.float(x, y - 14, ['Nice! 🔥', 'Streak +1', 'Yes! 💪', 'Keep going!'][Math.floor(Math.random() * 4)]); }
+    afterPaint(`.hrow[data-hid="${id}"]`).then(r => !on && fx.popIn(r));
     save('/habits/' + id, 'PATCH', { day: t0, done: !on }, () => { h.days = was; });
   } else if (act === 'hslip') {
     if (!confirm(`Slipped on “${h.name}” today? The count goes back to 0.`)) return;
-    const was = h.last; h.last = t0;
+    const was = h.last; h.last = t0; fx.shake(el.closest('.hrow'));
     save('/habits/' + id, 'PATCH', { last: t0 }, () => { h.last = was; }, 'Back to day 0. You’ve got this.');
   } else if (act === 'hedit') {
     const name = prompt('Habit name (clear it to delete the habit):', h.name); if (name === null) return;
@@ -942,7 +1008,7 @@ async function habitAct(act, el) {
   } else if (act === 'hadd') {
     const kind = el.dataset.kind;
     const name = prompt(kind === 'avoid' ? 'Habit to avoid (e.g. No sugary drinks):' : 'Daily habit (e.g. Read 10 pages):'); if (!name || !name.trim()) return;
-    try { const r = await api('/habits', 'POST', { kind, name: name.trim(), last: kind === 'avoid' ? t0 : '' }); (data.habits ||= []).push(r.habit); render(); toast('Added.'); }
+    try { const r = await api('/habits', 'POST', { kind, name: name.trim(), last: kind === 'avoid' ? t0 : '' }); (data.habits ||= []).push(r.habit); render(); toast('Added.'); afterPaint(`.hrow[data-hid="${r.habit.id}"]`).then(x => fx.popIn(x, true)); }
     catch (err) { toast('Not added: ' + err.message); }
   }
 }
@@ -955,20 +1021,28 @@ document.addEventListener('click', async e => {
   if (act === 'closeall') { openedId = null; editing = null; render(); return; }
   if (act === 'edit') { if (editing) return; editing = el.closest('.tcard').dataset.id; render(); document.querySelector('.form input[name=text]')?.focus(); }
   else if (act === 'chased') {
-    const t = find(el.closest('.tcard').dataset.id), was = t.due; t.due = isoToday(); render();
+    const t = find(el.closest('.tcard').dataset.id), was = t.due; fx.plane(el); const [cx, cy] = fx.center(el); fx.float(cx, cy - 12, 'Chased! 📣', '#5b7bff'); t.due = isoToday(); render();
+    afterPaint(`.tcard[data-id="${t.id}"]`).then(r => fx.popIn(r));
     try { await api('/tasks/' + t.id, 'PATCH', { due: t.due }); toast('Noted. The waiting clock starts again today.'); }
     catch (err) { t.due = was; render(); toast('Not saved: ' + err.message); }
   }
   else if (act === 'accept' || act === 'dismiss') {
     const li = el.closest('.scard'), sid = li.dataset.sid;
     const anim = act === 'dismiss' ? stampAndFlick(li) : null;
-    if (!anim) li.classList.add('saving');
+    let added = null;
+    if (act === 'accept') { li.style.pointerEvents = 'none'; added = fx.stamp(li, 'ADDED', '#0f9f86'); if (!added) li.classList.add('saving'); }
     try {
       const r = await api(`/suggestions/${sid}/${act}`, 'POST', {});
       if (anim) await anim.done;
       data.suggestions = data.suggestions.filter(x => x.id !== sid);
-      if (act === 'accept') { if (r.task && !find(r.task.id)) data.tasks.push(r.task); toast('Added to your tasks.'); render(); } else { toast('Dismissed. It won’t be suggested again.'); render(); }
-    } catch (err) { if (anim) anim.undo(); li.classList.remove('saving'); toast('Not saved: ' + err.message); }
+      if (act === 'accept') {
+        if (added) await wait(450);
+        const from = li.getBoundingClientRect(), text = li.querySelector('.trow b')?.textContent || '';
+        if (r.task && !find(r.task.id)) data.tasks.push(r.task); render(); toast('Added to your tasks. 🎉');
+        const row = r.task && await afterPaint(`.tcard[data-id="${r.task.id}"]`);
+        if (row && added) { row.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); row.style.opacity = 0; await fx.fly(from, row, text); row.style.opacity = ''; fx.popIn(row, true); const [x, y] = fx.center(row); fx.float(x, y - 10, '+1 task'); }
+      } else { toast('Dismissed. It won’t be suggested again.'); render(); }
+    } catch (err) { if (anim) anim.undo(); added?.remove(); li.style.pointerEvents = ''; li.classList.remove('saving'); toast('Not saved: ' + err.message); }
   }
   else if (act.startsWith('h') && ['hslip', 'htick', 'hedit', 'hadd'].includes(act)) { habitAct(act, el); return; }
   else if (act === 'scomment') { if (editing) return; editing = 'comment:' + el.closest('.scard').dataset.sid; render(); document.querySelector('.scomform textarea')?.focus(); }
@@ -979,24 +1053,24 @@ document.addEventListener('click', async e => {
   else if (act === 'ndelete') {
     const id = el.closest('form').dataset.nid, n = data.notes.find(x => x.id === id);
     if (!confirm(`Delete “${n.text}”? Claude can still get it back for you if you change your mind.`)) return;
-    el.closest('.ncard').classList.add('saving');
-    try { await api('/notes/' + id, 'DELETE'); data.notes = data.notes.filter(x => x.id !== id); editing = null; render(); toast('Deleted.'); }
-    catch (err) { el.closest('.ncard').classList.remove('saving'); toast('Not deleted: ' + err.message); }
+    const card = el.closest('.ncard'), gone = fx.crumple(card); if (!FX_OK()) card.classList.add('saving');
+    try { await api('/notes/' + id, 'DELETE'); await gone; data.notes = data.notes.filter(x => x.id !== id); editing = null; render(); toast('Deleted.'); }
+    catch (err) { card.getAnimations().forEach(a => a.cancel()); card.style.pointerEvents = ''; card.classList.remove('saving'); toast('Not deleted: ' + err.message); }
   }
   else if (act === 'cancel') { editing = null; render(); }
   else if (act === 'delete') {
     const id = el.closest('form').dataset.id, t = find(id);
     if (!confirm(`Delete “${t.text}”? Claude can still get it back for you if you change your mind.`)) return;
-    el.closest('.tcard').classList.add('saving');
-    try { await api('/tasks/' + id, 'DELETE'); data.tasks = data.tasks.filter(x => x.id !== id); editing = null; render(); toast('Deleted.'); }
-    catch (err) { el.closest('.tcard').classList.remove('saving'); toast('Not deleted: ' + err.message); }
+    const card = el.closest('.tcard'), gone = fx.crumple(card); if (!FX_OK()) card.classList.add('saving');
+    try { await api('/tasks/' + id, 'DELETE'); await gone; data.tasks = data.tasks.filter(x => x.id !== id); editing = null; render(); toast('Deleted.'); }
+    catch (err) { card.getAnimations().forEach(a => a.cancel()); card.style.pointerEvents = ''; card.classList.remove('saving'); toast('Not deleted: ' + err.message); }
   }
 });
 document.addEventListener('submit', async e => {
   if (e.target.matches('.scomform')) {
     e.preventDefault();
     const f = e.target, sid = f.dataset.sid, text = f.comment.value.trim(); if (!text) return;
-    f.classList.add('saving'); const btn = f.querySelector('button[type=submit]'); if (btn) { btn.disabled = true; btn.textContent = 'Claude is fixing it…'; }
+    f.classList.add('saving'); const btn = f.querySelector('button[type=submit]'); fx.plane(btn); if (btn) { btn.disabled = true; btn.textContent = 'Claude is fixing it…'; }
     try {
       const r = await api(`/suggestions/${sid}/comment`, 'POST', { text });
       const sg = r.suggestion, i = data.suggestions.findIndex(x => x.id === sid);
@@ -1007,6 +1081,7 @@ document.addEventListener('submit', async e => {
       if (sg && i > -1 && slug(sg.brand) !== slug(data.brands.find(b => b.id === openedId)?.name)) { const nb = data.brands.find(b => slug(b.name) === slug(sg.brand)); if (nb) openedId = nb.id; }
       editing = null; render();
       toast(r.instant ? (sg?.reply || 'Done.') : 'Saved. Claude will sort it on its next check.');
+      afterPaint(`.scard[data-sid="${sid}"]`).then(c => { if (!c) return; fx.popIn(c); const [x, y] = fx.center(c); if (r.instant) { fx.burst(x, y, 24, 90, ['#d97757', '#ffb45b', '#f7c948', '#fff6d0']); fx.float(x, y - 20, '✨ Fixed', '#d97757'); } });
     } catch (err) { f.classList.remove('saving'); if (btn) { btn.disabled = false; btn.textContent = 'Send to Claude'; } toast('Not saved: ' + err.message); }
     return;
   }
@@ -1017,8 +1092,11 @@ document.addEventListener('submit', async e => {
     f.querySelectorAll('button').forEach(b => b.disabled = true);
     try {
       if (f.dataset.nid) { await api('/notes/' + f.dataset.nid, 'PATCH', v); Object.assign(data.notes.find(x => x.id === f.dataset.nid), v); }
-      else { const r = await api('/notes', 'POST', { ...v, brand: f.dataset.brand }); (data.notes ||= []).push({ ...v, id: r.id, brand: f.dataset.brand }); }
-      editing = null; toast('Saved.'); render();
+      let nid = f.dataset.nid;
+      if (!nid) { const r = await api('/notes', 'POST', { ...v, brand: f.dataset.brand }); nid = r.id; (data.notes ||= []).push({ ...v, id: r.id, brand: f.dataset.brand }); }
+      editing = null; toast(f.dataset.nid ? 'Saved.' : 'Pinned. 📌'); render();
+      afterPaint(`.ncard[data-nid="${nid}"]`).then(n => { if (!n || !FX_OK()) return; fx.popIn(n, !f.dataset.nid); const b = n.getBoundingClientRect(), p = document.createElement('i'); p.className = 'fxfloat'; p.textContent = '📌'; Object.assign(p.style, { left: b.left + 14 + 'px', top: b.top + 'px', fontSize: '24px' }); document.body.appendChild(p);
+        p.animate([{ transform: 'translate(-50%,-90px) rotate(-30deg)', opacity: 0 }, { transform: 'translate(-50%,-8px) rotate(10deg)', opacity: 1, offset: .6 }, { transform: 'translate(-50%,-16px) rotate(0)', offset: .8 }, { transform: 'translate(-50%,-10px)', opacity: 0 }], { duration: 1100, easing: 'ease-in', fill: 'forwards' }).onfinish = () => p.remove(); });
     } catch (err) { f.querySelectorAll('button').forEach(b => b.disabled = false); toast('Not saved: ' + err.message); }
     return;
   }
@@ -1028,9 +1106,11 @@ document.addEventListener('submit', async e => {
   if (!v.text) return;
   f.closest('.tcard').classList.add('saving'); f.querySelectorAll('button').forEach(b => b.disabled = true);
   try {
-    if (f.dataset.id) { await api('/tasks/' + f.dataset.id, 'PATCH', v); Object.assign(find(f.dataset.id), v); }
-    else { const r = await api('/tasks', 'POST', { ...v, brand: f.dataset.brand }); data.tasks.push(r.task || { ...v, id: r.id, brand: f.dataset.brand, done: false, source: 'added on the site' }); }
-    editing = null; toast('Saved.'); render();
+    let tid = f.dataset.id;
+    if (tid) { await api('/tasks/' + tid, 'PATCH', v); Object.assign(find(tid), v); }
+    else { const r = await api('/tasks', 'POST', { ...v, brand: f.dataset.brand }); tid = r.task?.id || r.id; data.tasks.push(r.task || { ...v, id: r.id, brand: f.dataset.brand, done: false, source: 'added on the site' }); }
+    editing = null; toast(f.dataset.id ? 'Saved.' : 'New task added. Let’s go! 💪'); render();
+    afterPaint(`.tcard[data-id="${tid}"]`).then(r => { fx.popIn(r, !f.dataset.id); if (r && !f.dataset.id) { const [x, y] = fx.center(r); fx.float(x, y - 10, '+1 task'); } });
   } catch (err) { f.closest('.tcard').classList.remove('saving'); f.querySelectorAll('button').forEach(b => b.disabled = false); toast('Not saved: ' + err.message); }
 });
 document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.proj[data-act=toggle]')) { e.preventDefault(); e.target.click(); return; } if (e.key === 'Escape' && editing) { editing = null; render(); } });
