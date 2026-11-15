@@ -112,6 +112,15 @@
     summary:hover { color: var(--w-ink); }
     details .tasks { margin-top: 10px; }
 
+    .hform { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; width: 100%; }
+    .hform input[name=name] { flex: 1 1 200px; min-width: 0; padding: 8px 11px; border-radius: 10px; border: 1px solid var(--w-line); font: 500 14px var(--font); color: var(--w-ink); background: #fff; }
+    .hform .hlast { display: flex; align-items: center; gap: 6px; font: 600 12px var(--font); color: var(--w-muted); }
+    .hform .hlast input { padding: 6px 8px; border-radius: 8px; border: 1px solid var(--w-line); font: 500 13px var(--font); color: var(--w-ink); }
+    .hform .hfb { display: flex; gap: 6px; }
+    .hform .hfb button { padding: 7px 12px; font-size: 13px; }
+    .hform .ghost { background: #eef0f4; color: var(--w-ink); }
+    .hform .hdel.sure { background: #d64545; color: #fff; }
+    .tundo { margin-left: 10px; padding: 4px 10px; border-radius: 8px; font: 700 12px var(--font); background: #fff; color: #12141c; }
     #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: #12141c; color: #fff; border: 1px solid var(--line); padding: 10px 16px; border-radius: 12px; font-size: 14px; max-width: calc(100% - 32px); z-index: 10; }
     .foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 40px; font-size: 13px; color: var(--muted); }
     .foot a { color: var(--muted); }
@@ -720,16 +729,20 @@ function streak(h) {
 function habitsBox() {
   const hs = data.habits || [], avoid = hs.filter(h => h.kind === 'avoid'), daily = hs.filter(h => h.kind === 'daily'), t0 = isoToday();
   const ticked = daily.filter(h => (h.days || []).includes(t0)).length;
-  const av = h => { const n = h.last ? daysSince(h.last) : null;
+  const hform = (h, kind) => `<li class="hrow hrow-edit" ${h ? `data-hid="${h.id}"` : ''}><form class="hform" ${h ? `data-hid="${h.id}"` : `data-kind="${kind}"`}>
+      <input name="name" value="${h ? esc(h.name) : ''}" placeholder="${kind === 'avoid' ? 'e.g. No sugary drinks' : 'e.g. Read 10 pages'}" aria-label="Habit name" required>
+      ${h && kind === 'avoid' ? `<label class="hlast">Last slipped <input type="date" name="last" value="${h.last || ''}" max="${t0}"></label>` : ''}
+      <div class="hfb"><button type="submit">${h ? 'Save' : 'Add'}</button>${h ? '<button type="button" class="ghost hdel" data-act="hdel">Delete</button>' : ''}<button type="button" class="ghost" data-act="cancel">Cancel</button></div></form></li>`;
+  const av = h => { if (editing === 'habit:' + h.id) return hform(h, 'avoid'); const n = h.last ? daysSince(h.last) : null;
     return `<li class="hrow" data-hid="${h.id}"><span class="hdays ${n === null ? '' : n < 7 ? 'low' : n < 30 ? 'mid' : ''}"><b>${n === null ? '–' : n}</b><small>${n === 1 ? 'day' : 'days'}</small></span>
       <span class="hname">${esc(h.name)}<small>${h.last ? 'Last slipped ' + new Date(h.last + 'T12:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: h.last.slice(0, 4) === t0.slice(0, 4) ? undefined : 'numeric' }) : 'Never slipped'}</small></span>
       <button class="hbtn" data-act="hslip" title="Slipped today: start the count again">Slipped</button><button class="hbtn" data-act="hedit">Edit</button></li>`; };
-  const dl = h => { const on = (h.days || []).includes(t0), st = streak(h);
+  const dl = h => { if (editing === 'habit:' + h.id) return hform(h, 'daily'); const on = (h.days || []).includes(t0), st = streak(h);
     return `<li class="hrow ${on ? 'on' : ''}" data-hid="${h.id}"><button class="hcheck" data-act="htick" aria-pressed="${on}" aria-label="Done today: ${esc(h.name)}">✓</button>
       <span class="hname">${esc(h.name)}</span>${st > 1 ? `<span class="streak" title="${st} days in a row">🔥 ${st}</span>` : ''}<button class="hbtn" data-act="hedit">Edit</button></li>`; };
   return `<div class="habits"><p class="habh">🌱 Habit tracker <span>Days since you last slipped, and today's ticks.</span></p>
-    <p class="habsub">Habits to avoid</p><ul class="hlist">${avoid.map(av).join('')}</ul>
-    <p class="habsub">Daily habits <span class="htoday">· today ${ticked}/${daily.length}</span></p><ul class="hlist">${daily.map(dl).join('')}</ul>
+    <p class="habsub">Habits to avoid</p><ul class="hlist">${avoid.map(av).join('')}${editing === 'newhabit:avoid' ? hform(null, 'avoid') : ''}</ul>
+    <p class="habsub">Daily habits <span class="htoday">· today ${ticked}/${daily.length}</span></p><ul class="hlist">${daily.map(dl).join('')}${editing === 'newhabit:daily' ? hform(null, 'daily') : ''}</ul>
     <div class="hadds"><button class="nadd" data-act="hadd" data-kind="avoid">+ Habit to avoid</button><button class="nadd" data-act="hadd" data-kind="daily">+ Daily habit</button></div></div>`;
 }
 const slug = n => String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -1033,32 +1046,44 @@ async function habitAct(act, el) {
     afterPaint(`.hrow[data-hid="${id}"]`).then(r => !on && fx.popIn(r));
     save('/habits/' + id, 'PATCH', { day: t0, done: !on }, () => { h.days = was; });
   } else if (act === 'hslip') {
-    if (!confirm(`Slipped on “${h.name}” today? The count goes back to 0.`)) return;
+    // No pop-up: reset straight away, with Undo in the message.
     const was = h.last, from = h.last ? daysSince(h.last) : 0; h.last = t0;
     afterPaint(`.hrow[data-hid="${id}"] .hdays b`).then(b => { if (!b || !FX_OK() || from < 1) return; let n = from; const step = Math.max(1, Math.ceil(from / 20)); b.textContent = n;
       const iv = setInterval(() => { n = Math.max(0, n - step); b.textContent = n; if (!n) { clearInterval(iv); b.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.6)' }, { transform: 'scale(1)' }], { duration: 350 }); } }, 50); });
-    save('/habits/' + id, 'PATCH', { last: t0 }, () => { h.last = was; }, 'Back to day 0. You’ve got this.');
+    const r = await save('/habits/' + id, 'PATCH', { last: t0 }, () => { h.last = was; });
+    if (r) toastUndo('Back to day 0. You’ve got this.', () => { h.last = was; save('/habits/' + id, 'PATCH', { last: was || '' }, () => { h.last = t0; }, 'Undone.'); });
   } else if (act === 'hedit') {
-    const name = prompt('Habit name (clear it to delete the habit):', h.name); if (name === null) return;
-    if (!name.trim()) {
-      if (!confirm(`Delete “${h.name}”?`)) return;
-      const was = data.habits; data.habits = was.filter(x => x !== h);
-      return save('/habits/' + id, 'DELETE', undefined, () => { data.habits = was; }, 'Deleted.');
-    }
-    const body = { name: name.trim() };
-    if (h.kind === 'avoid') {
-      const last = prompt('Last slipped (YYYY-MM-DD, or leave blank):', h.last || ''); if (last === null) return;
-      if (last.trim() && !/^\d{4}-\d{2}-\d{2}$/.test(last.trim())) { toast('Use a date like ' + t0); return; }
-      body.last = last.trim();
-    }
-    const was = { ...h }; Object.assign(h, body);
-    save('/habits/' + id, 'PATCH', body, () => Object.assign(h, was), 'Saved.');
+    if (editing) return; editing = 'habit:' + id; render(); document.querySelector('.hform input[name=name]')?.focus();
   } else if (act === 'hadd') {
-    const kind = el.dataset.kind;
-    const name = prompt(kind === 'avoid' ? 'Habit to avoid (e.g. No sugary drinks):' : 'Daily habit (e.g. Read 10 pages):'); if (!name || !name.trim()) return;
-    try { const r = await api('/habits', 'POST', { kind, name: name.trim(), last: kind === 'avoid' ? t0 : '' }); (data.habits ||= []).push(r.habit); render(); toast('Added.'); afterPaint(`.hrow[data-hid="${r.habit.id}"]`).then(x => fx.popIn(x, true)); }
-    catch (err) { toast('Not added: ' + err.message); }
+    if (editing) return; editing = 'newhabit:' + el.dataset.kind; render(); document.querySelector('.hform input[name=name]')?.focus();
+  } else if (act === 'hdel') {
+    // Two taps, all on the page: the first turns the button red, the second deletes.
+    if (!el.classList.contains('sure')) { el.classList.add('sure'); el.textContent = 'Tap again to delete'; setTimeout(() => { if (el.isConnected) { el.classList.remove('sure'); el.textContent = 'Delete'; } }, 3000); return; }
+    const hid = el.closest('.hform').dataset.hid, hh = data.habits.find(x => x.id === hid), was = data.habits, row = el.closest('.hrow');
+    const gone = fx.trapdoor(row);
+    try { await api('/habits/' + hid, 'DELETE'); await gone; data.habits = was.filter(x => x !== hh); editing = null; render(); toast('Deleted.'); }
+    catch (err) { row.getAnimations().forEach(a => a.cancel()); row.style.pointerEvents = ''; toast('Not deleted: ' + err.message); }
   }
+}
+function toastUndo(msg, undo) {
+  const t = $('#toast'); t.textContent = msg + ' '; const b = document.createElement('button'); b.className = 'tundo'; b.type = 'button'; b.textContent = 'Undo';
+  b.onclick = () => { t.hidden = true; undo(); }; t.appendChild(b); t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 6000);
+}
+// Habit edit / add forms (in the page, no browser pop-ups).
+async function habitSubmit(f) {
+  const name = f.elements.name.value.trim(); if (!name) return;
+  f.querySelectorAll('button').forEach(b => b.disabled = true);
+  try {
+    if (f.dataset.hid) {
+      const h = data.habits.find(x => x.id === f.dataset.hid), body = { name };
+      if (f.elements.last) body.last = f.elements.last.value;
+      await api('/habits/' + h.id, 'PATCH', body); Object.assign(h, body); editing = null; render(); toast('Saved.');
+      afterPaint(`.hrow[data-hid="${h.id}"]`).then(r => fx.popIn(r));
+    } else {
+      const kind = f.dataset.kind, r = await api('/habits', 'POST', { kind, name, last: kind === 'avoid' ? isoToday() : '' });
+      (data.habits ||= []).push(r.habit); editing = null; render(); toast('Added.'); afterPaint(`.hrow[data-hid="${r.habit.id}"]`).then(x => fx.popIn(x, true));
+    }
+  } catch (err) { f.querySelectorAll('button').forEach(b => b.disabled = false); toast('Not saved: ' + err.message); }
 }
 document.addEventListener('click', async e => {
   const el = e.target.closest('[data-act]'); if (!el || e.target.closest('a')) return;
@@ -1099,7 +1124,7 @@ document.addEventListener('click', async e => {
       } else { toast('Dismissed. It won’t be suggested again.'); render(); }
     } catch (err) { if (anim) anim.undo(); added?.remove(); li.style.pointerEvents = ''; li.classList.remove('saving'); toast('Not saved: ' + err.message); }
   }
-  else if (act.startsWith('h') && ['hslip', 'htick', 'hedit', 'hadd'].includes(act)) { habitAct(act, el); return; }
+  else if (act.startsWith('h') && ['hslip', 'htick', 'hedit', 'hadd', 'hdel'].includes(act)) { habitAct(act, el); return; }
   else if (act === 'scomment') { if (editing) return; editing = 'comment:' + el.closest('.scard').dataset.sid; render(); document.querySelector('.scomform textarea')?.focus(); }
   else if (act === 'add') { if (editing) return; editing = 'new:' + el.dataset.brand; render(); }
   else if (act === 'ntoggle') { const id = el.closest('.ncard').dataset.nid; openNotes.has(id) ? openNotes.delete(id) : openNotes.add(id); render(); }
@@ -1122,6 +1147,7 @@ document.addEventListener('click', async e => {
   }
 });
 document.addEventListener('submit', async e => {
+  if (e.target.matches('.hform')) { e.preventDefault(); habitSubmit(e.target); return; }
   if (e.target.matches('.scomform')) {
     e.preventDefault();
     const f = e.target, sid = f.dataset.sid, text = f.comment.value.trim(); if (!text) return;
