@@ -1050,6 +1050,13 @@ async function habitAct(act, el) {
     const was = h.last, from = h.last ? daysSince(h.last) : 0; h.last = t0;
     afterPaint(`.hrow[data-hid="${id}"] .hdays b`).then(b => { if (!b || !FX_OK() || from < 1) return; let n = from; const step = Math.max(1, Math.ceil(from / 20)); b.textContent = n;
       const iv = setInterval(() => { n = Math.max(0, n - step); b.textContent = n; if (!n) { clearInterval(iv); b.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.6)' }, { transform: 'scale(1)' }], { duration: 350 }); } }, 50); });
+    afterPaint(`.hrow[data-hid="${id}"]`).then(row => { // banana peel: skids under the row, it slips, wobbles, gets back up
+      if (!row || !FX_OK()) return; const b = row.getBoundingClientRect();
+      fx.emoji(b.left - 30, b.bottom - 26, '🍌', [{ transform: 'translateX(0) rotate(0)' }, { transform: `translateX(${Math.min(160, b.width / 3)}px) rotate(200deg)`, offset: .4 }, { transform: `translateX(${Math.min(180, b.width / 3 + 20)}px) rotate(220deg)`, opacity: 1, offset: .85 }, { transform: `translateX(${Math.min(180, b.width / 3 + 20)}px)`, opacity: 0 }], { duration: 1500, easing: 'ease-out' }, 24);
+      row.style.transformOrigin = 'left bottom';
+      row.animate([{ transform: 'none' }, { transform: 'none', offset: .25 }, { transform: 'translateX(30px) rotate(5deg)', offset: .4 }, { transform: 'translateX(10px) rotate(-3deg)', offset: .6 }, { transform: 'rotate(1deg)', offset: .75 }, { transform: 'none' }], { duration: 1500, easing: 'ease-out' });
+      setTimeout(() => fx.float(b.left + b.width / 2, b.top - 4, 'Whoops! Up you get', '#5b7bff', 16), 600);
+    });
     const r = await save('/habits/' + id, 'PATCH', { last: t0 }, () => { h.last = was; });
     if (r) toastUndo('Back to day 0. You’ve got this.', () => { h.last = was; save('/habits/' + id, 'PATCH', { last: was || '' }, () => { h.last = t0; }, 'Undone.'); });
   } else if (act === 'hedit') {
