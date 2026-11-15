@@ -136,6 +136,7 @@
     .scard { position: relative; }
     .tcard { position: relative; }
     .fxfloat { position: fixed; pointer-events: none; z-index: 40; font: 800 18px var(--font); white-space: nowrap; font-style: normal; text-shadow: 0 1px 0 #fff; }
+    .fxdoor { position: fixed; height: 4px; background: #444441; border-radius: 2px; transform-origin: left; z-index: 36; pointer-events: none; }
     .fxghost { position: fixed; z-index: 35; pointer-events: none; transform-origin: top left; background: #fff; border: 2px solid #2fd3a8; border-radius: 12px; padding: 10px 12px; font: 600 14px var(--font); color: #12141c; overflow: hidden; box-shadow: 0 10px 30px rgba(15,159,134,.25); }
     .confetti { position: fixed; border-radius: 2px; pointer-events: none; z-index: 30; }
     .mswipe { position: absolute; height: 16px; border-radius: 5px; background: rgba(47,211,168,.45); transform-origin: left; transform: scaleX(0); pointer-events: none; z-index: 1; }
@@ -461,7 +462,7 @@ if (saved) { $('#lock').hidden = true; $('#app').hidden = false; $('#built').tex
 $('#syncBtn').addEventListener('click', async () => {
   const b = $('#syncBtn'); if (editing) { toast('Save or cancel your edit first.'); return; }
   b.disabled = true; b.classList.add('spin'); const ok = await load(false, true).catch(() => false);
-  b.disabled = false; b.classList.remove('spin'); if (ok) { toast('Up to date. ✨'); if (FX_OK()) { const bx = $('#brands'); bx.querySelectorAll('.proj').forEach((el, i) => el.style.setProperty('--i', i)); bx.classList.remove('wave'); void bx.offsetWidth; bx.classList.add('wave'); setTimeout(() => bx.classList.remove('wave'), 1600); const [x, y] = fx.center(b); fx.burst(x, y, 12, 40); } }
+  b.disabled = false; b.classList.remove('spin'); if (ok) { toast('Up to date. ✨'); if (FX_OK()) { const bx = $('#brands'); $('#brands').querySelectorAll('.proj').forEach((el, i) => el.animate([{ transform: 'perspective(600px) rotateY(0)' }, { transform: 'perspective(600px) rotateY(360deg)' }], { duration: 700, delay: i * 70, easing: 'ease-in-out' })); } }
 });
 function paintTheme() {
   const dark = document.documentElement.dataset.theme === 'dark';
@@ -595,6 +596,22 @@ const fx = {
     el.style.pointerEvents = 'none';
     return el.animate([{ transform: 'none', opacity: 1 }, { transform: 'scale(.55,.35) rotate(-6deg)', borderRadius: '40%', offset: .35 }, { transform: 'translate(30px,-30px) scale(.12) rotate(220deg)', borderRadius: '50%', offset: .65 }, { transform: 'translate(70px,140px) scale(.08) rotate(480deg)', borderRadius: '50%', opacity: 0 }], { duration: 750, easing: 'ease-in', fill: 'forwards' }).finished.catch(() => {});
   },
+  // Deleting: a trapdoor opens under the item and it falls through.
+  trapdoor(el) {
+    if (!el || !FX_OK()) return Promise.resolve();
+    el.style.pointerEvents = 'none';
+    const b = el.getBoundingClientRect(), d = document.createElement('i'); d.className = 'fxdoor';
+    Object.assign(d.style, { left: b.left + 'px', top: b.bottom + 2 + 'px', width: b.width + 'px' }); document.body.appendChild(d);
+    d.animate([{ transform: 'rotate(0)' }, { transform: 'rotate(75deg)', offset: .3 }, { transform: 'rotate(75deg)', offset: .85 }, { transform: 'rotate(0)', opacity: 0 }], { duration: 1100 }).onfinish = () => d.remove();
+    const [x] = fx.center(el); setTimeout(() => fx.float(x, b.top - 6, 'Bye! 👋', '#888780', 16), 250);
+    return el.animate([{ transform: 'none', opacity: 1 }, { transform: 'none', offset: .25 }, { transform: 'translateY(160px) rotate(25deg)', opacity: 0 }], { duration: 750, easing: 'ease-in', fill: 'forwards' }).finished.catch(() => {});
+  },
+  emoji(x, y, ch, frames, opts, size = 26) {
+    if (!FX_OK()) return null;
+    const e = document.createElement('i'); e.className = 'fxfloat'; e.textContent = ch;
+    Object.assign(e.style, { left: x + 'px', top: y + 'px', fontSize: size + 'px', textShadow: 'none' }); document.body.appendChild(e);
+    e.animate(frames, { fill: 'forwards', ...opts }).onfinish = () => e.remove(); return e;
+  },
   shake(el) { if (el && FX_OK()) el.animate([{ transform: 'none' }, { transform: 'translateX(-7px) rotate(-1deg)' }, { transform: 'translateX(7px) rotate(1deg)' }, { transform: 'translateX(-4px)' }, { transform: 'translateX(4px)' }, { transform: 'none' }], { duration: 450 }); },
   // A paper plane flies off from an element.
   plane(el) {
@@ -622,6 +639,13 @@ const fx = {
     return g.animate([{ transform: 'none', opacity: 1 }, { transform: `translate(${dx * .4}px,${dy * .4 - 60}px) scale(${(1 + sx) / 2},${(1 + sy) / 2}) rotate(-4deg)`, offset: .45 }, { transform: `translate(${dx}px,${dy}px) scale(${sx},${sy})`, opacity: .2 }], { duration: 700, easing: 'cubic-bezier(.5,0,.3,1)', fill: 'forwards' }).finished.then(() => g.remove());
   },
 };
+// Magic wand waves across a card, leaving sparkles.
+function magicWand(card) {
+  if (!card || !FX_OK()) return;
+  const b = card.getBoundingClientRect(), y = b.top + Math.min(b.height / 2, 40);
+  fx.emoji(b.left, y - 30, '🪄', [{ transform: 'rotate(-20deg)' }, { transform: `translateX(${b.width - 30}px) rotate(20deg)` }], { duration: 900, easing: 'ease-in-out' }, 26);
+  for (let i = 0; i < 12; i++) fx.emoji(b.left + 10 + i * (b.width - 30) / 12, y - 10 + Math.random() * 30, '✨', [{ transform: 'scale(0)', opacity: 0 }, { transform: 'scale(1)', opacity: 1 }, { transform: 'scale(0) translateY(10px)', opacity: 0 }], { duration: 600, delay: i * 75 }, 14);
+}
 const afterPaint = sel => new Promise(r => requestAnimationFrame(() => r(document.querySelector(sel))));
 
 // Dismiss animation: red DISMISSED stamp slams on, then the card is flicked off to the right.
@@ -970,7 +994,7 @@ function doneToday(t) { return t.done && t.edited && new Date(t.edited).toDateSt
 document.addEventListener('change', async e => {
   if (!e.target.classList.contains('tick')) return;
   const li = e.target.closest('.tcard'), t = find(li.dataset.id), done = e.target.checked;
-  const was = t.edited, box = e.target.getBoundingClientRect(); const wasAt = t.doneAt, before = scoreStats(); t.done = done; t.edited = new Date().toISOString(); t.doneAt = done ? t.edited : ''; render(); if (done) { celebrate(t.id, box); recordCheck(before); } else afterPaint(`.tcard[data-id="${t.id}"] .tick`).then(c => c && FX_OK() && c.animate([{ transform: 'rotate(0)' }, { transform: 'rotate(-360deg) scale(1.2)' }, { transform: 'rotate(-360deg)' }], { duration: 500, easing: 'ease-out' }));
+  const was = t.edited, box = e.target.getBoundingClientRect(); const wasAt = t.doneAt, before = scoreStats(); t.done = done; t.edited = new Date().toISOString(); t.doneAt = done ? t.edited : ''; render(); if (done) { celebrate(t.id, box); recordCheck(before); } else afterPaint(`.tcard[data-id="${t.id}"]`).then(c => { if (!c || !FX_OK()) return; const b = c.getBoundingClientRect(); fx.float(b.left + 110, b.top, '⏪ Back on the list', '#888780', 15); c.animate([{ transform: 'none' }, { transform: 'translateX(-12px)' }, { transform: 'none' }], { duration: 400 }); });
   try { const r = await api('/tasks/' + t.id, 'PATCH', { done }); toast(done ? (r.next ? 'Ticked off. The next one is lined up.' : 'Ticked off.') : 'Moved back to open.'); if (r.next) load(true); }
   catch (err) { t.done = !done; t.edited = was; t.doneAt = wasAt; render(); toast('Not saved: ' + err.message); }
 });
@@ -983,12 +1007,16 @@ async function habitAct(act, el) {
   if (act === 'htick') {
     const on = (h.days || []).includes(t0), was = h.days || [];
     h.days = on ? was.filter(d => d !== t0) : [...was, t0];
-    if (!on) { const [x, y] = fx.center(el); fx.burst(x, y, 26, 60); fx.float(x, y - 14, ['Nice! 🔥', 'Streak +1', 'Yes! 💪', 'Keep going!'][Math.floor(Math.random() * 4)]); }
+    if (!on) { const [x, y] = fx.center(el), n = streak(h);
+      fx.emoji(x, y - 14, '🔥', [{ transform: 'translate(-50%,-50%) scale(0) translateY(10px)', opacity: 0 }, { transform: 'translate(-50%,-50%) scale(1.8) translateY(-8px)', opacity: 1, offset: .5 }, { transform: 'translate(-50%,-50%) scale(1.4) translateY(-14px)', opacity: 1, offset: .75 }, { transform: 'translate(-50%,-50%) scale(1) translateY(-30px)', opacity: 0 }], { duration: 1300, easing: 'cubic-bezier(.3,1.6,.5,1)' }, 24);
+      fx.float(x + 90, y - 14, n > 1 ? n + ' days!' : 'Day 1!', '#ff5f6d', 17); }
     afterPaint(`.hrow[data-hid="${id}"]`).then(r => !on && fx.popIn(r));
     save('/habits/' + id, 'PATCH', { day: t0, done: !on }, () => { h.days = was; });
   } else if (act === 'hslip') {
     if (!confirm(`Slipped on “${h.name}” today? The count goes back to 0.`)) return;
-    const was = h.last; h.last = t0; fx.shake(el.closest('.hrow'));
+    const was = h.last, from = h.last ? daysSince(h.last) : 0; h.last = t0;
+    afterPaint(`.hrow[data-hid="${id}"] .hdays b`).then(b => { if (!b || !FX_OK() || from < 1) return; let n = from; const step = Math.max(1, Math.ceil(from / 20)); b.textContent = n;
+      const iv = setInterval(() => { n = Math.max(0, n - step); b.textContent = n; if (!n) { clearInterval(iv); b.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.6)' }, { transform: 'scale(1)' }], { duration: 350 }); } }, 50); });
     save('/habits/' + id, 'PATCH', { last: t0 }, () => { h.last = was; }, 'Back to day 0. You’ve got this.');
   } else if (act === 'hedit') {
     const name = prompt('Habit name (clear it to delete the habit):', h.name); if (name === null) return;
@@ -1021,8 +1049,10 @@ document.addEventListener('click', async e => {
   if (act === 'closeall') { openedId = null; editing = null; render(); return; }
   if (act === 'edit') { if (editing) return; editing = el.closest('.tcard').dataset.id; render(); document.querySelector('.form input[name=text]')?.focus(); }
   else if (act === 'chased') {
-    const t = find(el.closest('.tcard').dataset.id), was = t.due; fx.plane(el); const [cx, cy] = fx.center(el); fx.float(cx, cy - 12, 'Chased! 📣', '#5b7bff'); t.due = isoToday(); render();
-    afterPaint(`.tcard[data-id="${t.id}"]`).then(r => fx.popIn(r));
+    const t = find(el.closest('.tcard').dataset.id), was = t.due; t.due = isoToday(); render();
+    afterPaint(`.tcard[data-id="${t.id}"]`).then(r => { if (!r || !FX_OK()) return; const b = r.getBoundingClientRect();
+      fx.emoji(b.left + b.width / 2, b.top - 34, '🔔', [{ transform: 'translateX(-50%) rotate(0)', opacity: 0 }, { transform: 'translateX(-50%) rotate(25deg)', opacity: 1 }, { transform: 'translateX(-50%) rotate(-25deg)' }, { transform: 'translateX(-50%) rotate(20deg)' }, { transform: 'translateX(-50%) rotate(-20deg)' }, { transform: 'translateX(-50%) rotate(10deg)' }, { transform: 'translateX(-50%) rotate(0)', opacity: 0 }], { duration: 1200 }, 30);
+      r.animate([{ transform: 'none' }, { transform: 'translateX(-3px)' }, { transform: 'translateX(3px)' }, { transform: 'none' }], { duration: 150, iterations: 4 }); });
     try { await api('/tasks/' + t.id, 'PATCH', { due: t.due }); toast('Noted. The waiting clock starts again today.'); }
     catch (err) { t.due = was; render(); toast('Not saved: ' + err.message); }
   }
@@ -1053,7 +1083,7 @@ document.addEventListener('click', async e => {
   else if (act === 'ndelete') {
     const id = el.closest('form').dataset.nid, n = data.notes.find(x => x.id === id);
     if (!confirm(`Delete “${n.text}”? Claude can still get it back for you if you change your mind.`)) return;
-    const card = el.closest('.ncard'), gone = fx.crumple(card); if (!FX_OK()) card.classList.add('saving');
+    const card = el.closest('.ncard'), gone = fx.trapdoor(card); if (!FX_OK()) card.classList.add('saving');
     try { await api('/notes/' + id, 'DELETE'); await gone; data.notes = data.notes.filter(x => x.id !== id); editing = null; render(); toast('Deleted.'); }
     catch (err) { card.getAnimations().forEach(a => a.cancel()); card.style.pointerEvents = ''; card.classList.remove('saving'); toast('Not deleted: ' + err.message); }
   }
@@ -1061,7 +1091,7 @@ document.addEventListener('click', async e => {
   else if (act === 'delete') {
     const id = el.closest('form').dataset.id, t = find(id);
     if (!confirm(`Delete “${t.text}”? Claude can still get it back for you if you change your mind.`)) return;
-    const card = el.closest('.tcard'), gone = fx.crumple(card); if (!FX_OK()) card.classList.add('saving');
+    const card = el.closest('.tcard'), gone = fx.trapdoor(card); if (!FX_OK()) card.classList.add('saving');
     try { await api('/tasks/' + id, 'DELETE'); await gone; data.tasks = data.tasks.filter(x => x.id !== id); editing = null; render(); toast('Deleted.'); }
     catch (err) { card.getAnimations().forEach(a => a.cancel()); card.style.pointerEvents = ''; card.classList.remove('saving'); toast('Not deleted: ' + err.message); }
   }
@@ -1070,7 +1100,7 @@ document.addEventListener('submit', async e => {
   if (e.target.matches('.scomform')) {
     e.preventDefault();
     const f = e.target, sid = f.dataset.sid, text = f.comment.value.trim(); if (!text) return;
-    f.classList.add('saving'); const btn = f.querySelector('button[type=submit]'); fx.plane(btn); if (btn) { btn.disabled = true; btn.textContent = 'Claude is fixing it…'; }
+    f.classList.add('saving'); const btn = f.querySelector('button[type=submit]'); magicWand(f.closest('.scard')); if (btn) { btn.disabled = true; btn.textContent = 'Claude is fixing it…'; }
     try {
       const r = await api(`/suggestions/${sid}/comment`, 'POST', { text });
       const sg = r.suggestion, i = data.suggestions.findIndex(x => x.id === sid);
@@ -1081,7 +1111,7 @@ document.addEventListener('submit', async e => {
       if (sg && i > -1 && slug(sg.brand) !== slug(data.brands.find(b => b.id === openedId)?.name)) { const nb = data.brands.find(b => slug(b.name) === slug(sg.brand)); if (nb) openedId = nb.id; }
       editing = null; render();
       toast(r.instant ? (sg?.reply || 'Done.') : 'Saved. Claude will sort it on its next check.');
-      afterPaint(`.scard[data-sid="${sid}"]`).then(c => { if (!c) return; fx.popIn(c); const [x, y] = fx.center(c); if (r.instant) { fx.burst(x, y, 24, 90, ['#d97757', '#ffb45b', '#f7c948', '#fff6d0']); fx.float(x, y - 20, '✨ Fixed', '#d97757'); } });
+      afterPaint(`.scard[data-sid="${sid}"]`).then(c => { if (!c) return; fx.popIn(c); const [x, y] = fx.center(c); if (r.instant) magicWand(c); });
     } catch (err) { f.classList.remove('saving'); if (btn) { btn.disabled = false; btn.textContent = 'Send to Claude'; } toast('Not saved: ' + err.message); }
     return;
   }
