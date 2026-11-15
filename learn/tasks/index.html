@@ -201,25 +201,27 @@
     .donepill[hidden] { display: none; }
     .donepill.bump { animation: bump .5s cubic-bezier(.3,1.6,.5,1); }
     @keyframes bump { 40% { transform: scale(1.18); } }
-    /* daily scoreboard */
-    .score { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px 20px; margin: -14px 0 32px; }
+    /* daily scoreboard: record tracker */
+    .score { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px 20px; margin: -14px 0 32px; }
     .score:empty { display: none; }
+    .shead { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px 14px; }
     .sbig { display: flex; align-items: baseline; gap: 8px; }
-    .sbig b { font: 800 46px/1 var(--font); color: var(--teal); display: inline-block; min-width: 1ch; }
+    .sbig b { font: 800 34px/1 var(--font); color: var(--teal); display: inline-block; }
     .sbig b.bump { animation: bump .5s cubic-bezier(.3,1.6,.5,1); }
-    .sbig span { font: 600 14px var(--font); color: var(--ink); }
-    .sinfo { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 6px; }
-    .smsg { font: 600 14px var(--font); color: var(--ink); }
-    .sstats { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
-    .sstats b { color: var(--ink); }
-    .sbar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
-    .sbar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--blue), var(--teal)); transition: width .5s cubic-bezier(.3,1.3,.5,1); }
-    .sweek { display: flex; align-items: flex-end; gap: 6px; height: 58px; }
-    .sweek div { display: flex; flex-direction: column; align-items: center; gap: 3px; width: 22px; }
-    .sweek i { width: 14px; border-radius: 4px 4px 2px 2px; background: color-mix(in srgb, var(--teal) 35%, transparent); min-height: 3px; }
-    .sweek .now i { background: linear-gradient(180deg, var(--blue), var(--teal)); }
-    .sweek small { font: 600 10px var(--font); color: var(--muted); }
-    .sweek em { font: 700 10px var(--font); color: var(--ink); font-style: normal; }
+    .sbig span { font: 600 16px var(--font); color: var(--ink); }
+    .schips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .schip { display: inline-flex; align-items: center; gap: 5px; background: color-mix(in srgb, var(--ink) 5%, transparent); border-radius: 999px; padding: 5px 11px; font: 500 12.5px var(--font); color: var(--muted); }
+    .schip b { color: var(--ink); }
+    .slots { display: flex; gap: 6px; margin: 14px 0 7px; }
+    .slots span { flex: 1; min-width: 0; height: 28px; border-radius: 8px; background: color-mix(in srgb, var(--ink) 5%, transparent); display: flex; align-items: center; justify-content: center; font: 700 13px var(--font); color: #fff; }
+    .slots .on { background: linear-gradient(90deg, var(--blue), var(--teal)); }
+    .slots .on.fresh { animation: slotin .5s cubic-bezier(.3,1.6,.5,1); }
+    @keyframes slotin { 0% { transform: scale(.4); } 60% { transform: scale(1.15); } 100% { transform: none; } }
+    .slots .goal { background: transparent; border: 2px dashed #ffb45b; font-size: 15px; }
+    .slots .goal.hit { background: linear-gradient(135deg, #ffd36b, #ffb45b); border-style: solid; }
+    .smsg { font: 500 12.5px var(--font); color: var(--muted); }
+    .smsg.win { color: #c98a00; font-weight: 700; }
+    @media (max-width: 560px) { .score { padding: 14px; } .slots { gap: 4px; } .slots span { height: 24px; } }
     .score.record { animation: recordglow 1.6s ease-out; }
     @keyframes recordglow { 0% { box-shadow: 0 0 0 0 rgba(255,180,91,.9); } 100% { box-shadow: 0 0 0 18px rgba(255,180,91,0); } }
     @media (max-width: 560px) { .score { gap: 14px; padding: 14px; } .sbig b { font-size: 38px; } }
@@ -966,19 +968,24 @@ function scoreStats() {
   const days = []; for (let i = 6; i >= 0; i--) { const x = new Date(); x.setDate(x.getDate() - i); days.push({ k: isoOf(x), v: per[isoOf(x)] || 0, l: 'SMTWTFS'[x.getDay()] }); }
   return { n, best, streak, week, days };
 }
+let lastScoreN = null;
 function renderScore() {
   const el = $('#score'); if (!el) return;
-  const { n, best, streak, week, days } = scoreStats();
-  const msg = !n ? (best ? `Nothing ticked yet today. Your best day is ${best}.` : 'Tick off your first task of the day.')
-    : n > best ? (best ? `🏆 New record! ${n - best} past your best day.` : '🏆 Your best day so far.')
-    : n === best ? 'Level with your best day. One more beats it.'
-    : `${best - n + 1} more to beat your best day (${best}).`;
-  const goal = Math.max(best + 1, 1), pct = Math.min(100, Math.round(n / goal * 100));
-  const top = Math.max(1, ...days.map(x => x.v));
-  el.innerHTML = `<div class="sbig"><b id="scoreN">${n}</b><span>done<br>today</span></div>
-    <div class="sinfo"><div class="smsg">${msg}</div><div class="sbar" title="Towards beating your best day"><i style="width:${pct}%"></i></div>
-    <div class="sstats"><span>Best day <b>${Math.max(best, n)}</b></span><span>This week <b>${week}</b></span><span>${streak ? '🔥' : ''} Workday streak <b>${streak}</b></span></div></div>
-    <div class="sweek" aria-label="Last 7 days">${days.map((x, i) => `<div class="${i === 6 ? 'now' : ''}" title="${x.k}: ${x.v} done">${x.v ? `<em>${x.v}</em>` : ''}<i style="height:${Math.round(x.v / top * 34)}px"></i><small>${x.l}</small></div>`).join('')}</div>`;
+  const { n, best, streak, week } = scoreStats();
+  const goal = best + 1, slots = Math.max(goal, n), many = slots > 30;
+  const fresh = lastScoreN !== null && n > lastScoreN ? n : 0; lastScoreN = n;
+  const cells = many ? '' : Array.from({ length: slots }, (_, i) => {
+    const on = i < n, isGoal = i === goal - 1;
+    if (isGoal) return `<span class="goal ${on ? 'hit on' : ''} ${on && i === fresh - 1 ? 'fresh' : ''}">🏆</span>`;
+    return `<span class="${on ? 'on' : ''} ${on && i === fresh - 1 ? 'fresh' : ''}">${on ? '✓' : ''}</span>`;
+  }).join('');
+  const msg = n > best ? (best ? `🏆 New record! ${n - best} past your best day.` : '🏆 Your best day so far.')
+    : !n ? (best ? `Your best day is ${best}. Fill the row to beat it.` : 'Tick off your first task of the day.')
+    : `${goal - n} more to beat your best day`;
+  el.innerHTML = `<div class="shead"><div class="sbig"><b id="scoreN">${n}</b><span>done today</span></div>
+    <div class="schips"><span class="schip">🏆 Best <b>${Math.max(best, n)}</b></span><span class="schip">📅 Week <b>${week}</b></span><span class="schip">🔥 <b>${streak}</b> day streak</span></div></div>
+    ${many ? `<div class="slots"><span class="on" style="flex:${Math.min(n, goal)}"></span><span style="flex:${Math.max(0, goal - n)}"></span></div>` : `<div class="slots">${cells}</div>`}
+    <div class="smsg ${n > best && n ? 'win' : ''}">${msg}</div>`;
 }
 function recordCheck(before) {
   const after = scoreStats();
