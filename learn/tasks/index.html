@@ -780,13 +780,15 @@ function render() {
     const late = main.filter(t => isChase(t) || (t.due && t.kind !== 'waiting' && diff(t.due) < 0)).length;
     const rank = [-main.length, late ? 0 : 1, urgent ? 0 : 1, next ? next.due : '9999'];
     if (!isOpen) return { tile, panel: '', rank };
+    // Life Admin shows its tasks first, then habits / notes / suggestions (Dan, 15 Nov 2026)
+    const extrasHtml = `${key === 'life-admin' ? habitsBox() : ''}
+      ${notesBox(br)}
+      ${sugs.length ? `<div class="tray"><p class="trayh">Suggested by Claude <span>Add the ones that are real; dismiss the rest.</span></p><ul class="tasks">${sugs.map(sugCard).join('')}</ul></div>` : ''}`;
+    const tasksHtml = `${shown.length || adding ? `<ul class="tasks">${shown.map(card).join('')}${adding ? `<li class="tcard">${form(null, br.id)}</li>` : ''}</ul>` : '<p class="empty">Nothing open right now.</p>'}
+      ${adding ? '' : `<button class="add" data-act="add" data-brand="${br.id}">+ Add task</button>`}`;
     const panel = `<article class="board open">
       <div class="ohead"><div class="plogo sm">${logo}</div><h2>${esc(br.name)}</h2>${DASH[key] ? `<a class="dashlink" href="${DASH[key]}" target="_blank" rel="noopener" style="--tint:${TINT[key] || '#5b7bff'}">📊 Dashboard ↗</a>` : ''}<button class="close" data-act="toggle" data-brand="${br.id}" aria-label="Close ${esc(br.name)}">Close</button></div>
-      ${key === 'life-admin' ? habitsBox() : ''}
-      ${notesBox(br)}
-      ${sugs.length ? `<div class="tray"><p class="trayh">Suggested by Claude <span>Add the ones that are real; dismiss the rest.</span></p><ul class="tasks">${sugs.map(sugCard).join('')}</ul></div>` : ''}
-      ${shown.length || adding ? `<ul class="tasks">${shown.map(card).join('')}${adding ? `<li class="tcard">${form(null, br.id)}</li>` : ''}</ul>` : '<p class="empty">Nothing open right now.</p>'}
-      ${adding ? '' : `<button class="add" data-act="add" data-brand="${br.id}">+ Add task</button>`}
+      ${key === 'life-admin' ? tasksHtml + extrasHtml : extrasHtml + tasksHtml}
       ${section('Waiting on others', waiting.map(card), true)}
       ${section('Later', later.map(card), false)}
       ${section('Done', done.map(card), false)}</article>`;
