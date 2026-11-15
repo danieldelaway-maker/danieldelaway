@@ -133,6 +133,7 @@
     .sbtns { display: flex; flex-direction: column; gap: 6px; flex: none; }
     .sbtns button { padding: 7px 12px; font-size: 13px; }
     .sbtns .ghost { background: #f1f2f6; color: var(--w-ink); }
+    .sbtns .startcc { justify-content: center; padding: 7px 12px; font-size: 13px; }
     .scom { margin-top: 8px; padding: 8px 10px; background: #f4f6fb; border-radius: 8px; font: 400 13px/1.45 var(--font); color: var(--w-ink); }
     .scom i { color: var(--w-muted); }
     .scomform { margin-top: 8px; }
@@ -493,18 +494,21 @@ function form(t, brandId) {
 }
 // "Start" button: opens a new Claude Code session (desktop app) with the task filled in, ready to send.
 const CC_FOLDER = '/Users/danie/Desktop/Files/Claude Code';
-function ccLink(t) {
+function ccLink(t, sug) {
   const br = (data.brands || []).find(b => b.id === t.brand);
   const B = '\u2063'; // marks a deliberate blank line
   const lines = [
-    "Let's start on this task from my Brand Tasks board (danieldelaway.com/learn/tasks).", B,
+    sug ? "Let's look at this suggestion from my Brand Tasks board (danieldelaway.com/learn/tasks). First check whether it's already been done or is still needed, then do it." : "Let's start on this task from my Brand Tasks board (danieldelaway.com/learn/tasks).", B,
     'Brand: ' + (br ? br.name : ''),
     'Task: ' + (t.kind === 'waiting' ? `chase ${t.who} about: ` : '') + t.text,
     t.due ? (t.kind === 'waiting' ? 'Asked / last chased: ' : 'Due: ') + t.due : '',
     t.detail ? 'Details: ' + t.detail : '',
     t.link ? 'Link: ' + t.link : '',
-    t.source ? 'Where it came from: ' + t.source : '', B,
-    `Task id: ${t.id}. Read tasks/README.md for the Brand Tasks API. When it's finished, tick it done there (PATCH /tasks/<id> {"done":true}).`,
+    t.source ? 'Where it came from: ' + t.source : '',
+    sug && t.why ? 'Why Claude suggested it: ' + t.why : '',
+    sug && t.comment ? 'My comment: ' + t.comment + (t.reply ? ' (Claude replied: ' + t.reply + ')' : '') : '', B,
+    sug ? `Suggestion id: ${t.id}. Read tasks/README.md for the Brand Tasks API. If it's already done or not needed, dismiss it (POST /suggestions/<id>/dismiss). If I want it kept as a task, add it (POST /suggestions/<id>/accept).`
+        : `Task id: ${t.id}. Read tasks/README.md for the Brand Tasks API. When it's finished, tick it done there (PATCH /tasks/<id> {"done":true}).`,
   ].filter(Boolean).map(x => (x === B ? '' : x));
   return 'claude://code/new?' + new URLSearchParams({ q: lines.join('\n').slice(0, 3500), folder: CC_FOLDER }).toString();
 }
@@ -536,7 +540,7 @@ function sugCard(s) {
     ${s.comment && editing !== 'comment:' + s.id ? `<div class="scom"><b>💬 You:</b> ${esc(s.comment)}${s.reply ? `<br><b>Claude:</b> ${esc(s.reply)}` : `<br><i>Claude will sort this on its next check.</i>`}</div>` : ''}
     ${editing === 'comment:' + s.id ? `<form class="scomform" data-sid="${s.id}"><textarea name="comment" rows="3" placeholder="e.g. This belongs under Sally, not SLS3" required>${esc(s.comment || '')}</textarea>
       <div class="scomb"><button type="submit">Send to Claude</button><button type="button" class="ghost" data-act="cancel">Cancel</button></div></form>` : ''}</div>
-    <div class="sbtns"><button data-act="accept">Add</button><button class="ghost" data-act="dismiss">Dismiss</button><button class="ghost" data-act="scomment">💬 Comment</button></div></li>`;
+    <div class="sbtns"><button data-act="accept">Add</button><button class="ghost" data-act="dismiss">Dismiss</button><button class="ghost" data-act="scomment">💬 Comment</button><a class="startcc" href="${esc(ccLink(s, true))}" title="Open a new Claude Code session with this suggestion filled in">Start ▶</a></div></li>`;
 }
 const order = (a, b) => (a.due || '9999').localeCompare(b.due || '9999');
 const section = (title, list, open) => list.length ? `<details class="sec" ${open ? 'open' : ''}><summary>${title} (${list.length})</summary><ul class="tasks">${list.join('')}</ul></details>` : '';
