@@ -119,7 +119,7 @@
     .hform .hfb { display: flex; gap: 6px; }
     .hform .hfb button { padding: 7px 12px; font-size: 13px; }
     .hform .ghost { background: #eef0f4; color: var(--w-ink); }
-    .hform .hdel.sure { background: #d64545; color: #fff; }
+    .hform .hdel.sure, button.sure { background: #d64545 !important; color: #fff !important; }
     .tundo { margin-left: 10px; padding: 4px 10px; border-radius: 8px; font: 700 12px var(--font); background: #fff; color: #12141c; }
     #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: #12141c; color: #fff; border: 1px solid var(--line); padding: 10px 16px; border-radius: 12px; font-size: 14px; max-width: calc(100% - 32px); z-index: 10; }
     .foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 40px; font-size: 13px; color: var(--muted); }
@@ -1058,12 +1058,19 @@ async function habitAct(act, el) {
     if (editing) return; editing = 'newhabit:' + el.dataset.kind; render(); document.querySelector('.hform input[name=name]')?.focus();
   } else if (act === 'hdel') {
     // Two taps, all on the page: the first turns the button red, the second deletes.
-    if (!el.classList.contains('sure')) { el.classList.add('sure'); el.textContent = 'Tap again to delete'; setTimeout(() => { if (el.isConnected) { el.classList.remove('sure'); el.textContent = 'Delete'; } }, 3000); return; }
+    if (!sureTap(el)) return;
     const hid = el.closest('.hform').dataset.hid, hh = data.habits.find(x => x.id === hid), was = data.habits, row = el.closest('.hrow');
     const gone = fx.trapdoor(row);
     try { await api('/habits/' + hid, 'DELETE'); await gone; data.habits = was.filter(x => x !== hh); editing = null; render(); toast('Deleted.'); }
     catch (err) { row.getAnimations().forEach(a => a.cancel()); row.style.pointerEvents = ''; toast('Not deleted: ' + err.message); }
   }
+}
+// Two taps on the page instead of a browser pop-up: the first turns the button red, the second confirms.
+function sureTap(el) {
+  if (el.classList.contains('sure')) return true;
+  const label = el.textContent; el.classList.add('sure'); el.textContent = 'Tap again to delete';
+  setTimeout(() => { if (el.isConnected) { el.classList.remove('sure'); el.textContent = label; } }, 3000);
+  return false;
 }
 function toastUndo(msg, undo) {
   const t = $('#toast'); t.textContent = msg + ' '; const b = document.createElement('button'); b.className = 'tundo'; b.type = 'button'; b.textContent = 'Undo';
@@ -1132,7 +1139,7 @@ document.addEventListener('click', async e => {
   else if (act === 'nedit') { if (editing) return; editing = 'note:' + el.closest('.ncard').dataset.nid; render(); }
   else if (act === 'ndelete') {
     const id = el.closest('form').dataset.nid, n = data.notes.find(x => x.id === id);
-    if (!confirm(`Delete “${n.text}”? Claude can still get it back for you if you change your mind.`)) return;
+    if (!sureTap(el)) return;
     const card = el.closest('.ncard'), gone = fx.trapdoor(card); if (!FX_OK()) card.classList.add('saving');
     try { await api('/notes/' + id, 'DELETE'); await gone; data.notes = data.notes.filter(x => x.id !== id); editing = null; render(); toast('Deleted.'); }
     catch (err) { card.getAnimations().forEach(a => a.cancel()); card.style.pointerEvents = ''; card.classList.remove('saving'); toast('Not deleted: ' + err.message); }
@@ -1140,7 +1147,7 @@ document.addEventListener('click', async e => {
   else if (act === 'cancel') { editing = null; render(); }
   else if (act === 'delete') {
     const id = el.closest('form').dataset.id, t = find(id);
-    if (!confirm(`Delete “${t.text}”? Claude can still get it back for you if you change your mind.`)) return;
+    if (!sureTap(el)) return;
     const card = el.closest('.tcard'), gone = fx.trapdoor(card); if (!FX_OK()) card.classList.add('saving');
     try { await api('/tasks/' + id, 'DELETE'); await gone; data.tasks = data.tasks.filter(x => x.id !== id); editing = null; render(); toast('Deleted.'); }
     catch (err) { card.getAnimations().forEach(a => a.cancel()); card.style.pointerEvents = ''; card.classList.remove('saving'); toast('Not deleted: ' + err.message); }
