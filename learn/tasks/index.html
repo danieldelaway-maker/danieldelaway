@@ -90,6 +90,7 @@
     .chip.late { color: var(--w-late); } .chip.soon { color: var(--w-soon); } .chip.brand { color: var(--w-accent); }
     .edit { flex: none; background: none; border: 0; padding: 2px 4px; color: var(--w-muted); font: 500 12px var(--font); border-radius: 6px; }
     .edit:hover { color: var(--w-ink); background: #e9ecf2; }
+    .edit.bin { font-size: 14px; opacity: .55; } .edit.bin:hover, .edit.bin.sure { opacity: 1; }
     .empty { color: var(--w-muted); font-size: 14px; margin: 0; }
 
     /* edit form */
@@ -584,7 +585,7 @@ function card(t) {
     <input type="checkbox" class="tick" ${t.done ? 'checked' : ''} aria-label="Mark “${esc(t.text)}” done">
     <div class="tbody" data-act="edit"><div class="trow"><b>${title}</b>${chips}</div>
     ${t.detail && (!t.done || doneToday(t)) ? `<small>${esc(t.detail)}</small>` : ''}${meta ? `<div class="src">${meta}</div>` : ''}</div>
-    <div class="acts">${t.done ? '' : `<a class="startcc" href="${esc(ccLink(t))}" title="Open a new Claude Code session with this task filled in">Start ▶</a>`}${extra}<button class="edit" data-act="edit" aria-label="Edit task">Edit</button></div></li>`;
+    <div class="acts">${t.done ? '' : `<a class="startcc" href="${esc(ccLink(t))}" title="Open a new Claude Code session with this task filled in">Start ▶</a>`}${extra}<button class="edit" data-act="edit" aria-label="Edit task">Edit</button><button class="edit bin" data-act="delete" title="Delete (not done)" aria-label="Delete task">🗑</button></div></li>`;
 }
 // ---------- Fun effects for actions (all skipped when the device asks for reduced motion) ----------
 const FX_OK = () => !matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1155,7 +1156,7 @@ document.addEventListener('click', async e => {
   }
   else if (act === 'cancel') { editing = null; render(); }
   else if (act === 'delete') {
-    const id = el.closest('form').dataset.id, t = find(id);
+    const id = (el.closest('form') || el.closest('.tcard')).dataset.id, t = find(id);
     if (!sureTap(el)) return;
     const card = el.closest('.tcard'), gone = fx.trapdoor(card); if (!FX_OK()) card.classList.add('saving');
     try { await api('/tasks/' + id, 'DELETE'); await gone; data.tasks = data.tasks.filter(x => x.id !== id); editing = null; render(); toast('Deleted.'); }
