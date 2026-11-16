@@ -866,7 +866,10 @@ function render() {
   const sb = d.subsSum || {};
   const subNext = sb.next ? `Next: ${esc(sb.next.name)} ${sb.next.days <= 0 ? 'today' : sb.next.days === 1 ? 'tomorrow' : 'in ' + sb.next.days + ' days'}` : 'Nothing renewing';
   const subTile = `<a class="board proj tool" href="subscriptions/" style="--tint:#f29bb8" aria-label="Open Subscriptions"><div class="plogo"><img src="logos/subscriptions.svg" alt=""></div><h2>Subscriptions</h2><p class="line">${sb.count ? sb.count + ' active' + (sb.trials ? ` · ${sb.trials} trial${sb.trials === 1 ? '' : 's'}` : '') : 'None added yet'}</p><p class="line"${sb.next && sb.next.days <= 3 ? ' style="color:#b07a00;font-weight:700"' : ''}>${subNext}</p></a>`;
-  $('#brands').innerHTML = `<p class="grp">Work</p>` + W.map(x => x.tile).join('') + `<p class="grp">Tools</p>` + invTile + paidTile + expTile + basTile + subTile + (P.length ? `<p class="grp">Personal</p>` + P.map(x => x.tile).join('') : '');
+  // Investments card (16 Nov 2026) opens investments/. Personal, so it sits under the Personal heading. Uses cached prices.
+  const iv = d.investSum;
+  const invmTile = `<a class="board proj tool" href="investments/" style="--tint:#7fc8f2" aria-label="Open Investments"><div class="plogo"><img src="logos/investments.svg" alt=""></div><h2>Investments</h2><p class="line">${iv ? 'A$' + iv.aud.toLocaleString('en-US') + ' · US$' + iv.usd.toLocaleString('en-US') : 'Stake + Revolut'}</p><p class="line"${iv ? ` style="color:${iv.dayPct > 0 ? '#0f8a5f' : iv.dayPct < 0 ? '#d64545' : 'inherit'};font-weight:700"` : ''}>${iv ? 'Today ' + (iv.dayPct > 0 ? '+' : '') + iv.dayPct + '%' : 'Nothing added yet'}</p></a>`;
+  $('#brands').innerHTML = `<p class="grp">Work</p>` + W.map(x => x.tile).join('') + `<p class="grp">Tools</p>` + invTile + paidTile + expTile + basTile + subTile + `<p class="grp">Personal</p>` + P.map(x => x.tile).join('') + invmTile;
   $('#panel').innerHTML = W.concat(P).map(x => x.panel).join('');
   if (firstPaint) {
     firstPaint = false; const bx = $('#brands');

@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Investments</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#f4f6fb">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@600;700&family=Inter:wght@400;500;600;700&display=swap">
+  <style>
+    /* Light only (Dan: no dark versions). Same mint → blue look as the other Tools. */
+    :root {
+      --bg: #f4f6fb; --card: #ffffff; --line: #e3e6ee; --ink: #12141c; --text: #3d4352; --muted: #6b7183;
+      --mint: #bff3da; --blue: #9cc1f7; --accent: #4f6fe0; --up: #0f8a5f; --upBg: #ddf7ec; --down: #c62f2f; --downBg: #ffe8e8;
+      --font: 'Inter', system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--font); }
+    [hidden] { display: none !important; }
+    a { color: var(--accent); }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 24px 16px 80px; }
+    .top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+    .top h1 { font: 700 clamp(26px, 4vw, 38px) 'League Spartan', sans-serif; color: var(--ink); margin: 0; flex: 1; }
+    .back { text-decoration: none; font-weight: 600; font-size: 14px; }
+    button { cursor: pointer; padding: 9px 14px; border-radius: 11px; border: 0; font: 600 14px var(--font); color: var(--ink); background: linear-gradient(135deg, var(--mint), var(--blue)); }
+    button.ghost { background: #fff; border: 1px solid var(--line); color: var(--text); }
+    button.small { padding: 6px 10px; font-size: 13px; border-radius: 9px; }
+    button.sure { background: #ffe1e1; color: var(--down); border: 1px solid #f3b4b4; }
+    button:disabled { opacity: .5; cursor: default; }
+    label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin: 12px 0 4px; }
+    input, select { width: 100%; padding: 9px 11px; border-radius: 10px; border: 1px solid var(--line); background: #fbfcfe; color: var(--ink); font: 15px var(--font); }
+    input:focus, select:focus { outline: 2px solid var(--blue); border-color: var(--accent); }
+    .meta { font-size: 13px; color: var(--muted); }
+    .up { color: var(--up); } .down { color: var(--down); }
+
+    #lock { max-width: 420px; margin: 10vh auto 0; text-align: center; }
+    #lock form { display: flex; gap: 10px; margin-top: 18px; }
+    #lock input { flex: 1; min-width: 0; }
+    .err { color: var(--down); font-size: 14px; min-height: 20px; margin-top: 10px; }
+
+    .hero { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px 20px 12px; margin-bottom: 16px; }
+    .hero .row { display: flex; gap: 16px 28px; flex-wrap: wrap; align-items: flex-end; }
+    .big { font: 700 clamp(30px, 6vw, 44px) 'League Spartan', sans-serif; color: var(--ink); line-height: 1.05; }
+    .big2 { font: 600 18px 'League Spartan', sans-serif; color: var(--muted); }
+    .chg { font-weight: 700; font-size: 14px; padding: 3px 10px; border-radius: 999px; display: inline-block; }
+    .chg.up { background: var(--upBg); } .chg.down { background: var(--downBg); }
+    .k { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+    .ranges { display: flex; gap: 4px; margin: 12px 0 4px; }
+    .ranges button { background: transparent; color: var(--muted); padding: 5px 11px; border-radius: 999px; font-size: 13px; }
+    .ranges button.on { background: linear-gradient(135deg, var(--mint), var(--blue)); color: var(--ink); }
+    #chart { width: 100%; height: 190px; display: block; touch-action: pan-y; }
+    #tip { font-size: 13px; color: var(--muted); min-height: 20px; }
+
+    .alloc { display: flex; height: 12px; border-radius: 999px; overflow: hidden; margin: 6px 0 8px; background: #eef1f7; }
+    .alloc span { display: block; height: 100%; }
+    .legend { display: flex; gap: 6px 14px; flex-wrap: wrap; font-size: 13px; }
+    .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+
+    .acct { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; margin-bottom: 14px; }
+    .acct-h { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+    .acct-h h2 { font: 700 20px 'League Spartan', sans-serif; color: var(--ink); margin: 0; flex: 1; }
+    .acct-h .v { font: 700 18px 'League Spartan', sans-serif; color: var(--ink); }
+    .tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .tbl th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    .tbl td { padding: 9px 8px; border-bottom: 1px solid #eef0f5; vertical-align: middle; }
+    .tbl .n { text-align: right; white-space: nowrap; }
+    .tbl tr.h { cursor: pointer; } .tbl tr.h:hover td { background: #f7f9fd; }
+    .sym { font-weight: 700; color: var(--ink); } .nm { font-size: 12px; color: var(--muted); max-width: 230px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .scroll { overflow-x: auto; }
+    @media (max-width: 640px) { .tbl .hide-sm { display: none; } }
+    .acts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; margin-bottom: 16px; }
+    .card h2 { font: 700 18px 'League Spartan', sans-serif; color: var(--ink); margin: 0; }
+    .form-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 12px; }
+    .form-grid .w2 { grid-column: span 2; }
+    @media (max-width: 720px) { .form-grid { grid-template-columns: 1fr 1fr; } .form-grid .w2 { grid-column: 1 / -1; } }
+    .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    #toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: #fff; color: var(--ink); border: 1px solid var(--line); box-shadow: 0 10px 30px rgba(0,0,0,.15); padding: 12px 18px; border-radius: 12px; font-weight: 600; z-index: 9; max-width: calc(100% - 32px); display: flex; gap: 12px; align-items: center; }
+    .empty { text-align: center; color: var(--muted); padding: 22px 0; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div id="lock" hidden>
+    <h1 style="font:700 32px 'League Spartan',sans-serif;color:var(--ink)">Investments</h1>
+    <p>Same password as your Tasks HQ.</p>
+    <form id="unlock"><input id="pw" type="password" placeholder="Password" autocomplete="current-password"><button>Open</button></form>
+    <p class="err" id="err"></p>
+  </div>
+
+  <div id="app" hidden>
+    <div class="top">
+      <a class="back" href="../">← Tasks HQ</a>
+      <h1>Investments</h1>
+      <button class="ghost small" id="refresh">↻ Refresh prices</button>
+      <button class="small" id="addBtn">+ Add holding</button>
+    </div>
+
+    <div class="hero">
+      <div class="row">
+        <div><div class="k">Total value</div><div class="big" id="totAud">…</div><div class="big2" id="totUsd"></div></div>
+        <div><div class="k">Today</div><div id="today"></div></div>
+        <div><div class="k">Gain vs what you paid</div><div id="gain"></div></div>
+      </div>
+      <div class="ranges" id="ranges"><button data-r="30">1M</button><button data-r="91">3M</button><button data-r="182">6M</button><button data-r="365" class="on">1Y</button></div>
+      <svg id="chart" viewBox="0 0 1000 190" preserveAspectRatio="none" aria-label="Value of your current holdings over time"></svg>
+      <div id="tip"></div>
+      <div class="k" style="margin-top:8px">Split</div>
+      <div class="alloc" id="alloc"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+
+    <div class="card" id="formCard" hidden>
+      <div style="display:flex;align-items:center;gap:10px"><h2 id="formTitle" style="flex:1">Add a holding</h2><button class="ghost small" id="closeForm">Close</button></div>
+      <div class="form-grid">
+        <div><label for="f-acc">Account</label><select id="f-acc"></select></div>
+        <div><label for="f-sym">Ticker</label><input id="f-sym" placeholder="TSLA" autocapitalize="characters"><div class="hint">ASX: add .AX (VGS.AX) · London: .L (VUAG.L) · Germany: .DE</div></div>
+        <div><label for="f-units">Units / shares</label><input id="f-units" inputmode="decimal" placeholder="0"></div>
+        <div><label for="f-cost">Total paid (optional)</label><input id="f-cost" inputmode="decimal" placeholder="In the share’s currency"></div>
+        <div class="w2"><label for="f-name">Name (optional)</label><input id="f-name" placeholder="Filled in from the ticker if blank"></div>
+        <div class="w2"><label for="f-note">Note</label><input id="f-note" placeholder="Optional"></div>
+      </div>
+      <div class="acts"><button id="saveBtn">Save</button><button class="ghost" id="delBtn" hidden>🗑 Delete</button><span class="meta" id="formMsg"></span></div>
+    </div>
+
+    <div id="accounts"></div>
+    <p class="meta" id="updated"></p>
+    <p class="meta">For keeping track only, not financial advice. Prices from Yahoo Finance (can be ~15 min behind); currency conversion at the live market rate. The chart shows what your <b>current</b> holdings would have been worth, so past buys and sells aren’t in it.</p>
+  </div>
+</div>
+<div id="toast" hidden role="status"></div>
+
+<script>
+const API = 'https://brand-tasks-api.danieldelaway.workers.dev';
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// 30-day sliding login, shared with the Tasks HQ (same localStorage key "clientsHQ").
+const KEY = 'clientsHQ', DAYS = 30;
+const REMEMBER = {
+  get(k) {
+    let v = null; try { const exp = +localStorage.getItem(k + '__exp') || 0; v = localStorage.getItem(k); if (v && exp && exp < Date.now()) { v = null; localStorage.removeItem(k); } } catch {}
+    if (!v) { const m = document.cookie.match(new RegExp('(?:^|; )r_' + k + '=([^;]*)')); if (m) v = decodeURIComponent(m[1]); }
+    if (v) this.set(k, v); return v;
+  },
+  set(k, v) {
+    try { localStorage.setItem(k, v); localStorage.setItem(k + '__exp', String(Date.now() + DAYS * 864e5)); } catch {}
+    document.cookie = 'r_' + k + '=' + encodeURIComponent(v) + '; Max-Age=' + DAYS * 86400 + '; Path=/; Secure; SameSite=None; Partitioned';
+  },
+  del(k) { try { localStorage.removeItem(k); localStorage.removeItem(k + '__exp'); } catch {} document.cookie = 'r_' + k + '=; Max-Age=0; Path=/; Secure; SameSite=None; Partitioned'; },
+};
+let pass = '', D = null, range = 365, editing = null;
+const COLORS = ['#4f6fe0', '#18a999', '#e58e26', '#b65fd6', '#e0567a', '#3b9bd6', '#8a9a2b', '#7a5c3e'];
+
+async function api(path, method = 'GET', body) {
+  const r = await fetch(API + path, { method, headers: { 'X-Key': pass, ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(d.error || 'Something went wrong'), { status: r.status });
+  return d;
+}
+let toastT;
+function toast(msg, undo) {
+  const t = $('#toast'); t.innerHTML = esc(msg) + (undo ? ' <button class="small ghost" id="undo">Undo</button>' : ''); t.hidden = false;
+  if (undo) $('#undo').onclick = () => { t.hidden = true; undo(); };
+  clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 6000);
+}
+
+// ---------- money ----------
+const SYM = { AUD: 'A$', USD: 'US$', EUR: '€', GBP: '£' };
+const fmt = (n, cur = 'AUD', dp) => { const a = Math.abs(n || 0), d = dp ?? (a >= 1000 ? 0 : 2); return (n < 0 ? '−' : '') + (SYM[cur] || cur + ' ') + a.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }); };
+const pct = n => (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n).toFixed(2) + '%';
+const cls = n => n > 0.0001 ? 'up' : n < -0.0001 ? 'down' : '';
+const toAud = cur => cur === 'AUD' ? 1 : D.fx[cur]?.now || 0;
+const usdRate = () => D.fx.USD?.now || 0; // AUD per USD
+function atDate(hist, date) { let v = null; for (const [d, x] of hist) { if (d <= date) v = x; else break; } return v ?? hist[0]?.[1] ?? null; }
+
+// ---------- the numbers ----------
+function rows() {
+  return D.holdings.map(h => {
+    const q = D.quotes[h.symbol] || {}, cur = q.currency || 'USD', r = toAud(cur);
+    const value = (q.price || 0) * h.units, prev = (q.prevClose || q.price || 0) * h.units;
+    return { ...h, q, cur, value, aud: value * r, dayAud: (value - prev) * r, dayPct: prev ? (value - prev) / prev * 100 : 0, gain: h.cost ? value - h.cost : null, gainPct: h.cost ? (value - h.cost) / h.cost * 100 : null };
+  });
+}
+function render() {
+  const R = rows(), cashAud = (D.cash || []).reduce((a, c) => a + c.amount * toAud(c.currency), 0);
+  const tot = R.reduce((a, r) => a + r.aud, 0) + cashAud, day = R.reduce((a, r) => a + r.dayAud, 0), dayBase = tot - cashAud - day;
+  const withCost = R.filter(r => r.cost), costAud = withCost.reduce((a, r) => a + r.cost * toAud(r.cur), 0), gainAud = withCost.reduce((a, r) => a + r.aud, 0) - costAud;
+  $('#totAud').textContent = fmt(tot, 'AUD', 0);
+  $('#totUsd').textContent = usdRate() ? fmt(tot / usdRate(), 'USD', 0) : '';
+  $('#today').innerHTML = R.length ? `<span class="chg ${cls(day)}">${fmt(day, 'AUD')} · ${pct(dayBase ? day / dayBase * 100 : 0)}</span>` : '<span class="meta">—</span>';
+  $('#gain').innerHTML = withCost.length ? `<span class="chg ${cls(gainAud)}">${fmt(gainAud, 'AUD', 0)} · ${pct(costAud ? gainAud / costAud * 100 : 0)}</span>${withCost.length < R.length ? '<div class="meta">Only holdings with “total paid” filled in</div>' : ''}` : '<span class="meta">Add “total paid” to see this</span>';
+
+  // Split bar
+  const parts = R.filter(r => r.aud > 0).sort((a, b) => b.aud - a.aud).map((r, i) => ({ l: r.symbol, v: r.aud, c: COLORS[i % COLORS.length] }));
+  if (cashAud > 0) parts.push({ l: 'Cash', v: cashAud, c: '#c3c9d6' });
+  $('#alloc').innerHTML = parts.map(p => `<span style="width:${p.v / tot * 100}%;background:${p.c}" title="${esc(p.l)}"></span>`).join('');
+  $('#legend').innerHTML = parts.map(p => `<span><i style="background:${p.c}"></i>${esc(p.l)} ${(p.v / tot * 100).toFixed(1)}%</span>`).join('');
+
+  // Accounts
+  $('#accounts').innerHTML = D.accounts.map(a => {
+    const rs = R.filter(r => r.account === a.id).sort((x, y) => y.aud - x.aud), cash = (D.cash || []).filter(c => c.account === a.id);
+    const accAud = rs.reduce((s, r) => s + r.aud, 0) + cash.reduce((s, c) => s + c.amount * toAud(c.currency), 0);
+    return `<div class="acct"><div class="acct-h"><h2>${esc(a.name)}</h2><span class="v">${fmt(accAud, 'AUD', 0)}</span>${usdRate() ? `<span class="meta">${fmt(accAud / usdRate(), 'USD', 0)}</span>` : ''}</div>
+      ${rs.length ? `<div class="scroll"><table class="tbl"><thead><tr><th>Holding</th><th class="n hide-sm">Units</th><th class="n">Price</th><th class="n">Value</th><th class="n">Today</th><th class="n hide-sm">Gain</th></tr></thead><tbody>
+      ${rs.map(r => `<tr class="h" data-id="${r.id}" title="Tap to edit"><td><div class="sym">${esc(r.symbol)}</div><div class="nm">${esc(r.name || r.q.name || '')}</div></td>
+        <td class="n hide-sm">${(+r.units).toLocaleString('en-US', { maximumFractionDigits: 6 })}</td>
+        <td class="n">${r.q.ok === false ? '<span class="down">No price</span>' : fmt(r.q.price, r.cur, 2)}</td>
+        <td class="n"><b>${fmt(r.aud, 'AUD', 0)}</b>${r.cur !== 'AUD' ? `<div class="meta">${fmt(r.value, r.cur, 0)}</div>` : usdRate() ? `<div class="meta">${fmt(r.aud / usdRate(), 'USD', 0)}</div>` : ''}</td>
+        <td class="n ${cls(r.dayPct)}">${pct(r.dayPct)}</td>
+        <td class="n hide-sm ${cls(r.gain || 0)}">${r.gain == null ? '<span class="meta">—</span>' : `${fmt(r.gain, r.cur, 0)}<div class="meta">${pct(r.gainPct)}</div>`}</td></tr>`).join('')}
+      </tbody></table></div>` : `<p class="empty">No holdings in ${esc(a.name)} yet.</p>`}
+      <div class="acts"><button class="small ghost" data-add="${a.id}">+ Add to ${esc(a.name)}</button>
+        <button class="small ghost" data-cash="${a.id}">Cash: ${cash.length ? cash.map(c => fmt(c.amount, c.currency)).join(' + ') : 'none'}</button></div></div>`;
+  }).join('');
+  const times = Object.values(D.quotes).map(q => q.at || 0); const t = Math.max(0, ...times);
+  $('#updated').textContent = t ? 'Prices updated ' + new Date(t).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) + '.' : '';
+  drawChart();
+}
+
+// ---------- chart: value of current holdings over time, in AUD ----------
+let pts = [];
+function drawChart() {
+  const svg = $('#chart'); pts = [];
+  const syms = D.holdings.filter(h => D.quotes[h.symbol]?.hist?.length);
+  if (!syms.length) { svg.innerHTML = '<text x="500" y="100" text-anchor="middle" fill="#6b7183" font-size="16">The chart appears once you add holdings</text>'; $('#tip').textContent = ''; return; }
+  const dates = [...new Set(syms.flatMap(h => D.quotes[h.symbol].hist.map(x => x[0])))].sort();
+  const from = new Date(Date.now() - range * 864e5).toISOString().slice(0, 10);
+  for (const d of dates.filter(x => x >= from)) {
+    let v = 0;
+    for (const h of syms) { const q = D.quotes[h.symbol], p = atDate(q.hist, d), r = q.currency === 'AUD' ? 1 : atDate(D.fx[q.currency]?.hist || [], d) || toAud(q.currency); v += (p || 0) * h.units * r; }
+    pts.push([d, v]);
+  }
+  if (pts.length < 2) { svg.innerHTML = ''; return; }
+  const W = 1000, H = 190, pad = 8, vs = pts.map(p => p[1]), lo = Math.min(...vs), hi = Math.max(...vs), span = hi - lo || 1;
+  const X = i => i / (pts.length - 1) * W, Y = v => pad + (1 - (v - lo) / span) * (H - pad * 2);
+  const up = vs[vs.length - 1] >= vs[0], col = up ? '#0f8a5f' : '#c62f2f';
+  const line = pts.map((p, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(p[1]).toFixed(1)}`).join('');
+  svg.innerHTML = `<defs><linearGradient id="fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".18"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>
+    <path d="${line}L${W},${H}L0,${H}Z" fill="url(#fill)"/><path d="${line}" fill="none" stroke="${col}" stroke-width="2.5" vector-effect="non-scaling-stroke"/>
+    <line id="cur" x1="0" x2="0" y1="0" y2="${H}" stroke="#9aa3b5" stroke-width="1" vector-effect="non-scaling-stroke" visibility="hidden"/>`;
+  const ch = vs[vs.length - 1] - vs[0];
+  const base = `Over this period: <b class="${cls(ch)}">${fmt(ch, 'AUD', 0)} (${pct(ch / vs[0] * 100)})</b>`;
+  $('#tip').innerHTML = base; svg.dataset.base = base;
+}
+function hover(ev) {
+  if (!pts.length) return;
+  const svg = $('#chart'), b = svg.getBoundingClientRect(), x = ((ev.touches?.[0] || ev).clientX - b.left) / b.width;
+  const i = Math.max(0, Math.min(pts.length - 1, Math.round(x * (pts.length - 1)))), c = svg.querySelector('#cur');
+  if (c) { const px = i / (pts.length - 1) * 1000; c.setAttribute('x1', px); c.setAttribute('x2', px); c.setAttribute('visibility', 'visible'); }
+  $('#tip').innerHTML = `${new Date(pts[i][0] + 'T00:00:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}: <b>${fmt(pts[i][1], 'AUD', 0)}</b>${usdRate() ? ' · ' + fmt(pts[i][1] / usdRate(), 'USD', 0) : ''}`;
+}
+$('#chart').addEventListener('mousemove', hover); $('#chart').addEventListener('touchmove', hover, { passive: true });
+$('#chart').addEventListener('mouseleave', () => { $('#tip').innerHTML = $('#chart').dataset.base || ''; $('#chart').querySelector('#cur')?.setAttribute('visibility', 'hidden'); });
+$('#ranges').addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (!b) return; range = +b.dataset.r; document.querySelectorAll('#ranges button').forEach(x => x.classList.toggle('on', x === b)); drawChart(); });
+
+// ---------- add / edit ----------
+function openForm(h, acc) {
+  editing = h || null; $('#formCard').hidden = false; $('#delBtn').hidden = !h;
+  $('#f-acc').innerHTML = D.accounts.map(a => `<option value="${a.id}">${esc(a.name)}</option>`).join('');
+  $('#formTitle').textContent = h ? 'Edit ' + h.symbol : 'Add a holding';
+  $('#f-acc').value = h?.account || acc || D.accounts[0].id; $('#f-sym').value = h?.symbol || ''; $('#f-units').value = h?.units ?? ''; $('#f-cost').value = h?.cost || '';
+  $('#f-name').value = h?.name || ''; $('#f-note').value = h?.note || ''; $('#formMsg').textContent = '';
+  $('#formCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+$('#addBtn').addEventListener('click', () => openForm());
+$('#closeForm').addEventListener('click', () => { $('#formCard').hidden = true; editing = null; });
+$('#accounts').addEventListener('click', async e => {
+  const tr = e.target.closest('tr[data-id]'); if (tr) return openForm(D.holdings.find(h => h.id === tr.dataset.id));
+  const a = e.target.closest('[data-add]'); if (a) return openForm(null, a.dataset.add);
+  const c = e.target.closest('[data-cash]'); if (c) {
+    const acc = c.dataset.cash, ex = (D.cash || []).find(x => x.account === acc);
+    c.outerHTML = `<span class="cashf" style="display:inline-flex;gap:6px;align-items:center"><input id="cashAmt" style="width:120px;padding:6px 8px" inputmode="decimal" placeholder="Amount" value="${ex ? ex.amount : ''}"><select id="cashCur" style="width:auto;padding:6px 8px"><option>USD</option><option>AUD</option><option>EUR</option><option>GBP</option></select><button class="small" id="cashSave" data-acc="${acc}">Save cash</button></span>`;
+    if (ex) $('#cashCur').value = ex.currency; $('#cashAmt').focus();
+  }
+  const s = e.target.closest('#cashSave'); if (s) {
+    try { D = await api('/invest/cash', 'POST', { account: s.dataset.acc, amount: $('#cashAmt').value, currency: $('#cashCur').value }); render(); toast('Cash saved.'); } catch (err) { toast('Not saved: ' + err.message); }
+  }
+});
+$('#saveBtn').addEventListener('click', async () => {
+  const b = $('#saveBtn'); b.disabled = true; $('#formMsg').textContent = 'Saving and checking the price…';
+  try {
+    D = await api('/invest/holdings', 'POST', { holding: { id: editing?.id, account: $('#f-acc').value, symbol: $('#f-sym').value.trim(), units: $('#f-units').value, cost: $('#f-cost').value, name: $('#f-name').value, note: $('#f-note').value } });
+    const sym = $('#f-sym').value.trim().toUpperCase(), q = D.quotes[sym];
+    $('#formCard').hidden = true; editing = null; render();
+    toast(q && q.ok === false ? `Saved, but no price was found for ${sym}. Check the ticker (e.g. add .AX or .L).` : 'Saved.');
+  } catch (e) { toast('Not saved: ' + e.message); }
+  $('#formMsg').textContent = ''; b.disabled = false;
+});
+let delSure = false;
+$('#delBtn').addEventListener('click', async () => {
+  const b = $('#delBtn');
+  if (!delSure) { delSure = true; b.classList.add('sure'); b.textContent = 'Tap again to delete'; setTimeout(() => { delSure = false; b.classList.remove('sure'); b.textContent = '🗑 Delete'; }, 3000); return; }
+  const h = editing; delSure = false;
+  try {
+    D = await api('/invest/holdings/' + h.id, 'DELETE'); $('#formCard').hidden = true; editing = null; render();
+    toast(`${h.symbol} deleted.`, async () => { const { id, ...rest } = h; D = await api('/invest/holdings', 'POST', { holding: rest }); render(); toast('Put back.'); });
+  } catch (e) { toast('Not deleted: ' + e.message); }
+});
+$('#refresh').addEventListener('click', async () => {
+  const b = $('#refresh'); b.disabled = true; b.textContent = 'Refreshing…';
+  try { D = await api('/invest?fresh=1'); render(); toast('Prices refreshed.'); } catch (e) { toast('Could not refresh: ' + e.message); }
+  b.disabled = false; b.textContent = '↻ Refresh prices';
+});
+
+// ---------- sign in ----------
+async function start(p, remember) {
+  pass = p;
+  try {
+    D = await api('/invest');
+    if (remember) REMEMBER.set(KEY, p);
+    $('#lock').hidden = true; $('#app').hidden = false;
+    render();
+  } catch (e) {
+    $('#app').hidden = true; $('#lock').hidden = false;
+    if (remember) $('#err').textContent = e.status === 401 ? 'That password didn’t work.' : 'Could not load: ' + e.message;
+    else if (e.status === 401) { REMEMBER.del(KEY); $('#err').textContent = 'Please sign in again.'; }
+    else $('#err').textContent = 'Could not load: ' + e.message;
+  }
+}
+$('#unlock').addEventListener('submit', e => { e.preventDefault(); $('#err').textContent = ''; start($('#pw').value.trim(), true); });
+const saved = REMEMBER.get(KEY);
+if (saved) start(saved, false); else $('#lock').hidden = false;
+</script>
+</body>
+</html>
