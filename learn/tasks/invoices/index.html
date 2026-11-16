@@ -446,6 +446,11 @@ async function start(p, remember) {
     const want = new URLSearchParams(location.search).get('client');
     const first = inv.clients.find(c => c.name.toLowerCase() === (want || '').toLowerCase()) || inv.clients[0];
     renderHist(); renderSettings(); pick(first.id);
+    const openId = new URLSearchParams(location.search).get('open'), x = openId && inv.issued.find(r => r.id === openId);
+    if (x) { // Edit link from the Paid / Unpaid page
+      doc = JSON.parse(JSON.stringify(x.doc)); doc.cadence = doc.cadence || 'month'; clientId = x.clientId || '';
+      renderClients(); renderForm(); toast('Editing invoice ' + doc.no + '. Saving again updates it (same number).');
+    }
   } catch (e) {
     $('#app').hidden = true; $('#lock').hidden = false;
     if (remember) $('#err').textContent = e.status === 401 ? 'That password didn’t work.' : 'Could not load: ' + e.message;

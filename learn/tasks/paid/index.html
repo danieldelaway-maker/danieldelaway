@@ -28,6 +28,17 @@
 
     button { cursor: pointer; padding: 9px 14px; border-radius: 11px; border: 0; font: 600 14px var(--font); color: var(--ink); background: linear-gradient(135deg, var(--mint), var(--blue)); }
     button.ghost { background: #fff; border: 1px solid var(--line); color: var(--text); }
+    .acts .end { margin-left: auto; display: inline-flex; gap: 8px; }
+    a.small.ghost { display: inline-flex; align-items: center; text-decoration: none; padding: 6px 10px; font-size: 13px; border-radius: 9px; background: #fff; border: 1px solid var(--line); color: var(--text); }
+    a.small.ghost:hover, button.ghost:hover { border-color: var(--muted); }
+    .qedit { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; background: #f7f8fb; border: 1px solid var(--line); border-radius: 12px; padding: 12px; animation: qin .25s ease; }
+    .qedit label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+    .qedit input, .qedit select { font: inherit; font-size: 14px; padding: 7px 9px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--text); }
+    .qedit input[name=client] { min-width: 180px; } .qedit input[name=total] { width: 110px; }
+    .qedit .qbtns { display: inline-flex; gap: 8px; }
+    @keyframes qin { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+    @media (max-width: 640px) { .qedit { grid-column: 1 / -1; } }
+    button.del.sure { background: #c62f2f; color: #fff; border-color: #c62f2f; }
     button.small { padding: 6px 10px; font-size: 13px; border-radius: 9px; }
     button:disabled { opacity: .5; cursor: default; }
     input { padding: 7px 9px; border-radius: 9px; border: 1px solid var(--line); background: #fbfcfe; color: var(--ink); font: 14px var(--font); }
@@ -144,6 +155,21 @@ function stateOf(r) {
 const sumBy = rows => { const o = {}; rows.forEach(r => { const c = r.currency || 'USD'; o[c] = (o[c] || 0) + (r.total || 0); }); return o; };
 const moneyList = o => Object.keys(o).length ? Object.entries(o).map(([c, n]) => money(n, c)).join(' <small>+</small> ') : '$0';
 
+// Delete animation: same burn-up as the Tasks page (Dan picked it 15 Nov 2026).
+function burn(el) {
+    if (!el || matchMedia('(prefers-reduced-motion: reduce)').matches) return Promise.resolve();
+    el.style.pointerEvents = 'none';
+    const b = el.getBoundingClientRect(), cols = ['#EF9F27', '#ff7a2f', '#ffcf5c', '#e24b4a'];
+    for (let i = 0; i < 26; i++) {
+      const e = document.createElement('i'), sz = 3 + Math.random() * 4;
+      Object.assign(e.style, { position: 'fixed', left: b.left + Math.random() * b.width + 'px', top: b.top + b.height * (.4 + Math.random() * .6) + 'px', width: sz + 'px', height: sz + 'px', borderRadius: '50%', background: cols[i % 4], pointerEvents: 'none', zIndex: 9999, opacity: 0 });
+      document.body.appendChild(e);
+      e.animate([{ opacity: 0, transform: 'none' }, { opacity: 1, offset: .2 }, { opacity: 0, transform: `translate(${Math.random() * 50 - 25}px,-${60 + Math.random() * 80}px) scale(.3)` }], { duration: 1100 + Math.random() * 500, delay: 150 + Math.random() * 900, fill: 'forwards' }).onfinish = () => e.remove();
+    }
+    return el.animate([{ filter: 'none', clipPath: 'inset(0 0 0 0)' }, { filter: 'sepia(1) saturate(4) hue-rotate(-20deg)', offset: .3 }, { filter: 'sepia(1) saturate(6) brightness(.4)', clipPath: 'inset(0 0 40% 0)', offset: .7 }, { filter: 'brightness(.2)', clipPath: 'inset(0 0 100% 0)' }], { duration: 1500, easing: 'ease-in', fill: 'forwards' }).finished.catch(() => {});
+  }
+
+let editId = null;
 // ---------- render ----------
 function render() {
   const rows = inv.issued.slice();
@@ -169,9 +195,16 @@ function render() {
       <div><div class="who">${esc(r.client)}</div><div class="meta">Sent ${nice(r.date)}${s !== 'paid' ? ' · due ' + nice(due) : ''}</div></div>
       <div class="amt">${money(r.total, r.currency)}</div>
       <div class="status s-${s}">${esc(label)}</div>
+      ${editId === r.id ? `<form class="qedit" data-id="${r.id}">
+        <label>Client <input name="client" value="${esc(r.client)}" required></label>
+        <label>Amount <input name="total" type="number" step="0.01" min="0" value="${esc(r.total)}" required></label>
+        <label>Currency <select name="currency">${['USD', 'AUD', 'EUR', 'GBP', 'CAD', 'NZD'].concat(['USD', 'AUD', 'EUR', 'GBP', 'CAD', 'NZD'].includes(r.currency) ? [] : [r.currency]).map(c => `<option ${c === (r.currency || 'USD') ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select></label>
+        <label>Sent <input name="date" type="date" value="${esc(r.date)}" required></label>
+        <span class="qbtns"><button class="small">Save</button><button class="small ghost" type="button" data-a="cancel">Cancel</button></span></form>` : ''}
       <div class="acts">${s === 'paid'
         ? `<label>Paid on <input type="date" data-a="paidOn" value="${esc(r.paid)}"></label><button class="small ghost" data-a="unpay">Mark unpaid</button>`
-        : `<button class="small" data-a="pay">✓ Mark paid</button><label>Due <input type="date" data-a="due" value="${esc(due)}"></label>`}</div>
+        : `<button class="small" data-a="pay">✓ Mark paid</button><label>Due <input type="date" data-a="due" value="${esc(due)}"></label>`}
+        <span class="end">${r.doc && r.doc.items ? `<a class="small ghost" href="../invoices/?open=${encodeURIComponent(r.id)}" title="Open it in the Invoice maker to change and re-save">✏️ Edit</a>` : `<button class="small ghost" data-a="edit" title="Made in Canva: edit the details here">✏️ Edit</button>`}<button class="small ghost del" data-a="del" title="Tap twice to delete">🗑 Delete</button></span></div>
     </div>`;
   }).join('') : `<p class="empty">${filter === 'late' ? 'Nothing overdue 🎉' : filter === 'open' ? 'Everything is paid 🎉' : 'No invoices here.'}</p>`;
 }
@@ -193,7 +226,22 @@ $('#list').addEventListener('click', e => {
     const s = document.createElement('div'); s.className = 'stamp'; s.textContent = 'PAID'; card.appendChild(s);
     setTimeout(() => patch(id, { paid: isoToday() }, `${r.no} marked paid.`, { paid: '' }), 750);
   }
+  if (b.dataset.a === 'edit') { editId = editId === id ? null : id; render(); return; }
+  if (b.dataset.a === 'cancel') { editId = null; render(); return; }
+  if (b.dataset.a === 'del') { // tap twice, no pop-ups
+    if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.classList.add('sure'); b.textContent = 'Delete?'; setTimeout(() => { if (b.isConnected) { b.dataset.sure = ''; b.classList.remove('sure'); b.textContent = '🗑 Delete'; } }, 3000); return; }
+    b.disabled = true;
+    Promise.all([api('/invoices/issued/' + id, 'DELETE'), burn(card)]).then(([d]) => { inv = d; render(); toast(`${r.no} deleted. (Kept in the trash, just ask Claude to bring it back.)`); })
+      .catch(err => { card.getAnimations().forEach(a => a.cancel()); card.style.pointerEvents = ''; b.disabled = false; toast('Not deleted: ' + err.message); });
+    return;
+  }
   if (b.dataset.a === 'unpay') patch(id, { paid: '' }, `${r.no} is back to unpaid.`, { paid: r.paid });
+});
+$('#list').addEventListener('submit', async e => {
+  const f = e.target.closest('form.qedit'); if (!f) return; e.preventDefault();
+  const v = Object.fromEntries(new FormData(f)), id = f.dataset.id;
+  editId = null; await patch(id, { client: v.client.trim(), total: Number(v.total), currency: v.currency, date: v.date }, 'Invoice updated.');
+  const c = document.querySelector(`.inv[data-id="${id}"]`); if (c) c.animate([{ boxShadow: '0 0 0 4px rgba(15,143,134,.35)' }, { boxShadow: '0 0 0 0 rgba(15,143,134,0)' }], { duration: 900 });
 });
 $('#list').addEventListener('change', e => {
   const i = e.target.closest('input[data-a]'); if (!i || !i.value) return;
