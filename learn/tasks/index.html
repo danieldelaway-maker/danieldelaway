@@ -871,7 +871,9 @@ function render() {
   const invmTile = `<a class="board proj tool" href="investments/" style="--tint:#7fc8f2" aria-label="Open Investments"><div class="plogo"><img src="logos/investments.svg" alt=""></div><h2>Investments</h2><p class="line">${iv ? 'A$' + iv.aud.toLocaleString('en-US') + ' · US$' + iv.usd.toLocaleString('en-US') : 'Stake + Revolut'}</p><p class="line"${iv ? ` style="color:${iv.dayPct > 0 ? '#0f8a5f' : iv.dayPct < 0 ? '#d64545' : 'inherit'};font-weight:700"` : ''}>${iv ? 'Today ' + (iv.dayPct > 0 ? '+' : '') + iv.dayPct + '%' : 'Nothing added yet'}</p></a>`;
   // Meeting notes → tasks card (16 Nov 2026) opens notes/.
   const notesTile = `<a class="board proj tool" href="notes/" style="--tint:#9fd6a8" aria-label="Turn meeting notes into tasks"><div class="plogo"><img src="logos/notes.svg" alt=""></div><h2>Notes → Tasks</h2><p class="line">Paste meeting notes</p><p class="line">Claude finds the to-dos</p></a>`;
-  $('#brands').innerHTML = `<p class="grp">Work</p>` + W.map(x => x.tile).join('') + `<p class="grp">Tools</p>` + invTile + paidTile + expTile + basTile + subTile + notesTile + `<p class="grp">Personal</p>` + P.map(x => x.tile).join('') + invmTile;
+  // Brand kits card (16 Nov 2026) opens brand-kits/.
+  const kitsTile = `<a class="board proj tool" href="brand-kits/" style="--tint:#f0a36b" aria-label="Open Brand kits"><div class="plogo"><img src="logos/brand-kits.svg" alt=""></div><h2>Brand Kits</h2><p class="line">Colours, fonts, logos</p><p class="line">Tap a colour to copy</p></a>`;
+  $('#brands').innerHTML = `<p class="grp">Work</p>` + W.map(x => x.tile).join('') + `<p class="grp">Tools</p>` + invTile + paidTile + expTile + basTile + subTile + notesTile + kitsTile + `<p class="grp">Personal</p>` + P.map(x => x.tile).join('') + invmTile;
   $('#panel').innerHTML = W.concat(P).map(x => x.panel).join('');
   if (firstPaint) {
     firstPaint = false; const bx = $('#brands');

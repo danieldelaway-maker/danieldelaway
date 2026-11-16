@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Brand Kits</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#f4f6fb">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@600;700&family=Inter:wght@400;500;600;700&display=swap">
+  <style>
+    /* Light only (Dan: no dark versions). Same mint → blue look as the other Tools. */
+    :root {
+      --bg: #f4f6fb; --card: #ffffff; --line: #e3e6ee; --ink: #12141c; --text: #3d4352; --muted: #6b7183;
+      --mint: #bff3da; --blue: #9cc1f7; --accent: #4f6fe0; --late: #c62f2f; --ok: #0f8f86; --okBg: #ddf7ec; --warn: #9a6a00; --warnBg: #fff3d6;
+      --font: 'Inter', system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--font); }
+    [hidden] { display: none !important; }
+    a { color: var(--accent); }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 24px 16px 80px; }
+    .top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+    .top h1 { font: 700 clamp(26px, 4vw, 38px) 'League Spartan', sans-serif; color: var(--ink); margin: 0; flex: 1; }
+    .back { text-decoration: none; font-weight: 600; font-size: 14px; }
+    button, .btn { cursor: pointer; padding: 9px 14px; border-radius: 11px; border: 0; font: 600 14px var(--font); color: var(--ink); background: linear-gradient(135deg, var(--mint), var(--blue)); text-decoration: none; display: inline-block; }
+    button.ghost, .btn.ghost { background: #fff; border: 1px solid var(--line); color: var(--text); }
+    button.small, .btn.small { padding: 6px 10px; font-size: 13px; border-radius: 9px; }
+    button.sure { background: #ffe1e1; color: var(--late); border: 1px solid #f3b4b4; }
+    button:disabled { opacity: .5; cursor: default; }
+    input, select, textarea { width: 100%; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: #fbfcfe; color: var(--ink); font: 14px var(--font); }
+    textarea { resize: vertical; min-height: 64px; }
+    input:focus, textarea:focus { outline: 2px solid var(--blue); border-color: var(--accent); }
+    label.k, .k { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin: 12px 0 4px; }
+    .meta { font-size: 13px; color: var(--muted); }
+
+    #lock { max-width: 420px; margin: 10vh auto 0; text-align: center; }
+    #lock form { display: flex; gap: 10px; margin-top: 18px; }
+    #lock input { flex: 1; min-width: 0; font-size: 15px; }
+    .err { color: var(--late); font-size: 14px; min-height: 20px; margin-top: 10px; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; margin-bottom: 18px; }
+    .tile { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px; cursor: pointer; text-align: center; transition: transform .15s, box-shadow .15s; position: relative; font: inherit; color: inherit; }
+    .tile:hover, .tile:focus-visible { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(20,30,60,.12); outline: none; }
+    .tile.on { box-shadow: 0 0 0 2px var(--accent); }
+    .tile .lg { height: 64px; display: grid; place-items: center; margin-bottom: 8px; }
+    .tile .lg img { max-height: 64px; max-width: 120px; object-fit: contain; }
+    .tile .lg .ph { width: 56px; height: 56px; border-radius: 14px; display: grid; place-items: center; font: 700 24px 'League Spartan', sans-serif; color: #fff; }
+    .tile h3 { font: 700 16px 'League Spartan', sans-serif; color: var(--ink); margin: 0 0 8px; }
+    .dots { display: flex; justify-content: center; gap: 4px; }
+    .dots i { width: 18px; height: 18px; border-radius: 50%; border: 1px solid rgba(0,0,0,.08); }
+    .badge { position: absolute; top: 8px; right: 8px; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 999px; }
+    .badge.ok { background: var(--okBg); color: var(--ok); } .badge.chk { background: var(--warnBg); color: var(--warn); }
+
+    .panel { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px 20px; }
+    .ph-head { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 4px; }
+    .ph-head img { height: 56px; max-width: 140px; object-fit: contain; }
+    .ph-head h2 { font: 700 26px 'League Spartan', sans-serif; color: var(--ink); margin: 0; }
+    .ph-head .grow { flex: 1; min-width: 160px; }
+    .tagline { font-size: 16px; color: var(--ink); font-style: italic; }
+    .sec { margin-top: 18px; }
+    .sec > .k { margin-top: 0; }
+    .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+    .sw { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; cursor: pointer; background: #fff; text-align: left; padding: 0; font: inherit; color: inherit; }
+    .sw .c { height: 70px; }
+    .sw .t { padding: 8px 10px; font-size: 13px; }
+    .sw .t b { display: block; color: var(--ink); }
+    .sw:hover { box-shadow: 0 8px 20px rgba(20,30,60,.1); }
+    .fonts { display: grid; gap: 10px; }
+    .font { border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; }
+    .font .s { font-size: 26px; color: var(--ink); line-height: 1.25; margin: 2px 0; overflow-wrap: anywhere; }
+    .logos { display: flex; gap: 10px; flex-wrap: wrap; }
+    .logo { border: 1px solid var(--line); border-radius: 14px; padding: 10px; width: 160px; text-align: center; background: repeating-conic-gradient(#f2f4f8 0% 25%, #fff 0% 50%) 50% / 16px 16px; }
+    .logo img { max-width: 100%; height: 80px; object-fit: contain; display: block; margin: 0 auto 6px; }
+    .logo .r { display: flex; gap: 6px; justify-content: center; }
+    .links { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tone { white-space: pre-line; background: #f7f9fd; border-radius: 12px; padding: 10px 14px; color: var(--ink); }
+    .note { font-size: 13px; background: var(--warnBg); color: #6d4c00; border-radius: 10px; padding: 8px 12px; margin-top: 10px; }
+    .note.ok { background: var(--okBg); color: #0b5f58; }
+    .sig img { max-height: 90px; border: 1px solid var(--line); border-radius: 10px; padding: 6px; background: #fff; }
+
+    .rows { display: flex; flex-direction: column; gap: 6px; }
+    .r3 { display: grid; grid-template-columns: 44px 1fr 1fr 34px; gap: 6px; align-items: center; }
+    .r3 input[type=color] { padding: 2px; height: 36px; }
+    .rf { display: grid; grid-template-columns: 1fr 1fr 1.4fr 34px; gap: 6px; }
+    .rl { display: grid; grid-template-columns: 1fr 2fr 34px; gap: 6px; }
+    .x { padding: 6px; background: #fff; border: 1px solid var(--line); color: var(--muted); border-radius: 9px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+    @media (max-width: 680px) { .form-grid { grid-template-columns: 1fr; } .rf { grid-template-columns: 1fr 1fr 34px; } .rf .nt { grid-column: 1 / 3; } }
+    .acts { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
+    #toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: #fff; color: var(--ink); border: 1px solid var(--line); box-shadow: 0 10px 30px rgba(0,0,0,.15); padding: 12px 18px; border-radius: 12px; font-weight: 600; z-index: 9; max-width: calc(100% - 32px); display: flex; gap: 10px; align-items: center; }
+    #toast i { width: 18px; height: 18px; border-radius: 5px; display: inline-block; border: 1px solid rgba(0,0,0,.1); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div id="lock" hidden>
+    <h1 style="font:700 32px 'League Spartan',sans-serif;color:var(--ink)">Brand Kits</h1>
+    <p>Same password as your Tasks HQ.</p>
+    <form id="unlock"><input id="pw" type="password" placeholder="Password" autocomplete="current-password"><button>Open</button></form>
+    <p class="err" id="err"></p>
+  </div>
+
+  <div id="app" hidden>
+    <div class="top">
+      <a class="back" href="../">← Tasks HQ</a>
+      <h1>Brand Kits</h1>
+      <button class="small" id="addBrand">+ Add brand</button>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div id="panel"></div>
+  </div>
+</div>
+<input type="file" id="logoFile" accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif" hidden>
+<div id="toast" hidden role="status"></div>
+
+<script>
+const API = 'https://brand-tasks-api.danieldelaway.workers.dev';
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// 30-day sliding login, shared with the Tasks HQ (same localStorage key "clientsHQ").
+const KEY = 'clientsHQ', DAYS = 30;
+const REMEMBER = {
+  get(k) {
+    let v = null; try { const exp = +localStorage.getItem(k + '__exp') || 0; v = localStorage.getItem(k); if (v && exp && exp < Date.now()) { v = null; localStorage.removeItem(k); } } catch {}
+    if (!v) { const m = document.cookie.match(new RegExp('(?:^|; )r_' + k + '=([^;]*)')); if (m) v = decodeURIComponent(m[1]); }
+    if (v) this.set(k, v); return v;
+  },
+  set(k, v) {
+    try { localStorage.setItem(k, v); localStorage.setItem(k + '__exp', String(Date.now() + DAYS * 864e5)); } catch {}
+    document.cookie = 'r_' + k + '=' + encodeURIComponent(v) + '; Max-Age=' + DAYS * 86400 + '; Path=/; Secure; SameSite=None; Partitioned';
+  },
+  del(k) { try { localStorage.removeItem(k); localStorage.removeItem(k + '__exp'); } catch {} document.cookie = 'r_' + k + '=; Max-Age=0; Path=/; Secure; SameSite=None; Partitioned'; },
+};
+let pass = '', kits = [], openId = null, editing = false;
+const fileUrls = {};
+
+async function api(path, method = 'GET', body) {
+  const r = await fetch(API + path, { method, headers: { 'X-Key': pass, ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(d.error || 'Something went wrong'), { status: r.status });
+  return d;
+}
+let toastT;
+function toast(html) { const t = $('#toast'); t.innerHTML = html; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 3500); }
+
+// ---------- helpers ----------
+const rgb = hex => { const h = hex.replace('#', ''), f = h.length === 3 ? h.split('').map(c => c + c).join('') : h; return [0, 2, 4].map(i => parseInt(f.slice(i, i + 2), 16)); };
+const light = hex => { const [r, g, b] = rgb(hex); return (r * 299 + g * 587 + b * 114) / 1000 > 160; };
+async function logoSrc(lg) {
+  if (lg.url) return lg.url;
+  if (fileUrls[lg.id]) return fileUrls[lg.id];
+  const r = await fetch(API + '/kits/file/' + lg.id, { headers: { 'X-Key': pass } });
+  if (!r.ok) return '';
+  return fileUrls[lg.id] = URL.createObjectURL(await r.blob());
+}
+const loadedFonts = new Set(), NOT_GOOGLE = /avant garde|itc |helvetica|futura|gotham|proxima|sf pro|circular/i;
+function loadFont(fam) {
+  if (!fam || loadedFonts.has(fam) || NOT_GOOGLE.test(fam)) return; loadedFonts.add(fam);
+  // Two requests: the plain one always works; the 700 one only loads where the font has a bold (a 400 error is harmless).
+  const q = encodeURIComponent(fam).replace(/%20/g, '+');
+  ['', ':wght@700', ':ital@1'].forEach(v => { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = `https://fonts.googleapis.com/css2?family=${q}${v}&display=swap`; document.head.appendChild(l); });
+}
+async function copy(text, hex) {
+  try { await navigator.clipboard.writeText(text); toast((hex ? `<i style="background:${esc(hex)}"></i>` : '') + 'Copied ' + esc(text)); } catch { toast('Could not copy here'); }
+}
+
+// ---------- grid ----------
+function renderGrid() {
+  $('#grid').innerHTML = kits.map(k => {
+    const first = k.colours[0]?.hex || '#9aa3b5', lg = k.logos[0];
+    return `<button class="tile ${k.id === openId ? 'on' : ''}" data-id="${k.id}">
+      <span class="badge ${k.checked ? 'ok' : 'chk'}">${k.checked ? '✓ Checked' : 'Check'}</span>
+      <div class="lg">${lg ? `<img data-logo="${lg.id}" alt="">` : `<div class="ph" style="background:${esc(first)}">${esc(k.name[0] || '?')}</div>`}</div>
+      <h3>${esc(k.name)}</h3>
+      <div class="dots">${k.colours.slice(0, 6).map(c => `<i style="background:${esc(c.hex)}" title="${esc(c.name)} ${esc(c.hex)}"></i>`).join('')}</div>
+    </button>`;
+  }).join('');
+  fillLogos($('#grid'));
+}
+function fillLogos(root) {
+  root.querySelectorAll('img[data-logo]').forEach(async img => {
+    const k = kits.find(x => x.logos.some(l => l.id === img.dataset.logo)), lg = k?.logos.find(l => l.id === img.dataset.logo);
+    if (lg) img.src = await logoSrc(lg);
+  });
+}
+$('#grid').addEventListener('click', e => {
+  const t = e.target.closest('.tile'); if (!t) return;
+  openId = openId === t.dataset.id && !editing ? null : t.dataset.id; editing = false; renderGrid(); renderPanel();
+  if (openId) setTimeout(() => $('#panel').scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+});
+
+// ---------- view ----------
+function renderPanel() {
+  const k = kits.find(x => x.id === openId);
+  if (!k) { $('#panel').innerHTML = `<p class="meta" style="text-align:center">Tap a brand to see its colours, fonts and logos. Tap a colour to copy it.</p>`; return; }
+  if (editing) return renderEdit(k);
+  k.fonts.forEach(f => loadFont(f.family));
+  const first = k.colours[0]?.hex || '#9aa3b5';
+  $('#panel').innerHTML = `<div class="panel">
+    <div class="ph-head">${k.logos[0] ? `<img data-logo="${k.logos[0].id}" alt="">` : ''}
+      <div class="grow"><h2>${esc(k.name)}</h2>${k.tagline ? `<div class="tagline">“${esc(k.tagline)}”</div>` : ''}</div>
+      <button class="ghost small" id="editBtn">✏️ Edit</button></div>
+    <div class="note ${k.checked ? 'ok' : ''}">${k.checked ? '✓ Checked against the real brand files.' : '⚠️ Not checked yet.'}${k.note ? ' ' + esc(k.note) : ''}</div>
+
+    <div class="sec"><div class="k">Colours · tap to copy</div>
+      ${k.colours.length ? `<div class="swatches">${k.colours.map(c => { const [r, g, b] = rgb(c.hex); return `<button class="sw" data-hex="${esc(c.hex)}"><div class="c" style="background:${esc(c.hex)}"></div><div class="t"><b>${esc(c.name || 'Colour')}</b>${esc(c.hex)} · <span data-rgb="rgb(${r}, ${g}, ${b})">RGB ${r} ${g} ${b}</span></div></button>`; }).join('')}</div>` : '<p class="meta">No colours yet.</p>'}
+    </div>
+
+    <div class="sec"><div class="k">Fonts</div>
+      ${k.fonts.length ? `<div class="fonts">${k.fonts.map(f => `<div class="font"><div class="meta">${esc(f.role || 'Font')}${f.note ? ' · ' + esc(f.note) : ''}</div>
+        <div class="s" style="font-family:'${esc(f.family)}', system-ui;${/italic/i.test(f.note) ? 'font-style:italic;' : ''}${/bold/i.test(f.note) && !/book/i.test(f.note) ? 'font-weight:700;' : ''}">${esc(f.family)} — The quick brown fox</div>
+        <div class="meta">${NOT_GOOGLE.test(f.family) ? 'Paid font (not on Google Fonts), so the preview uses a stand-in.' : `<a href="https://fonts.google.com/specimen/${encodeURIComponent(f.family).replace(/%20/g, '+')}" target="_blank" rel="noopener">Get it on Google Fonts ↗</a>`} · <a href="#" data-copyfont="${esc(f.family)}">Copy name</a></div></div>`).join('')}</div>` : '<p class="meta">No fonts yet.</p>'}
+    </div>
+
+    <div class="sec"><div class="k">Logos</div>
+      <div class="logos">${k.logos.map(l => `<div class="logo"><img data-logo="${l.id}" alt="${esc(l.name)}"><div class="r"><a class="btn small ghost" data-dl="${l.id}" href="#">⬇ Download</a>${l.url ? '' : `<button class="small ghost" data-rmlogo="${l.id}" aria-label="Remove logo">🗑</button>`}</div></div>`).join('')}
+        <button class="ghost" id="upLogo" style="width:160px;min-height:120px">+ Upload logo<br><span class="meta">PNG, SVG, JPG</span></button></div>
+    </div>
+
+    ${k.tone ? `<div class="sec"><div class="k">Voice & rules</div><div class="tone">${esc(k.tone)}</div></div>` : ''}
+    ${k.links.length ? `<div class="sec"><div class="k">Links</div><div class="links">${k.links.map(l => `<a class="btn small ghost" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label || l.url)} ↗</a>`).join('')}</div></div>` : ''}
+    ${k.signature ? `<div class="sec sig"><div class="k">Email signature image</div><img src="${esc(k.signature)}" alt="Signature image"> <div class="meta"><a href="#" data-copy="${esc(k.signature)}">Copy image link</a></div></div>` : ''}
+  </div>`;
+  fillLogos($('#panel'));
+}
+const sureLogo = new WeakMap();
+$('#panel').addEventListener('click', async e => {
+  const k = kits.find(x => x.id === openId); if (!k) return;
+  const sw = e.target.closest('.sw'); if (sw) { const r = e.target.closest('[data-rgb]'); return copy(r ? r.dataset.rgb : sw.dataset.hex, sw.dataset.hex); }
+  const cf = e.target.closest('[data-copyfont]'); if (cf) { e.preventDefault(); return copy(cf.dataset.copyfont); }
+  const cp = e.target.closest('[data-copy]'); if (cp) { e.preventDefault(); return copy(cp.dataset.copy); }
+  if (e.target.closest('#editBtn')) { editing = true; return renderPanel(); }
+  if (e.target.closest('#upLogo')) return $('#logoFile').click();
+  const dl = e.target.closest('[data-dl]'); if (dl) {
+    e.preventDefault(); const lg = k.logos.find(l => l.id === dl.dataset.dl), a = document.createElement('a');
+    a.href = await logoSrc(lg); a.download = `${k.name} ${lg.name}`.replace(/[^\w. -]+/g, ''); a.click(); return;
+  }
+  const rm = e.target.closest('[data-rmlogo]'); if (rm) {
+    if (!sureLogo.get(rm)) { sureLogo.set(rm, 1); rm.classList.add('sure'); rm.textContent = 'Remove?'; setTimeout(() => { if (rm.isConnected) { sureLogo.delete(rm); rm.classList.remove('sure'); rm.textContent = '🗑'; } }, 3000); return; }
+    try { kits = (await api(`/kits/${k.id}/logo/${rm.dataset.rmlogo}`, 'DELETE')).kits; renderGrid(); renderPanel(); toast('Logo removed.'); } catch (err) { toast('Not removed: ' + esc(err.message)); }
+  }
+});
+$('#logoFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f || !openId) return;
+  if (f.size > 1.4e6) return toast('That file is over 1.4 MB. Try a smaller PNG or an SVG.');
+  const data = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(f); });
+  try { kits = (await api(`/kits/${openId}/logo`, 'POST', { type: f.type, name: f.name, data })).kits; renderGrid(); renderPanel(); toast('Logo uploaded.'); }
+  catch (err) { toast('Not uploaded: ' + esc(err.message)); }
+});
+
+// ---------- edit ----------
+function renderEdit(k) {
+  const col = c => `<div class="r3"><input type="color" value="${esc(c.hex || '#000000')}" data-pick><input data-cname value="${esc(c.name)}" placeholder="Name"><input data-chex value="${esc(c.hex)}" placeholder="#000000"><button class="x" data-rm>✕</button></div>`;
+  const fnt = f => `<div class="rf"><input data-frole value="${esc(f.role)}" placeholder="Used for (e.g. Headings)"><input data-ffam value="${esc(f.family)}" placeholder="Font name"><input class="nt" data-fnote value="${esc(f.note)}" placeholder="Note (e.g. Bold, Italic)"><button class="x" data-rm>✕</button></div>`;
+  const lnk = l => `<div class="rl"><input data-llab value="${esc(l.label)}" placeholder="Label"><input data-lurl value="${esc(l.url)}" placeholder="https://…"><button class="x" data-rm>✕</button></div>`;
+  $('#panel').innerHTML = `<div class="panel"><h2 style="font:700 22px 'League Spartan',sans-serif;color:var(--ink);margin:0">${k.id ? 'Edit ' + esc(k.name) : 'New brand'}</h2>
+    <div class="form-grid">
+      <div><label class="k">Brand name</label><input id="e-name" value="${esc(k.name)}"></div>
+      <div><label class="k">Tagline</label><input id="e-tag" value="${esc(k.tagline)}"></div>
+    </div>
+    <label class="k">Colours</label><div class="rows" id="e-cols">${(k.colours.length ? k.colours : [{ name: '', hex: '' }]).map(col).join('')}</div>
+    <button class="ghost small" data-add="col" style="margin-top:6px">+ Colour</button>
+    <label class="k">Fonts</label><div class="rows" id="e-fonts">${(k.fonts.length ? k.fonts : [{ role: '', family: '', note: '' }]).map(fnt).join('')}</div>
+    <button class="ghost small" data-add="font" style="margin-top:6px">+ Font</button>
+    <label class="k">Voice & rules</label><textarea id="e-tone" placeholder="How it should sound, do's and don'ts">${esc(k.tone)}</textarea>
+    <label class="k">Links (website, socials, asset folders)</label><div class="rows" id="e-links">${(k.links.length ? k.links : [{ label: '', url: '' }]).map(lnk).join('')}</div>
+    <button class="ghost small" data-add="link" style="margin-top:6px">+ Link</button>
+    <div class="form-grid">
+      <div><label class="k">Email signature image link</label><input id="e-sig" value="${esc(k.signature)}" placeholder="https://…"></div>
+      <div><label class="k">Note</label><input id="e-note" value="${esc(k.note)}"></div>
+    </div>
+    <label class="k" style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-size:14px;color:var(--text)"><input type="checkbox" id="e-checked" style="width:auto" ${k.checked ? 'checked' : ''}> Checked against the real brand files</label>
+    <div class="acts"><button id="saveKit">Save</button><button class="ghost" id="cancelEdit">Cancel</button><span style="flex:1"></span>${k.id ? '<button class="ghost small" id="delKit">🗑 Delete brand</button>' : ''}</div>
+  </div>`;
+  $('#panel').dataset.tpl = JSON.stringify({ col: col({ name: '', hex: '' }), font: fnt({ role: '', family: '', note: '' }), link: lnk({ label: '', url: '' }) });
+}
+$('#panel').addEventListener('input', e => {
+  const r = e.target.closest('.r3'); if (!r) return;
+  if (e.target.matches('[data-pick]')) r.querySelector('[data-chex]').value = e.target.value.toUpperCase();
+  if (e.target.matches('[data-chex]') && /^#?[0-9a-f]{6}$/i.test(e.target.value.trim())) r.querySelector('[data-pick]').value = '#' + e.target.value.trim().replace('#', '');
+});
+let delSure = false;
+$('#panel').addEventListener('click', async e => {
+  if (!editing) return;
+  const add = e.target.closest('[data-add]'); if (add) {
+    const tpl = JSON.parse($('#panel').dataset.tpl), box = { col: '#e-cols', font: '#e-fonts', link: '#e-links' }[add.dataset.add];
+    $(box).insertAdjacentHTML('beforeend', tpl[add.dataset.add]); return;
+  }
+  const rm = e.target.closest('[data-rm]'); if (rm) { rm.parentElement.remove(); return; }
+  if (e.target.closest('#cancelEdit')) { editing = false; if (!kits.some(x => x.id === openId)) openId = null; renderGrid(); return renderPanel(); }
+  if (e.target.closest('#saveKit')) {
+    const k = kits.find(x => x.id === openId) || {};
+    const kit = { id: k.id, name: $('#e-name').value, tagline: $('#e-tag').value, tone: $('#e-tone').value, signature: $('#e-sig').value.trim(), note: $('#e-note').value, checked: $('#e-checked').checked,
+      colours: [...document.querySelectorAll('#e-cols .r3')].map(r => ({ name: r.querySelector('[data-cname]').value, hex: r.querySelector('[data-chex]').value })),
+      fonts: [...document.querySelectorAll('#e-fonts .rf')].map(r => ({ role: r.querySelector('[data-frole]').value, family: r.querySelector('[data-ffam]').value, note: r.querySelector('[data-fnote]').value })),
+      links: [...document.querySelectorAll('#e-links .rl')].map(r => { let u = r.querySelector('[data-lurl]').value.trim(); if (u && !/^https?:\/\//i.test(u)) u = 'https://' + u; return { label: r.querySelector('[data-llab]').value, url: u }; }) };
+    try {
+      const before = new Set(kits.map(x => x.id));
+      kits = (await api('/kits', 'POST', { kit })).kits; openId = k.id || kits.find(x => !before.has(x.id))?.id; editing = false;
+      renderGrid(); renderPanel(); toast('Saved.');
+    } catch (err) { toast('Not saved: ' + esc(err.message)); }
+  }
+  const del = e.target.closest('#delKit'); if (del) {
+    if (!delSure) { delSure = true; del.classList.add('sure'); del.textContent = 'Tap again to delete'; setTimeout(() => { delSure = false; if (del.isConnected) { del.classList.remove('sure'); del.textContent = '🗑 Delete brand'; } }, 3000); return; }
+    delSure = false;
+    try { const name = kits.find(x => x.id === openId)?.name; kits = (await api('/kits/' + openId, 'DELETE')).kits; openId = null; editing = false; renderGrid(); renderPanel(); toast(esc(name) + ' deleted.'); }
+    catch (err) { toast('Not deleted: ' + esc(err.message)); }
+  }
+});
+$('#addBrand').addEventListener('click', () => {
+  openId = '__new'; editing = true; renderGrid();
+  renderEdit({ id: '', name: '', tagline: '', tone: '', signature: '', note: '', checked: false, colours: [], fonts: [], links: [], logos: [] });
+  $('#panel').scrollIntoView({ behavior: 'smooth', block: 'start' }); setTimeout(() => $('#e-name').focus(), 300);
+});
+
+// ---------- sign in ----------
+async function start(p, remember) {
+  pass = p;
+  try {
+    kits = (await api('/kits')).kits;
+    if (remember) REMEMBER.set(KEY, p);
+    $('#lock').hidden = true; $('#app').hidden = false;
+    const want = new URLSearchParams(location.search).get('brand');
+    const hit = want && kits.find(k => k.name.toLowerCase() === want.toLowerCase()); if (hit) openId = hit.id;
+    renderGrid(); renderPanel();
+  } catch (e) {
+    $('#app').hidden = true; $('#lock').hidden = false;
+    if (remember) $('#err').textContent = e.status === 401 ? 'That password didn’t work.' : 'Could not load: ' + e.message;
+    else if (e.status === 401) { REMEMBER.del(KEY); $('#err').textContent = 'Please sign in again.'; }
+    else $('#err').textContent = 'Could not load: ' + e.message;
+  }
+}
+$('#unlock').addEventListener('submit', e => { e.preventDefault(); $('#err').textContent = ''; start($('#pw').value.trim(), true); });
+const saved = REMEMBER.get(KEY);
+if (saved) start(saved, false); else $('#lock').hidden = false;
+</script>
+</body>
+</html>
