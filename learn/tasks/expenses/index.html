@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Expenses &amp; Receipts</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#f4f6fb">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@600;700&family=Inter:wght@400;500;600;700&display=swap">
+  <style>
+    /* Light only (Dan: no dark versions). Same mint → blue look as the Invoice maker. */
+    :root {
+      --bg: #f4f6fb; --card: #ffffff; --line: #e3e6ee; --ink: #12141c; --text: #3d4352; --muted: #6b7183;
+      --mint: #bff3da; --blue: #9cc1f7; --accent: #4f6fe0; --late: #c62f2f; --lateBg: #ffe8e8; --ok: #0f8f86; --okBg: #ddf7ec; --warn: #9a6a00; --warnBg: #fff3d6;
+      --font: 'Inter', system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--font); }
+    [hidden] { display: none !important; }
+    a { color: var(--accent); }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 24px 16px 80px; }
+    .top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+    .top h1 { font: 700 clamp(26px, 4vw, 38px) 'League Spartan', sans-serif; color: var(--ink); margin: 0; flex: 1; }
+    .back { text-decoration: none; font-weight: 600; font-size: 14px; }
+
+    button { cursor: pointer; padding: 9px 14px; border-radius: 11px; border: 0; font: 600 14px var(--font); color: var(--ink); background: linear-gradient(135deg, var(--mint), var(--blue)); }
+    button.ghost { background: #fff; border: 1px solid var(--line); color: var(--text); }
+    button.small { padding: 6px 10px; font-size: 13px; border-radius: 9px; }
+    button.sure { background: #ffe1e1; color: var(--late); border: 1px solid #f3b4b4; }
+    button:disabled { opacity: .5; cursor: default; }
+    label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin: 12px 0 4px; }
+    input, select, textarea { width: 100%; padding: 9px 11px; border-radius: 10px; border: 1px solid var(--line); background: #fbfcfe; color: var(--ink); font: 15px var(--font); }
+    textarea { resize: vertical; min-height: 54px; }
+    input:focus, select:focus, textarea:focus { outline: 2px solid var(--blue); border-color: var(--accent); }
+
+    #lock { max-width: 420px; margin: 10vh auto 0; text-align: center; }
+    #lock form { display: flex; gap: 10px; margin-top: 18px; }
+    #lock input { flex: 1; min-width: 0; }
+    .err { color: var(--late); font-size: 14px; min-height: 20px; margin-top: 10px; }
+
+    .seg { display: inline-flex; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 2px; }
+    .seg button { background: transparent; border-radius: 999px; padding: 7px 14px; color: var(--muted); }
+    .seg button.on { background: linear-gradient(135deg, var(--mint), var(--blue)); color: var(--ink); }
+    .bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+    .bar select { width: auto; padding: 7px 10px; font-size: 14px; }
+    .bar .grow { flex: 1; }
+
+    .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .tile { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; }
+    .tile .k { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+    .tile .v { font: 700 24px 'League Spartan', sans-serif; color: var(--ink); margin-top: 4px; line-height: 1.2; }
+    .tile .v small { font: 600 14px var(--font); color: var(--muted); }
+    .tile.warn { background: var(--warnBg); border-color: #f0d9a0; } .tile.warn .v { color: var(--warn); }
+    .meta { font-size: 13px; color: var(--muted); }
+
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; margin-bottom: 16px; }
+    .card h2 { font: 700 18px 'League Spartan', sans-serif; color: var(--ink); margin: 0; }
+    .form-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 12px; }
+    .form-grid .w2 { grid-column: span 2; } .form-grid .w4 { grid-column: 1 / -1; }
+    @media (max-width: 720px) { .form-grid { grid-template-columns: 1fr 1fr; } .form-grid .w2 { grid-column: 1 / -1; } }
+    .drop { border: 2px dashed #c9d3ea; border-radius: 14px; padding: 16px; text-align: center; color: var(--muted); cursor: pointer; background: #fbfcfe; transition: border-color .2s, background .2s; }
+    .drop.over { border-color: var(--accent); background: #eef3ff; }
+    .drop img { max-height: 120px; max-width: 100%; border-radius: 8px; display: block; margin: 0 auto 6px; }
+    .check { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text); text-transform: none; letter-spacing: 0; font-weight: 500; margin-top: 34px; }
+    .check input { width: auto; }
+    .formacts { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; align-items: center; }
+
+    .list { display: flex; flex-direction: column; gap: 8px; }
+    .exp { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 11px 14px; display: grid; grid-template-columns: 54px 92px minmax(0, 1fr) auto auto; gap: 4px 14px; align-items: center; }
+    .thumb { width: 54px; height: 54px; border-radius: 10px; background: #eef1f7; display: grid; place-items: center; overflow: hidden; font-size: 22px; cursor: pointer; border: 0; padding: 0; }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .thumb.none { background: var(--warnBg); color: var(--warn); font-size: 12px; font-weight: 700; }
+    .date { font-size: 13px; color: var(--muted); }
+    .who { font-weight: 600; color: var(--ink); }
+    .amt { font: 700 17px 'League Spartan', sans-serif; color: var(--ink); text-align: right; white-space: nowrap; }
+    .amt .g { display: block; font: 500 12px var(--font); color: var(--muted); }
+    .acts { display: flex; gap: 6px; }
+    @media (max-width: 640px) {
+      .exp { grid-template-columns: 54px minmax(0, 1fr) auto; }
+      .exp .date { display: none; }
+      .exp .acts { grid-column: 2 / -1; }
+    }
+    .empty { text-align: center; color: var(--muted); padding: 30px 0; }
+    .pop { animation: pop .6s ease; }
+    @keyframes pop { 0% { transform: scale(.96); box-shadow: 0 0 0 0 var(--mint); } 40% { transform: scale(1.02); box-shadow: 0 0 0 6px var(--mint); } 100% { transform: scale(1); box-shadow: none; } }
+
+    #viewer { position: fixed; inset: 0; background: rgba(244,246,251,.94); z-index: 10; display: grid; place-items: center; padding: 16px; }
+    #viewer .box { background: #fff; border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,.15); padding: 12px; max-width: min(900px, 100%); width: 100%; max-height: 100%; display: flex; flex-direction: column; gap: 10px; }
+    #viewer .vtop { display: flex; gap: 8px; align-items: center; }
+    #viewer .vtop b { flex: 1; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #viewer .body { overflow: auto; text-align: center; }
+    #viewer img { max-width: 100%; height: auto; }
+    #viewer iframe { width: 100%; height: 75vh; border: 0; }
+
+    #toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: #fff; color: var(--ink); border: 1px solid var(--line); box-shadow: 0 10px 30px rgba(0,0,0,.15); padding: 12px 18px; border-radius: 12px; font-weight: 600; z-index: 11; max-width: calc(100% - 32px); display: flex; gap: 12px; align-items: center; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div id="lock" hidden>
+    <h1 style="font:700 32px 'League Spartan',sans-serif;color:var(--ink)">Expenses &amp; Receipts</h1>
+    <p>Same password as your Tasks HQ.</p>
+    <form id="unlock"><input id="pw" type="password" placeholder="Password" autocomplete="current-password"><button>Open</button></form>
+    <p class="err" id="err"></p>
+  </div>
+
+  <div id="app" hidden>
+    <div class="top">
+      <a class="back" href="../">← Tasks HQ</a>
+      <h1>Expenses &amp; Receipts</h1>
+    </div>
+
+    <div class="bar">
+      <div class="seg" id="sideTabs">
+        <button data-side="business" class="on">💼 Business</button>
+        <button data-side="personal">🏠 Personal</button>
+      </div>
+      <select id="period" aria-label="Period"></select>
+      <span class="grow"></span>
+      <button class="ghost small" id="csv">⬇ Download CSV</button>
+    </div>
+    <p class="meta" id="sideNote" style="margin:-4px 0 14px"></p>
+
+    <div class="tiles" id="tiles"></div>
+
+    <div class="card" id="formCard">
+      <div style="display:flex;align-items:center;gap:10px"><h2 id="formTitle" style="flex:1">Add an expense</h2><button class="ghost small" id="cancelEdit" hidden>Cancel edit</button></div>
+      <div class="form-grid">
+        <div class="w4">
+          <label>Receipt (photo or PDF)</label>
+          <div class="drop" id="drop" tabindex="0" role="button" aria-label="Add a receipt photo or PDF">
+            <div id="dropShow">📎 Tap to take a photo or pick a file, or drop it here</div>
+          </div>
+          <input type="file" id="file" accept="image/*,application/pdf" hidden>
+        </div>
+        <div><label for="f-date">Date</label><input id="f-date" type="date"></div>
+        <div class="w2"><label for="f-vendor">Paid to</label><input id="f-vendor" placeholder="e.g. Canva, Qantas, Officeworks" list="vendors"><datalist id="vendors"></datalist></div>
+        <div><label for="f-cat">Category</label><select id="f-cat"></select></div>
+        <div><label for="f-amt">Amount</label><input id="f-amt" inputmode="decimal" placeholder="0.00"></div>
+        <div><label for="f-cur">Currency</label><select id="f-cur"><option>AUD</option><option>USD</option><option>EUR</option><option>GBP</option><option>MXN</option></select></div>
+        <div id="gstBox"><label class="check"><input type="checkbox" id="f-hasgst"> Includes GST</label></div>
+        <div id="gstAmtBox"><label for="f-gst">GST (A$)</label><input id="f-gst" inputmode="decimal" placeholder="0.00"></div>
+        <div class="w2" id="brandBox"><label for="f-brand">For which client / brand</label><select id="f-brand"></select></div>
+        <div class="w2"><label for="f-note">Note</label><input id="f-note" placeholder="Optional"></div>
+      </div>
+      <div class="formacts">
+        <button id="saveBtn">Save expense</button>
+        <span class="meta" id="formMsg"></span>
+      </div>
+    </div>
+
+    <div class="list" id="list"></div>
+  </div>
+</div>
+<div id="viewer" hidden><div class="box"><div class="vtop"><b id="vName"></b><a id="vDl" class="back" download>Download</a><button class="ghost small" id="vClose">Close</button></div><div class="body" id="vBody"></div></div></div>
+<div id="toast" hidden role="status"></div>
+
+<script>
+const API = 'https://brand-tasks-api.danieldelaway.workers.dev';
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// 30-day sliding login, shared with the Tasks HQ (same localStorage key "clientsHQ").
+const KEY = 'clientsHQ', DAYS = 30;
+const REMEMBER = {
+  get(k) {
+    let v = null; try { const exp = +localStorage.getItem(k + '__exp') || 0; v = localStorage.getItem(k); if (v && exp && exp < Date.now()) { v = null; localStorage.removeItem(k); } } catch {}
+    if (!v) { const m = document.cookie.match(new RegExp('(?:^|; )r_' + k + '=([^;]*)')); if (m) v = decodeURIComponent(m[1]); }
+    if (v) this.set(k, v); return v;
+  },
+  set(k, v) {
+    try { localStorage.setItem(k, v); localStorage.setItem(k + '__exp', String(Date.now() + DAYS * 864e5)); } catch {}
+    document.cookie = 'r_' + k + '=' + encodeURIComponent(v) + '; Max-Age=' + DAYS * 86400 + '; Path=/; Secure; SameSite=None; Partitioned';
+  },
+  del(k) { try { localStorage.removeItem(k); localStorage.removeItem(k + '__exp'); } catch {} document.cookie = 'r_' + k + '=; Max-Age=0; Path=/; Secure; SameSite=None; Partitioned'; },
+};
+let pass = '', list = [], brands = [], side = 'business', period = '', editing = null, pending = null; // pending = {type, name, data, url}
+const thumbs = {}; // receipt id -> object URL
+
+async function api(path, method = 'GET', body) {
+  const r = await fetch(API + path, { method, headers: { 'X-Key': pass, ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(d.error || 'Something went wrong'), { status: r.status });
+  return d;
+}
+async function fileUrl(e) {
+  if (thumbs[e.receipt.id]) return thumbs[e.receipt.id];
+  const r = await fetch(API + '/expenses/' + e.id + '/receipt', { headers: { 'X-Key': pass } });
+  if (!r.ok) throw new Error('Could not open the receipt');
+  return thumbs[e.receipt.id] = URL.createObjectURL(await r.blob());
+}
+let toastT;
+function toast(msg, undo) {
+  const t = $('#toast'); t.innerHTML = esc(msg) + (undo ? ' <button class="small ghost" id="undo">Undo</button>' : ''); t.hidden = false;
+  if (undo) $('#undo').onclick = () => { t.hidden = true; undo(); };
+  clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 6000);
+}
+
+// ---------- helpers ----------
+const CATS = {
+  business: ['Software & subscriptions', 'Advertising', 'Contractors & freelancers', 'Equipment & tech', 'Travel', 'Meals & entertainment', 'Phone & internet', 'Office & co-working', 'Bank & payment fees', 'Courses & books', 'Accounting & legal', 'Other'],
+  personal: ['Donations', 'Work-related (personal)', 'Self-education', 'Tax agent fees', 'Income protection', 'Other'],
+};
+const SYM = { AUD: 'A$', USD: 'US$', EUR: '€', GBP: '£', MXN: 'MX$' };
+const money = (n, cur) => (SYM[cur] || (cur + ' ')) + (Math.round((Number(n) || 0) * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const num = v => Math.round((parseFloat(String(v).replace(/[^0-9.\-]/g, '')) || 0) * 100) / 100;
+const isoToday = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); };
+const nice = iso => new Date(iso + 'T00:00:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+// Australian financial year starts 1 July. BAS quarters: Q1 Jul–Sep, Q2 Oct–Dec, Q3 Jan–Mar, Q4 Apr–Jun.
+const fyOf = iso => { const y = +iso.slice(0, 4), m = +iso.slice(5, 7); return m >= 7 ? y : y - 1; };
+function periods() {
+  const out = [], t = isoToday(), fy = fyOf(t);
+  for (let f = fy; f >= fy - 1; f--) {
+    const lbl = `FY${f}-${String(f + 1).slice(2)}`;
+    out.push({ v: `fy${f}`, l: `Whole ${lbl} (Jul ${f} – Jun ${f + 1})`, from: `${f}-07-01`, to: `${f + 1}-06-30` });
+    [['Q1', 'Jul–Sep', f, 7], ['Q2', 'Oct–Dec', f, 10], ['Q3', 'Jan–Mar', f + 1, 1], ['Q4', 'Apr–Jun', f + 1, 4]].forEach(([q, mths, y, m]) => {
+      const from = `${y}-${String(m).padStart(2, '0')}-01`; if (from > t) return;
+      const end = new Date(Date.UTC(y, m + 2, 0)).toISOString().slice(0, 10);
+      out.push({ v: `${f}${q}`, l: `${lbl} ${q} · ${mths} ${y}`, from, to: end });
+    });
+  }
+  out.push({ v: 'all', l: 'Everything', from: '0000', to: '9999' });
+  return out;
+}
+const curPeriod = () => periods().find(p => p.v === period) || periods()[0];
+
+// ---------- form ----------
+function fillCats() { $('#f-cat').innerHTML = CATS[side].map(c => `<option>${esc(c)}</option>`).join(''); }
+function fillBrands() {
+  $('#f-brand').innerHTML = `<option value="">My own business (general)</option>` + brands.filter(b => b !== 'Life Admin').map(b => `<option>${esc(b)}</option>`).join('');
+}
+function gstUi() {
+  const aud = $('#f-cur').value === 'AUD', biz = side === 'business';
+  $('#gstBox').hidden = $('#gstAmtBox').hidden = !(aud && biz);
+  $('#brandBox').hidden = !biz;
+  if (!aud || !biz) { $('#f-hasgst').checked = false; $('#f-gst').value = ''; }
+}
+function autoGst() { if ($('#f-hasgst').checked) $('#f-gst').value = (num($('#f-amt').value) / 11).toFixed(2); else $('#f-gst').value = ''; }
+['#f-amt'].forEach(s => $(s).addEventListener('input', () => { if ($('#f-hasgst').checked) autoGst(); }));
+$('#f-hasgst').addEventListener('change', autoGst);
+$('#f-cur').addEventListener('change', gstUi);
+
+function resetForm() {
+  editing = null; pending = null;
+  $('#formTitle').textContent = 'Add an expense'; $('#cancelEdit').hidden = true; $('#saveBtn').textContent = 'Save expense';
+  $('#f-date').value = isoToday(); $('#f-vendor').value = ''; $('#f-amt').value = ''; $('#f-cur').value = 'AUD';
+  $('#f-hasgst').checked = false; $('#f-gst').value = ''; $('#f-note').value = ''; $('#f-brand').value = '';
+  fillCats(); gstUi(); showDrop(); $('#formMsg').textContent = '';
+}
+function showDrop(e) {
+  const d = $('#dropShow');
+  if (pending) d.innerHTML = (pending.type.startsWith('image/') ? `<img src="${pending.url}" alt="">` : '📄 ') + esc(pending.name) + ' <span class="meta">(tap to change)</span>';
+  else if (e?.receipt) d.innerHTML = `📎 ${esc(e.receipt.name)} is saved <span class="meta">(tap to replace)</span>`;
+  else d.innerHTML = '📎 Tap to take a photo or pick a file, or drop it here';
+}
+function editRow(e) {
+  editing = e; side = e.side; setSideTabs(); fillCats(); pending = null;
+  $('#formTitle').textContent = 'Edit expense'; $('#cancelEdit').hidden = false; $('#saveBtn').textContent = 'Save changes';
+  $('#f-date').value = e.date; $('#f-vendor').value = e.vendor; $('#f-amt').value = e.amount || ''; $('#f-cur').value = e.currency;
+  if (![...$('#f-cat').options].some(o => o.value === e.category)) $('#f-cat').insertAdjacentHTML('beforeend', `<option>${esc(e.category)}</option>`);
+  $('#f-cat').value = e.category; $('#f-note').value = e.note; $('#f-brand').value = e.brand;
+  gstUi(); $('#f-hasgst').checked = e.gst > 0; $('#f-gst').value = e.gst ? e.gst.toFixed(2) : '';
+  showDrop(e); render();
+  $('#formCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+$('#cancelEdit').addEventListener('click', resetForm);
+
+// Receipt picking: photos are shrunk to ≤1600px JPEG so they upload fast; PDFs go as they are (max ~1.4 MB).
+async function takeFile(f) {
+  if (!f) return;
+  try {
+    if (f.type === 'application/pdf') {
+      if (f.size > 1.4e6) throw new Error('That PDF is over 1.4 MB. Try a smaller copy or a photo of it.');
+      const data = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(f); });
+      pending = { type: f.type, name: f.name, data, url: '' };
+    } else if (f.type.startsWith('image/') || /\.(heic|heif)$/i.test(f.name)) {
+      const url = URL.createObjectURL(f), img = new Image();
+      await new Promise((res, rej) => { img.onload = res; img.onerror = () => rej(new Error('Could not read that photo. Try a JPG or PNG.')); img.src = url; });
+      const k = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight)), c = document.createElement('canvas');
+      c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+      const cx = c.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, c.width, c.height); cx.drawImage(img, 0, 0, c.width, c.height);
+      const data = c.toDataURL('image/jpeg', 0.82); URL.revokeObjectURL(url);
+      pending = { type: 'image/jpeg', name: f.name.replace(/\.[^.]+$/, '') + '.jpg', data, url: data };
+    } else throw new Error('Receipts must be a photo or a PDF.');
+    showDrop(editing);
+  } catch (e) { toast(e.message); }
+}
+$('#drop').addEventListener('click', () => $('#file').click());
+$('#drop').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('#file').click(); } });
+$('#file').addEventListener('change', e => { takeFile(e.target.files[0]); e.target.value = ''; });
+['dragenter', 'dragover'].forEach(t => $('#drop').addEventListener(t, e => { e.preventDefault(); $('#drop').classList.add('over'); }));
+['dragleave', 'drop'].forEach(t => $('#drop').addEventListener(t, e => { e.preventDefault(); $('#drop').classList.remove('over'); }));
+$('#drop').addEventListener('drop', e => takeFile(e.dataTransfer.files[0]));
+document.addEventListener('paste', e => { const f = [...(e.clipboardData?.files || [])][0]; if (f && !$('#app').hidden) takeFile(f); });
+
+$('#saveBtn').addEventListener('click', async () => {
+  const b = $('#saveBtn'); b.disabled = true; $('#formMsg').textContent = 'Saving…';
+  try {
+    const exp = { id: editing?.id, date: $('#f-date').value, vendor: $('#f-vendor').value, amount: $('#f-amt').value, currency: $('#f-cur').value, gst: $('#f-hasgst').checked ? $('#f-gst').value : 0,
+      side, category: $('#f-cat').value, brand: side === 'business' ? $('#f-brand').value : '', note: $('#f-note').value };
+    const before = new Set(list.map(x => x.id));
+    let d = await api('/expenses', 'POST', { expense: exp });
+    const saved = editing ? d.expenses.find(x => x.id === editing.id) : d.expenses.find(x => !before.has(x.id));
+    if (pending && saved) { $('#formMsg').textContent = 'Uploading receipt…'; d = await api('/expenses/' + saved.id + '/receipt', 'POST', { type: pending.type, name: pending.name, data: pending.data }); }
+    list = d.expenses; const id = saved?.id, was = !!editing;
+    // Jump the view to the period of the saved expense so it's visible.
+    if (saved && !(saved.date >= curPeriod().from && saved.date <= curPeriod().to)) { period = periods().find(p => p.v !== 'all' && /Q/.test(p.v) && saved.date >= p.from && saved.date <= p.to)?.v || 'all'; fillPeriods(); }
+    resetForm(); render();
+    const el = id && document.querySelector(`[data-id="${id}"]`); if (el) { el.classList.add('pop'); el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+    toast(was ? 'Changes saved.' : 'Expense saved.');
+  } catch (e) { $('#formMsg').textContent = ''; toast('Not saved: ' + e.message); }
+  b.disabled = false;
+});
+
+// ---------- list ----------
+function rowsNow() { const p = curPeriod(); return list.filter(e => e.side === side && e.date >= p.from && e.date <= p.to); }
+const sumBy = rows => { const o = {}; rows.forEach(r => { o[r.currency] = (o[r.currency] || 0) + r.amount; }); return o; };
+const moneyList = o => Object.keys(o).length ? Object.entries(o).sort((a, b) => (a[0] === 'AUD' ? -1 : b[0] === 'AUD' ? 1 : 0)).map(([c, n]) => money(n, c)).join(' <small>+</small> ') : 'A$0.00';
+
+function render() {
+  const rows = rowsNow(), miss = rows.filter(e => !e.receipt), biz = side === 'business';
+  const cats = {}; rows.forEach(e => { if (e.currency === 'AUD') cats[e.category] = (cats[e.category] || 0) + e.amount; });
+  const top = Object.entries(cats).sort((a, b) => b[1] - a[1])[0];
+  $('#tiles').innerHTML = `
+    <div class="tile"><div class="k">Spent</div><div class="v">${moneyList(sumBy(rows))}</div><div class="meta">${rows.length} expense${rows.length === 1 ? '' : 's'}</div></div>
+    ${biz ? `<div class="tile"><div class="k">GST you can claim</div><div class="v">${money(rows.reduce((a, e) => a + (e.currency === 'AUD' ? e.gst : 0), 0), 'AUD')}</div><div class="meta">GST credits for the BAS</div></div>`
+          : `<div class="tile"><div class="k">Biggest category</div><div class="v">${top ? esc(top[0]) : '—'}</div><div class="meta">${top ? money(top[1], 'AUD') : 'Nothing yet'}</div></div>`}
+    <div class="tile ${miss.length ? 'warn' : ''}"><div class="k">Missing receipts</div><div class="v">${miss.length || 'None'}</div><div class="meta">${miss.length ? 'Tap the yellow boxes to add them' : 'All receipts saved'}</div></div>`;
+  $('#sideNote').textContent = biz ? 'Business costs for the BAS and your business tax. GST is worked out for Australian (AUD) costs only.' : 'Personal deductions for your own tax return (e.g. donations). Kept apart from the business.';
+
+  $('#list').innerHTML = rows.length ? rows.map(e => `<div class="exp" data-id="${e.id}">
+      <button class="thumb ${e.receipt ? '' : 'none'}" data-a="${e.receipt ? 'view' : 'add'}" aria-label="${e.receipt ? 'Open receipt' : 'Add receipt'}">${e.receipt ? (e.receipt.type.startsWith('image/') ? `<img data-thumb="${e.id}" alt="">` : '📄') : '+ Receipt'}</button>
+      <div class="date">${nice(e.date)}</div>
+      <div><div class="who">${esc(e.vendor || '(no name)')}</div><div class="meta">${esc(e.category)}${e.brand ? ' · ' + esc(e.brand) : ''}${e.note ? ' · ' + esc(e.note) : ''}</div></div>
+      <div class="amt">${money(e.amount, e.currency)}${e.gst ? `<span class="g">GST ${money(e.gst, 'AUD')}</span>` : ''}</div>
+      <div class="acts"><button class="small ghost" data-a="edit">Edit</button><button class="small ghost" data-a="del" aria-label="Delete">🗑</button></div>
+    </div>`).join('') : `<p class="empty">No ${side} expenses in this period yet.</p>`;
+  // Load image thumbnails in the background.
+  rows.filter(e => e.receipt?.type.startsWith('image/')).forEach(e => fileUrl(e).then(u => { const i = document.querySelector(`[data-thumb="${e.id}"]`); if (i) i.src = u; }).catch(() => {}));
+}
+
+let addFor = null;
+const addInput = Object.assign(document.createElement('input'), { type: 'file', accept: 'image/*,application/pdf', hidden: true });
+document.body.appendChild(addInput);
+addInput.addEventListener('change', async () => {
+  const f = addInput.files[0]; addInput.value = ''; if (!f || !addFor) return;
+  const keep = pending; await takeFile(f); const p = pending; pending = keep; showDrop(editing);
+  if (!p || p === keep) return;
+  try { const d = await api('/expenses/' + addFor + '/receipt', 'POST', { type: p.type, name: p.name, data: p.data }); list = d.expenses; render(); toast('Receipt saved.'); }
+  catch (e) { toast('Not saved: ' + e.message); }
+});
+
+const sure = new WeakMap();
+$('#list').addEventListener('click', async ev => {
+  const b = ev.target.closest('button[data-a]'); if (!b) return;
+  const id = b.closest('.exp').dataset.id, e = list.find(x => x.id === id);
+  if (b.dataset.a === 'edit') editRow(e);
+  if (b.dataset.a === 'add') { addFor = id; addInput.click(); }
+  if (b.dataset.a === 'view') {
+    try {
+      const u = await fileUrl(e);
+      $('#vName').textContent = `${e.vendor} · ${nice(e.date)}`; $('#vDl').href = u; $('#vDl').download = e.receipt.name;
+      $('#vBody').innerHTML = e.receipt.type === 'application/pdf' ? `<iframe src="${u}" title="Receipt"></iframe>` : `<img src="${u}" alt="Receipt">`;
+      $('#viewer').hidden = false;
+    } catch (err) { toast(err.message); }
+  }
+  if (b.dataset.a === 'del') {
+    // Two taps to delete (no browser pop-ups): first tap turns the button red.
+    if (!sure.get(b)) { sure.set(b, 1); b.classList.add('sure'); b.textContent = 'Delete?'; setTimeout(() => { if (b.isConnected) { sure.delete(b); b.classList.remove('sure'); b.textContent = '🗑'; } }, 3000); return; }
+    try {
+      const d = await api('/expenses/' + id, 'DELETE'); list = d.expenses; if (editing?.id === id) resetForm(); render();
+      toast(`${e.vendor || 'Expense'} deleted.`, async () => { try { const { id: _old, ...rest } = e; const r = await api('/expenses', 'POST', { expense: rest }); list = r.expenses; render(); toast('Put back.'); } catch (x) { toast('Could not undo: ' + x.message); } });
+    } catch (err) { toast('Not deleted: ' + err.message); }
+  }
+});
+$('#vClose').addEventListener('click', () => $('#viewer').hidden = true);
+$('#viewer').addEventListener('click', e => { if (e.target.id === 'viewer') $('#viewer').hidden = true; });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('#viewer').hidden = true; });
+
+// ---------- tabs / period / csv ----------
+function setSideTabs() { document.querySelectorAll('#sideTabs button').forEach(x => x.classList.toggle('on', x.dataset.side === side)); }
+$('#sideTabs').addEventListener('click', e => { const b = e.target.closest('[data-side]'); if (!b || b.dataset.side === side) return; side = b.dataset.side; setSideTabs(); if (editing) resetForm(); else { fillCats(); gstUi(); } render(); });
+function fillPeriods() {
+  const ps = periods(), t = isoToday();
+  if (!period) period = ps.find(p => /Q/.test(p.v) && t >= p.from && t <= p.to)?.v || ps[0].v;
+  $('#period').innerHTML = ps.map(p => `<option value="${p.v}" ${p.v === period ? 'selected' : ''}>${esc(p.l)}</option>`).join('');
+}
+$('#period').addEventListener('change', e => { period = e.target.value; render(); });
+$('#csv').addEventListener('click', () => {
+  const rows = rowsNow(), q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const lines = [['Date', 'Paid to', 'Category', 'Client / brand', 'Amount', 'Currency', 'GST (AUD)', 'Note', 'Receipt saved'].map(q).join(',')]
+    .concat(rows.slice().reverse().map(e => [e.date, e.vendor, e.category, e.brand, e.amount.toFixed(2), e.currency, e.gst ? e.gst.toFixed(2) : '', e.note, e.receipt ? 'Yes' : 'No'].map(q).join(',')));
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' }));
+  a.download = `${side === 'business' ? 'Business' : 'Personal'} expenses ${curPeriod().l.replace(/[^\w\- ]+/g, '').trim()}.csv`; a.click();
+});
+
+// ---------- sign in ----------
+async function start(p, remember) {
+  pass = p;
+  try {
+    const [d, t] = await Promise.all([api('/expenses'), api('/tasks').catch(() => ({ brands: [] }))]);
+    list = d.expenses; brands = (t.brands || []).map(b => b.name);
+    if (remember) REMEMBER.set(KEY, p);
+    $('#lock').hidden = true; $('#app').hidden = false;
+    $('#vendors').innerHTML = [...new Set(list.map(e => e.vendor).filter(Boolean))].map(v => `<option value="${esc(v)}">`).join('');
+    fillBrands(); fillPeriods(); resetForm(); render();
+  } catch (e) {
+    $('#app').hidden = true; $('#lock').hidden = false;
+    if (remember) $('#err').textContent = e.status === 401 ? 'That password didn’t work.' : 'Could not load: ' + e.message;
+    else if (e.status === 401) { REMEMBER.del(KEY); $('#err').textContent = 'Please sign in again.'; }
+    else $('#err').textContent = 'Could not load: ' + e.message;
+  }
+}
+$('#unlock').addEventListener('submit', e => { e.preventDefault(); $('#err').textContent = ''; start($('#pw').value.trim(), true); });
+const saved = REMEMBER.get(KEY);
+if (saved) start(saved, false); else $('#lock').hidden = false;
+</script>
+</body>
+</html>

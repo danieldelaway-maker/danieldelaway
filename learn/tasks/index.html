@@ -828,7 +828,11 @@ function render() {
   const ow = d.invoiceOwed || {}, SYM = { USD: 'US$', AUD: 'A$' };
   const owedTxt = Object.entries(ow.owed || {}).map(([c, n]) => (SYM[c] || c + ' ') + Math.round(n).toLocaleString('en-US')).join(' + ') || 'Nothing';
   const paidTile = `<a class="board proj tool" href="paid/" style="--tint:#7fd9b4" aria-label="Open the Paid / Unpaid tracker"><div class="plogo"><img src="logos/paid.svg" alt=""></div><h2>Paid / Unpaid</h2><p class="line">Owed: ${esc(owedTxt)}</p>${ow.overdue ? `<p class="line" style="color:#d64545;font-weight:700">${ow.overdue} overdue</p>` : `<p class="line">Nothing overdue</p>`}</a>`;
-  $('#brands').innerHTML = `<p class="grp">Work</p>` + W.map(x => x.tile).join('') + `<p class="grp">Tools</p>` + invTile + paidTile + (P.length ? `<p class="grp">Personal</p>` + P.map(x => x.tile).join('') : '');
+  // Expenses & receipts card (16 Nov 2026) opens expenses/. Shows this BAS quarter's business spend.
+  const ex = d.expenseSum || {};
+  const exTxt = Object.entries(ex.spent || {}).map(([c, n]) => (SYM[c] || c + ' ') + Math.round(n).toLocaleString('en-US')).join(' + ') || 'Nothing yet';
+  const expTile = `<a class="board proj tool" href="expenses/" style="--tint:#f2c46b" aria-label="Open Expenses and receipts"><div class="plogo"><img src="logos/expenses.svg" alt=""></div><h2>Expenses</h2><p class="line">This quarter: ${esc(exTxt)}</p>${ex.noReceipt ? `<p class="line" style="color:#b07a00;font-weight:700">${ex.noReceipt} missing receipt${ex.noReceipt === 1 ? '' : 's'}</p>` : `<p class="line">${ex.gst ? 'GST to claim: A$' + ex.gst.toLocaleString('en-US') : 'All receipts saved'}</p>`}</a>`;
+  $('#brands').innerHTML = `<p class="grp">Work</p>` + W.map(x => x.tile).join('') + `<p class="grp">Tools</p>` + invTile + paidTile + expTile + (P.length ? `<p class="grp">Personal</p>` + P.map(x => x.tile).join('') : '');
   $('#panel').innerHTML = W.concat(P).map(x => x.panel).join('');
   if (firstPaint) {
     firstPaint = false; const bx = $('#brands');
