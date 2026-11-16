@@ -818,7 +818,11 @@ function render() {
   const W = work.map(cardHtml).sort(byUrgency), P = personal.map(cardHtml).sort(byUrgency);
   // Tools: the Invoice maker card (15 Nov 2026) opens its own page, invoices/.
   const invTile = `<a class="board proj tool" href="invoices/" style="--tint:#7aa9f0" aria-label="Open the Invoice maker"><div class="plogo"><img src="logos/invoices.svg" alt=""></div><h2>Invoices</h2><p class="line">Next no. ${esc(d.invoiceNext || '…')}</p>${d.invoiceLast ? `<p class="line">Last saved: ${esc(d.invoiceLast)}</p>` : ''}</a>`;
-  $('#brands').innerHTML = `<p class="grp">Work</p>` + W.map(x => x.tile).join('') + `<p class="grp">Tools</p>` + invTile + (P.length ? `<p class="grp">Personal</p>` + P.map(x => x.tile).join('') : '');
+  // Paid / Unpaid tracker card (16 Nov 2026) opens paid/.
+  const ow = d.invoiceOwed || {}, SYM = { USD: 'US$', AUD: 'A$' };
+  const owedTxt = Object.entries(ow.owed || {}).map(([c, n]) => (SYM[c] || c + ' ') + Math.round(n).toLocaleString('en-US')).join(' + ') || 'Nothing';
+  const paidTile = `<a class="board proj tool" href="paid/" style="--tint:#7fd9b4" aria-label="Open the Paid / Unpaid tracker"><div class="plogo"><img src="logos/paid.svg" alt=""></div><h2>Paid / Unpaid</h2><p class="line">Owed: ${esc(owedTxt)}</p>${ow.overdue ? `<p class="line" style="color:#d64545;font-weight:700">${ow.overdue} overdue</p>` : `<p class="line">Nothing overdue</p>`}</a>`;
+  $('#brands').innerHTML = `<p class="grp">Work</p>` + W.map(x => x.tile).join('') + `<p class="grp">Tools</p>` + invTile + paidTile + (P.length ? `<p class="grp">Personal</p>` + P.map(x => x.tile).join('') : '');
   $('#panel').innerHTML = W.concat(P).map(x => x.panel).join('');
   if (firstPaint) {
     firstPaint = false; const bx = $('#brands');

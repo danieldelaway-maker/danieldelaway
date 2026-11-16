@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Paid / Unpaid</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#f4f6fb">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@600;700&family=Inter:wght@400;500;600;700&display=swap">
+  <style>
+    /* Light only (Dan: no dark versions). Same mint → blue look as the Invoice maker. */
+    :root {
+      --bg: #f4f6fb; --card: #ffffff; --line: #e3e6ee; --ink: #12141c; --text: #3d4352; --muted: #6b7183;
+      --mint: #bff3da; --blue: #9cc1f7; --accent: #4f6fe0; --late: #c62f2f; --lateBg: #ffe8e8; --ok: #0f8f86; --okBg: #ddf7ec; --due: #9a6a00; --dueBg: #fff3d6;
+      --font: 'Inter', system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--font); }
+    [hidden] { display: none !important; }
+    a { color: var(--accent); }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 24px 16px 80px; }
+    .top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+    .top h1 { font: 700 clamp(26px, 4vw, 38px) 'League Spartan', sans-serif; color: var(--ink); margin: 0; flex: 1; }
+    .back { text-decoration: none; font-weight: 600; font-size: 14px; }
+
+    button { cursor: pointer; padding: 9px 14px; border-radius: 11px; border: 0; font: 600 14px var(--font); color: var(--ink); background: linear-gradient(135deg, var(--mint), var(--blue)); }
+    button.ghost { background: #fff; border: 1px solid var(--line); color: var(--text); }
+    button.small { padding: 6px 10px; font-size: 13px; border-radius: 9px; }
+    button:disabled { opacity: .5; cursor: default; }
+    input { padding: 7px 9px; border-radius: 9px; border: 1px solid var(--line); background: #fbfcfe; color: var(--ink); font: 14px var(--font); }
+
+    #lock { max-width: 420px; margin: 10vh auto 0; text-align: center; }
+    #lock form { display: flex; gap: 10px; margin-top: 18px; }
+    #lock input { flex: 1; min-width: 0; font-size: 15px; padding: 10px 12px; }
+    .err { color: var(--late); font-size: 14px; min-height: 20px; margin-top: 10px; }
+
+    .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 18px; }
+    .tile { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; }
+    .tile .k { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+    .tile .v { font: 700 26px 'League Spartan', sans-serif; color: var(--ink); margin-top: 4px; line-height: 1.15; }
+    .tile .v small { font: 600 14px var(--font); color: var(--muted); }
+    .tile.late { background: var(--lateBg); border-color: #f3c2c2; } .tile.late .v { color: var(--late); }
+
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .chip { background: #fff; border: 1px solid var(--line); color: var(--text); padding: 7px 13px; border-radius: 999px; font-weight: 600; font-size: 14px; }
+    .chip.on { background: linear-gradient(135deg, var(--mint), var(--blue)); color: var(--ink); border-color: transparent; box-shadow: 0 0 0 2px var(--accent) inset; }
+
+    .list { display: flex; flex-direction: column; gap: 10px; }
+    .inv { position: relative; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; display: grid; grid-template-columns: 70px minmax(0, 1fr) auto auto; gap: 6px 14px; align-items: center; overflow: hidden; }
+    .inv.late { border-color: #f3c2c2; box-shadow: inset 4px 0 0 var(--late); }
+    .inv.paid { opacity: .78; }
+    .no { font: 700 17px 'League Spartan', sans-serif; color: var(--ink); }
+    .who { font-weight: 600; color: var(--ink); }
+    .meta { font-size: 13px; color: var(--muted); }
+    .amt { font: 700 18px 'League Spartan', sans-serif; color: var(--ink); text-align: right; white-space: nowrap; }
+    .status { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; text-align: center; }
+    .s-paid { background: var(--okBg); color: var(--ok); } .s-late { background: var(--lateBg); color: var(--late); } .s-due { background: var(--dueBg); color: var(--due); }
+    .acts { grid-column: 2 / -1; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .acts label { font-size: 12px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+    .empty { text-align: center; color: var(--muted); padding: 30px 0; }
+    @media (max-width: 600px) {
+      .inv { grid-template-columns: 56px minmax(0, 1fr) auto; }
+      .inv .status { grid-column: 2 / -1; justify-self: start; }
+      .acts { grid-column: 1 / -1; }
+    }
+
+    .stamp { position: absolute; right: 18%; top: 50%; font: 700 30px 'League Spartan', sans-serif; letter-spacing: .12em; color: var(--ok); border: 4px solid var(--ok); border-radius: 10px; padding: 2px 12px; transform: translateY(-50%) rotate(-12deg) scale(2.4); opacity: 0; pointer-events: none; animation: stamp .9s ease forwards; }
+    @keyframes stamp { 25% { opacity: .95; transform: translateY(-50%) rotate(-12deg) scale(1); } 75% { opacity: .95; transform: translateY(-50%) rotate(-12deg) scale(1); } 100% { opacity: 0; transform: translateY(-50%) rotate(-12deg) scale(1); } }
+
+    #toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: #fff; color: var(--ink); border: 1px solid var(--line); box-shadow: 0 10px 30px rgba(0,0,0,.15); padding: 12px 18px; border-radius: 12px; font-weight: 600; z-index: 9; max-width: calc(100% - 32px); display: flex; gap: 12px; align-items: center; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div id="lock" hidden>
+    <h1 style="font:700 32px 'League Spartan',sans-serif;color:var(--ink)">Paid / Unpaid</h1>
+    <p>Same password as your Tasks HQ.</p>
+    <form id="unlock"><input id="pw" type="password" placeholder="Password" autocomplete="current-password"><button>Open</button></form>
+    <p class="err" id="err"></p>
+  </div>
+
+  <div id="app" hidden>
+    <div class="top">
+      <a class="back" href="../">← Tasks HQ</a>
+      <h1>Paid / Unpaid</h1>
+      <a class="back" href="../invoices/">Invoice maker →</a>
+    </div>
+    <div class="tiles" id="tiles"></div>
+    <div class="filters" id="filters"></div>
+    <div class="list" id="list"></div>
+    <p class="meta" style="margin-top:14px">Due date is 14 days after the invoice date unless you change it. Every invoice saved in the Invoice maker shows up here automatically.</p>
+  </div>
+</div>
+<div id="toast" hidden role="status"></div>
+
+<script>
+const API = 'https://brand-tasks-api.danieldelaway.workers.dev';
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// 30-day sliding login, shared with the Tasks HQ (same localStorage key "clientsHQ").
+const KEY = 'clientsHQ', DAYS = 30;
+const REMEMBER = {
+  get(k) {
+    let v = null; try { const exp = +localStorage.getItem(k + '__exp') || 0; v = localStorage.getItem(k); if (v && exp && exp < Date.now()) { v = null; localStorage.removeItem(k); } } catch {}
+    if (!v) { const m = document.cookie.match(new RegExp('(?:^|; )r_' + k + '=([^;]*)')); if (m) v = decodeURIComponent(m[1]); }
+    if (v) this.set(k, v); return v;
+  },
+  set(k, v) {
+    try { localStorage.setItem(k, v); localStorage.setItem(k + '__exp', String(Date.now() + DAYS * 864e5)); } catch {}
+    document.cookie = 'r_' + k + '=' + encodeURIComponent(v) + '; Max-Age=' + DAYS * 86400 + '; Path=/; Secure; SameSite=None; Partitioned';
+  },
+  del(k) { try { localStorage.removeItem(k); localStorage.removeItem(k + '__exp'); } catch {} document.cookie = 'r_' + k + '=; Max-Age=0; Path=/; Secure; SameSite=None; Partitioned'; },
+};
+let pass = '', inv = null, filter = 'open';
+
+async function api(path, method = 'GET', body) {
+  const r = await fetch(API + path, { method, headers: { 'X-Key': pass, ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(d.error || 'Something went wrong'), { status: r.status });
+  return d;
+}
+let toastT;
+function toast(msg, undo) {
+  const t = $('#toast'); t.innerHTML = esc(msg) + (undo ? ' <button class="small ghost" id="undo">Undo</button>' : ''); t.hidden = false;
+  if (undo) $('#undo').onclick = () => { t.hidden = true; undo(); };
+  clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 6000);
+}
+
+// ---------- helpers ----------
+const isoToday = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); };
+const addDays = (iso, n) => new Date(Date.parse(iso + 'T00:00:00Z') + n * 864e5).toISOString().slice(0, 10);
+const daysBetween = (a, b) => Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 864e5);
+const nice = iso => iso ? new Date(iso + 'T00:00:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+const SYM = { USD: 'US$', AUD: 'A$' };
+const money = (n, cur) => (SYM[cur] || (cur ? cur + ' ' : '$')) + (Math.round((Number(n) || 0) * 100) / 100).toLocaleString('en-US', { maximumFractionDigits: 2 });
+const dueOf = r => r.due || (r.date ? addDays(r.date, 14) : '');
+function stateOf(r) {
+  if (r.paid) return 'paid';
+  const d = dueOf(r); return d && d < isoToday() ? 'late' : 'due';
+}
+const sumBy = rows => { const o = {}; rows.forEach(r => { const c = r.currency || 'USD'; o[c] = (o[c] || 0) + (r.total || 0); }); return o; };
+const moneyList = o => Object.keys(o).length ? Object.entries(o).map(([c, n]) => money(n, c)).join(' <small>+</small> ') : '$0';
+
+// ---------- render ----------
+function render() {
+  const rows = inv.issued.slice();
+  const open = rows.filter(r => !r.paid), late = open.filter(r => stateOf(r) === 'late');
+  const month = isoToday().slice(0, 7), paidMonth = rows.filter(r => r.paid && r.paid.startsWith(month));
+  $('#tiles').innerHTML = `
+    <div class="tile"><div class="k">Owed to you</div><div class="v">${moneyList(sumBy(open))}</div><div class="meta">${open.length} unpaid invoice${open.length === 1 ? '' : 's'}</div></div>
+    <div class="tile ${late.length ? 'late' : ''}"><div class="k">Overdue</div><div class="v">${late.length ? moneyList(sumBy(late)) : 'None'}</div><div class="meta">${late.length} past due date</div></div>
+    <div class="tile"><div class="k">Paid this month</div><div class="v">${moneyList(sumBy(paidMonth))}</div><div class="meta">${paidMonth.length} invoice${paidMonth.length === 1 ? '' : 's'}</div></div>`;
+
+  const F = [['open', 'Unpaid', open.length], ['late', 'Overdue', late.length], ['paid', 'Paid', rows.length - open.length], ['all', 'All', rows.length]];
+  $('#filters').innerHTML = F.map(([k, l, n]) => `<button class="chip ${filter === k ? 'on' : ''}" data-f="${k}">${l} (${n})</button>`).join('');
+
+  const rank = { late: 0, due: 1, paid: 2 };
+  const show = rows.filter(r => filter === 'all' || (filter === 'open' ? !r.paid : stateOf(r) === filter))
+    .sort((a, b) => rank[stateOf(a)] - rank[stateOf(b)] || (stateOf(a) === 'paid' ? b.no.localeCompare(a.no) : dueOf(a).localeCompare(dueOf(b))));
+  const today = isoToday();
+  $('#list').innerHTML = show.length ? show.map(r => {
+    const s = stateOf(r), due = dueOf(r), n = due ? daysBetween(today, due) : 0;
+    const label = s === 'paid' ? 'Paid ' + nice(r.paid) : s === 'late' ? `${-n} day${n === -1 ? '' : 's'} overdue` : n === 0 ? 'Due today' : `Due in ${n} day${n === 1 ? '' : 's'}`;
+    return `<div class="inv ${s}" data-id="${r.id}">
+      <div class="no">${esc(r.no)}</div>
+      <div><div class="who">${esc(r.client)}</div><div class="meta">Sent ${nice(r.date)}${s !== 'paid' ? ' · due ' + nice(due) : ''}</div></div>
+      <div class="amt">${money(r.total, r.currency)}</div>
+      <div class="status s-${s}">${esc(label)}</div>
+      <div class="acts">${s === 'paid'
+        ? `<label>Paid on <input type="date" data-a="paidOn" value="${esc(r.paid)}"></label><button class="small ghost" data-a="unpay">Mark unpaid</button>`
+        : `<button class="small" data-a="pay">✓ Mark paid</button><label>Due <input type="date" data-a="due" value="${esc(due)}"></label>`}</div>
+    </div>`;
+  }).join('') : `<p class="empty">${filter === 'late' ? 'Nothing overdue 🎉' : filter === 'open' ? 'Everything is paid 🎉' : 'No invoices here.'}</p>`;
+}
+
+async function patch(id, body, msg, undoBody) {
+  try {
+    inv = await api('/invoices/issued/' + id, 'PATCH', body);
+    render();
+    if (msg) toast(msg, undoBody ? () => patch(id, undoBody, 'Undone.') : null);
+  } catch (e) { toast('Not saved: ' + e.message); }
+}
+
+$('#filters').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (b) { filter = b.dataset.f; render(); } });
+$('#list').addEventListener('click', e => {
+  const b = e.target.closest('button[data-a]'); if (!b) return;
+  const card = b.closest('.inv'), id = card.dataset.id, r = inv.issued.find(x => x.id === id);
+  if (b.dataset.a === 'pay') {
+    b.disabled = true;
+    const s = document.createElement('div'); s.className = 'stamp'; s.textContent = 'PAID'; card.appendChild(s);
+    setTimeout(() => patch(id, { paid: isoToday() }, `${r.no} marked paid.`, { paid: '' }), 750);
+  }
+  if (b.dataset.a === 'unpay') patch(id, { paid: '' }, `${r.no} is back to unpaid.`, { paid: r.paid });
+});
+$('#list').addEventListener('change', e => {
+  const i = e.target.closest('input[data-a]'); if (!i || !i.value) return;
+  const id = i.closest('.inv').dataset.id;
+  if (i.dataset.a === 'due') patch(id, { due: i.value }, 'Due date saved.');
+  if (i.dataset.a === 'paidOn') patch(id, { paid: i.value }, 'Paid date saved.');
+});
+
+// ---------- sign in ----------
+async function start(p, remember) {
+  pass = p;
+  try {
+    inv = await api('/invoices');
+    if (remember) REMEMBER.set(KEY, p);
+    $('#lock').hidden = true; $('#app').hidden = false;
+    render();
+  } catch (e) {
+    $('#app').hidden = true; $('#lock').hidden = false;
+    if (remember) $('#err').textContent = e.status === 401 ? 'That password didn’t work.' : 'Could not load: ' + e.message;
+    else if (e.status === 401) { REMEMBER.del(KEY); $('#err').textContent = 'Please sign in again.'; }
+    else $('#err').textContent = 'Could not load: ' + e.message;
+  }
+}
+$('#unlock').addEventListener('submit', e => { e.preventDefault(); $('#err').textContent = ''; start($('#pw').value.trim(), true); });
+const saved = REMEMBER.get(KEY);
+if (saved) start(saved, false); else $('#lock').hidden = false;
+</script>
+</body>
+</html>
