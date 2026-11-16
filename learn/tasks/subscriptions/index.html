@@ -65,6 +65,9 @@
     .sub.soon { border-color: #f0d9a0; box-shadow: inset 4px 0 0 #e9b949; }
     .sub.off { opacity: .65; }
     .ico { width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; font: 700 19px 'League Spartan', sans-serif; color: var(--ink); background: linear-gradient(135deg, var(--mint), var(--blue)); }
+    .ico.logo { background: #fff; border: 1px solid var(--line); box-shadow: 0 1px 3px rgba(18,20,28,.06); overflow: hidden; }
+    .ico.logo img { width: 30px; height: 30px; object-fit: contain; display: block; }
+    .sub.off .ico.logo img { filter: grayscale(1); opacity: .6; }
     .who { font-weight: 600; color: var(--ink); }
     .amt { font: 700 17px 'League Spartan', sans-serif; color: var(--ink); text-align: right; white-space: nowrap; }
     .amt .g { display: block; font: 500 12px var(--font); color: var(--muted); }
@@ -225,11 +228,17 @@ function render() {
     <div class="tile"><div class="k">Per year</div><div class="v">≈ ${money(month * 12)}</div><div class="meta">In Australian dollars</div></div>
     <div class="tile ${soon.length ? 'warn' : ''}"><div class="k">Renewing in 7 days</div><div class="v">${soon.length ? money(soon.reduce((a, s) => a + s.amount * (latestRate(s.currency) || 0), 0)) : 'None'}</div><div class="meta">${soon.length ? soon.map(s => esc(s.name)).join(', ') : 'Nothing coming up'}</div></div>
     <div class="tile ${trials.length ? 'warn' : ''}"><div class="k">Free trials</div><div class="v">${trials.length || 'None'}</div><div class="meta">${trials.length ? 'Cancel before they start charging' : 'No trials running'}</div></div>`;
+  // Brand logos (16 Nov 2026, Dan: "use their logos"). Files in ./logos; first keyword match wins, else the letter.
+  const LOGOS = [['claude', 'claude.png'], ['anthropic', 'claude.png'], ['chatgpt', 'chatgpt.png'], ['openai', 'chatgpt.png'], ['midjourney', 'midjourney.png'],
+    ['wispr', 'wispr.png'], ['upwork', 'upwork.svg'], ['hostinger', 'hostinger.svg'], ['digitalocean', 'digitalocean.png'], ['google cloud', 'googlecloud.png'],
+    ['firebase', 'googlecloud.png'], ['google workspace', 'workspace.png'], ['anytime mailbox', 'anytimemailbox.png'], ['squarespace', 'squarespace.png'],
+    ['domain', 'squarespace.png'], ['apple', 'apple.png'], ['gigsky', 'gigsky.png'], ['esim', 'gigsky.png'], ['spotify', 'spotify.svg'], ['1password', '1password.svg']];
+  const logoFor = s => { const n = ((s.name || '') + ' ' + (s.link || '')).toLowerCase(); const hit = LOGOS.find(([k]) => n.includes(k)); return hit ? hit[1] : ''; };
   const row = s => {
     const d = s.renews ? daysTo(s.renews) : null, am = audMonth(s), cancelled = s.status === 'cancelled';
     const when = cancelled ? 'Cancelled' : d == null ? 'No date' : d === 0 ? 'Renews today' : d === 1 ? 'Tomorrow' : d <= 60 ? `In ${d} days` : nice(s.renews);
     return `<div class="sub ${cancelled ? 'off' : d != null && d <= 7 ? 'soon' : ''}" data-id="${s.id}">
-      <div class="ico">${esc((s.name || '?').trim()[0].toUpperCase())}</div>
+      ${logoFor(s) ? `<div class="ico logo"><img src="logos/${logoFor(s)}" alt="" loading="lazy" onerror="this.parentNode.classList.remove('logo');this.parentNode.textContent='${esc((s.name || '?').trim()[0].toUpperCase())}'"></div>` : `<div class="ico">${esc((s.name || '?').trim()[0].toUpperCase())}</div>`}
       <div><div class="who">${esc(s.name)}${s.status === 'trial' ? '<span class="tag trial">Trial</span>' : ''}${s.side === 'personal' ? '<span class="tag">Personal</span>' : ''}</div>
         <div class="meta">${esc(s.category)}${s.brand ? ' · ' + esc(s.brand) : ''}${s.renews && !cancelled ? ' · renews ' + nice(s.renews) : ''}${s.note ? ' · ' + esc(s.note) : ''}</div></div>
       <div class="amt">${money(s.amount, s.currency)}<span class="g">a ${CYCLE_WORD[s.cycle]}${am != null && (s.currency !== 'AUD' || s.cycle !== 'month') ? ' · ≈ ' + money(am) + '/mo' : ''}</span></div>
