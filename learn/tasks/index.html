@@ -763,9 +763,9 @@ function habitsBox() {
     <div class="hadds"><button class="nadd" data-act="hadd" data-kind="avoid">+ Habit to avoid</button><button class="nadd" data-act="hadd" data-kind="daily">+ Daily habit</button></div></div>`;
 }
 const slug = n => String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-const LOGOS = new Set(['sls3', 'zensim', 'true-blue-studies', 'her-naturals', 'sally', 'everyone', 'kitchen-impossible', 'life-admin', 'standish-co', 'tinct', 'tsp']);
+const LOGOS = new Set(['sls3', 'zensim', 'true-blue-studies', 'her-naturals', 'sally', 'everyone', 'kitchen-impossible', 'life-admin', 'standish-co', 'tinct', 'tsp', 'delaway-digital']);
 const DASH = { 'sls3': 'https://admin.sls3.us', 'zensim': 'https://zensim.danieldelaway.com', 'true-blue-studies': 'https://tbs.danieldelaway.com', 'everyone': 'https://downloadeveryone.com/stats/', 'kitchen-impossible': 'https://impossiblecards.com/pages/hq', 'sally': 'https://takesally.com/pages/hq' };
-const TINT = { 'sls3': '#d7263d', 'zensim': '#3a3f4f', 'true-blue-studies': '#2bb5d6', 'her-naturals': '#2f6b4f', 'sally': '#7d5f8a', 'everyone': '#0f7a6a', 'kitchen-impossible': '#9a3fd1', 'life-admin': '#5b7bff', 'standish-co': '#1d1db3', 'tinct': '#4a5a94', 'tsp': '#173f3b' };
+const TINT = { 'sls3': '#d7263d', 'zensim': '#3a3f4f', 'true-blue-studies': '#2bb5d6', 'her-naturals': '#2f6b4f', 'sally': '#7d5f8a', 'everyone': '#0f7a6a', 'kitchen-impossible': '#9a3fd1', 'life-admin': '#5b7bff', 'standish-co': '#1d1db3', 'tinct': '#4a5a94', 'tsp': '#173f3b', 'delaway-digital': '#5b5fe0' };
 const isPhone = () => matchMedia('(max-width: 560px)').matches;
 let openedId = null, firstPaint = true; const prevCount = {}; // one project open at a time, shown below all the cards
 function render() {
