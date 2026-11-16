@@ -848,7 +848,21 @@ function render() {
   const ex = d.expenseSum || {};
   const exTxt = Object.entries(ex.spent || {}).map(([c, n]) => (SYM[c] || c + ' ') + Math.round(n).toLocaleString('en-US')).join(' + ') || 'Nothing yet';
   const expTile = `<a class="board proj tool" href="expenses/" style="--tint:#f2c46b" aria-label="Open Expenses and receipts"><div class="plogo"><img src="logos/expenses.svg" alt=""></div><h2>Expenses</h2><p class="line">This quarter: ${esc(exTxt)}</p>${ex.noReceipt ? `<p class="line" style="color:#b07a00;font-weight:700">${ex.noReceipt} missing receipt${ex.noReceipt === 1 ? '' : 's'}</p>` : `<p class="line">${ex.gst ? 'GST to claim: A$' + ex.gst.toLocaleString('en-US') : 'All receipts saved'}</p>`}</a>`;
-  $('#brands').innerHTML = `<p class="grp">Work</p>` + W.map(x => x.tile).join('') + `<p class="grp">Tools</p>` + invTile + paidTile + expTile + (P.length ? `<p class="grp">Personal</p>` + P.map(x => x.tile).join('') : '');
+  // BAS helper card (16 Nov 2026) opens bas/. Shows the next BAS still to lodge (tax-agent due dates) and its status.
+  const basTile = (() => {
+    const st = d.bas || {}, t = new Date().toLocaleDateString('en-CA'), y = +t.slice(0, 4), mo = +t.slice(5, 7), fy = mo >= 7 ? y : y - 1;
+    const qs = []; for (let f = fy; f >= 2026; f--) for (let q = 4; q >= 1; q--) {
+      const [yy, mm] = [[f, 7], [f, 10], [f + 1, 1], [f + 1, 4]][q - 1], from = `${yy}-${String(mm).padStart(2, '0')}-01`;
+      if (from > t || new Date(Date.UTC(yy, mm + 2, 0)).toISOString().slice(0, 10) < '2026-08-01') continue;
+      qs.push({ k: `${f}Q${q}`, q, ended: new Date(Date.UTC(yy, mm + 2, 0)).toISOString().slice(0, 10) < t, due: [`${f}-11-25`, `${f + 1}-02-28`, `${f + 1}-05-26`, `${f + 1}-08-25`][q - 1] });
+    }
+    const n = qs.slice().reverse().find(x => x.ended && !st[x.k]?.lodged) || qs[0];
+    const days = n ? Math.round((Date.parse(n.due) - Date.parse(t)) / 864e5) : 0, s = n && st[n.k] || {};
+    const when = n ? new Date(n.due + 'T00:00:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'short' }) : '';
+    const line2 = !n ? '' : s.lodged ? 'Lodged ✓' : s.sent ? 'Sent to Naveen' : !n.ended ? 'Quarter still running' : days < 0 ? `<span style="color:#d64545;font-weight:700">${-days} days late</span>` : days <= 14 ? `<span style="color:#d64545;font-weight:700">${days} days left</span>` : `${days} days left`;
+    return `<a class="board proj tool" href="bas/" style="--tint:#b9a4f2" aria-label="Open the BAS helper"><div class="plogo"><img src="logos/bas.svg" alt=""></div><h2>BAS</h2><p class="line">${n ? `Q${n.q} due ${esc(when)}` : 'Nothing due'}</p><p class="line">${line2}</p></a>`;
+  })();
+  $('#brands').innerHTML = `<p class="grp">Work</p>` + W.map(x => x.tile).join('') + `<p class="grp">Tools</p>` + invTile + paidTile + expTile + basTile + (P.length ? `<p class="grp">Personal</p>` + P.map(x => x.tile).join('') : '');
   $('#panel').innerHTML = W.concat(P).map(x => x.panel).join('');
   if (firstPaint) {
     firstPaint = false; const bx = $('#brands');
