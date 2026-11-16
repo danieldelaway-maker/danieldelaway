@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Notes to Tasks</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#f4f6fb">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@600;700&family=Inter:wght@400;500;600;700&display=swap">
+  <style>
+    /* Light only (Dan: no dark versions). Same mint → blue look as the other Tools. */
+    :root {
+      --bg: #f4f6fb; --card: #ffffff; --line: #e3e6ee; --ink: #12141c; --text: #3d4352; --muted: #6b7183;
+      --mint: #bff3da; --blue: #9cc1f7; --accent: #4f6fe0; --late: #c62f2f; --ok: #0f8f86; --okBg: #ddf7ec; --warn: #9a6a00; --warnBg: #fff3d6;
+      --font: 'Inter', system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--font); }
+    [hidden] { display: none !important; }
+    a { color: var(--accent); }
+    .wrap { max-width: 900px; margin: 0 auto; padding: 24px 16px 80px; }
+    .top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+    .top h1 { font: 700 clamp(26px, 4vw, 38px) 'League Spartan', sans-serif; color: var(--ink); margin: 0; flex: 1; }
+    .back { text-decoration: none; font-weight: 600; font-size: 14px; }
+    button { cursor: pointer; padding: 10px 16px; border-radius: 12px; border: 0; font: 600 14px var(--font); color: var(--ink); background: linear-gradient(135deg, var(--mint), var(--blue)); }
+    button.ghost { background: #fff; border: 1px solid var(--line); color: var(--text); }
+    button.small { padding: 6px 10px; font-size: 13px; border-radius: 9px; }
+    button:disabled { opacity: .5; cursor: default; }
+    input, select, textarea { width: 100%; padding: 9px 11px; border-radius: 10px; border: 1px solid var(--line); background: #fbfcfe; color: var(--ink); font: 15px var(--font); }
+    textarea { resize: vertical; min-height: 220px; line-height: 1.5; }
+    input:focus, select:focus, textarea:focus { outline: 2px solid var(--blue); border-color: var(--accent); }
+    label.k { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 4px; }
+    .meta { font-size: 13px; color: var(--muted); }
+
+    #lock { max-width: 420px; margin: 10vh auto 0; text-align: center; }
+    #lock form { display: flex; gap: 10px; margin-top: 18px; }
+    #lock input { flex: 1; min-width: 0; }
+    .err { color: var(--late); font-size: 14px; min-height: 20px; margin-top: 10px; }
+
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; margin-bottom: 16px; }
+    .card h2 { font: 700 18px 'League Spartan', sans-serif; color: var(--ink); margin: 0 0 10px; }
+    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+    .row select { width: auto; }
+    .grow { flex: 1; }
+
+    .think { display: flex; gap: 10px; align-items: center; color: var(--muted); font-weight: 600; }
+    .dots span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-right: 4px; animation: b 1s infinite ease-in-out; }
+    .dots span:nth-child(2) { animation-delay: .15s; } .dots span:nth-child(3) { animation-delay: .3s; }
+    @keyframes b { 0%, 80%, 100% { transform: scale(.5); opacity: .4; } 40% { transform: scale(1); opacity: 1; } }
+
+    .summary { background: linear-gradient(135deg, #eafaf2, #eaf1fe); border-radius: 12px; padding: 10px 14px; color: var(--ink); margin-bottom: 12px; }
+    .items { display: flex; flex-direction: column; gap: 10px; }
+    .item { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; background: #fff; display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 6px 12px; transition: opacity .2s, border-color .2s; }
+    .item.off { opacity: .55; }
+    .item.on { border-color: #b8c8f5; box-shadow: inset 4px 0 0 var(--accent); }
+    .item > input[type=checkbox] { width: 20px; height: 20px; margin-top: 8px; accent-color: var(--accent); }
+    .item .txt { font-weight: 600; }
+    .fields { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+    .fields input, .fields select { padding: 6px 8px; font-size: 14px; }
+    @media (max-width: 640px) { .fields { grid-template-columns: 1fr 1fr; } }
+    .quote { font-size: 13px; color: var(--muted); font-style: italic; margin-top: 6px; }
+    .dup { font-size: 13px; background: var(--warnBg); color: #6d4c00; border-radius: 8px; padding: 4px 9px; margin-top: 6px; display: inline-block; }
+    .det { font-size: 13px; margin-top: 6px; }
+    .done { text-align: center; padding: 26px 10px; }
+    .done .big { font: 700 28px 'League Spartan', sans-serif; color: var(--ink); }
+    .stamp { display: inline-block; font: 700 22px 'League Spartan', sans-serif; letter-spacing: .12em; color: var(--ok); border: 4px solid var(--ok); border-radius: 10px; padding: 2px 12px; transform: rotate(-8deg); animation: st .5s ease; margin-bottom: 10px; }
+    @keyframes st { from { transform: rotate(-8deg) scale(2.2); opacity: 0; } to { transform: rotate(-8deg) scale(1); opacity: 1; } }
+    #toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: #fff; color: var(--ink); border: 1px solid var(--line); box-shadow: 0 10px 30px rgba(0,0,0,.15); padding: 12px 18px; border-radius: 12px; font-weight: 600; z-index: 9; max-width: calc(100% - 32px); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div id="lock" hidden>
+    <h1 style="font:700 32px 'League Spartan',sans-serif;color:var(--ink)">Notes to Tasks</h1>
+    <p>Same password as your Tasks HQ.</p>
+    <form id="unlock"><input id="pw" type="password" placeholder="Password" autocomplete="current-password"><button>Open</button></form>
+    <p class="err" id="err"></p>
+  </div>
+
+  <div id="app" hidden>
+    <div class="top">
+      <a class="back" href="../">← Tasks HQ</a>
+      <h1>Notes to Tasks</h1>
+    </div>
+
+    <div class="card" id="inCard">
+      <h2>Paste your notes</h2>
+      <textarea id="notes" placeholder="Paste meeting notes, a call summary, a Fireflies/Otter recap or a messy brain dump…"></textarea>
+      <div class="row">
+        <div><label class="k" for="hint">Mostly about</label><select id="hint"><option value="">Work it out</option></select></div>
+        <span class="grow"></span>
+        <button class="ghost small" id="clear">Clear</button>
+        <button id="go">✨ Find the tasks</button>
+      </div>
+      <p class="meta" style="margin:10px 0 0">Claude reads the notes and suggests tasks. Nothing goes on your board until you tick them and press Add.</p>
+    </div>
+
+    <div class="card" id="thinking" hidden><div class="think"><span class="dots"><span></span><span></span><span></span></span> Reading your notes…</div></div>
+
+    <div class="card" id="outCard" hidden>
+      <h2 id="outTitle">Tasks found</h2>
+      <div class="summary" id="summary"></div>
+      <div class="items" id="items"></div>
+      <div class="row">
+        <button class="ghost small" id="allBtn">Tick all</button>
+        <span class="grow"></span>
+        <button id="addBtn">Add to Tasks</button>
+      </div>
+    </div>
+
+    <div class="card done" id="doneCard" hidden>
+      <div class="stamp">ADDED</div>
+      <div class="big" id="doneTxt"></div>
+      <p><a href="../">See them on Tasks HQ →</a></p>
+      <button class="ghost" id="again">Do another set of notes</button>
+    </div>
+  </div>
+</div>
+<div id="toast" hidden role="status"></div>
+
+<script>
+const API = 'https://brand-tasks-api.danieldelaway.workers.dev';
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// 30-day sliding login, shared with the Tasks HQ (same localStorage key "clientsHQ").
+const KEY = 'clientsHQ', DAYS = 30;
+const REMEMBER = {
+  get(k) {
+    let v = null; try { const exp = +localStorage.getItem(k + '__exp') || 0; v = localStorage.getItem(k); if (v && exp && exp < Date.now()) { v = null; localStorage.removeItem(k); } } catch {}
+    if (!v) { const m = document.cookie.match(new RegExp('(?:^|; )r_' + k + '=([^;]*)')); if (m) v = decodeURIComponent(m[1]); }
+    if (v) this.set(k, v); return v;
+  },
+  set(k, v) {
+    try { localStorage.setItem(k, v); localStorage.setItem(k + '__exp', String(Date.now() + DAYS * 864e5)); } catch {}
+    document.cookie = 'r_' + k + '=' + encodeURIComponent(v) + '; Max-Age=' + DAYS * 86400 + '; Path=/; Secure; SameSite=None; Partitioned';
+  },
+  del(k) { try { localStorage.removeItem(k); localStorage.removeItem(k + '__exp'); } catch {} document.cookie = 'r_' + k + '=; Max-Age=0; Path=/; Secure; SameSite=None; Partitioned'; },
+};
+let pass = '', brands = [], found = [];
+
+async function api(path, method = 'GET', body) {
+  const r = await fetch(API + path, { method, headers: { 'X-Key': pass, ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(d.error || 'Something went wrong'), { status: r.status });
+  return d;
+}
+let toastT;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 5000); }
+
+// Unsent notes are kept in this browser only, so a refresh doesn't lose them.
+const DRAFT = 'notesToTasksDraft';
+try { $('#notes').value = localStorage.getItem(DRAFT) || ''; } catch {}
+$('#notes').addEventListener('input', () => { try { localStorage.setItem(DRAFT, $('#notes').value); } catch {} });
+$('#clear').addEventListener('click', () => { $('#notes').value = ''; try { localStorage.removeItem(DRAFT); } catch {} $('#outCard').hidden = true; $('#notes').focus(); });
+
+$('#go').addEventListener('click', async () => {
+  const text = $('#notes').value.trim();
+  if (text.length < 10) return toast('Paste some notes first.');
+  $('#go').disabled = true; $('#thinking').hidden = false; $('#outCard').hidden = true; $('#doneCard').hidden = true;
+  try {
+    const d = await api('/notes-to-tasks', 'POST', { text, brand: $('#hint').value });
+    found = d.items.map(i => ({ ...i, on: !i.dupOf }));
+    $('#summary').textContent = d.summary || '';
+    render(); $('#outCard').hidden = false;
+    $('#outCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (e) { toast('Couldn’t read the notes: ' + e.message); }
+  $('#thinking').hidden = true; $('#go').disabled = false;
+});
+
+function render() {
+  const opts = sel => brands.map(b => `<option ${b === sel ? 'selected' : ''}>${esc(b)}</option>`).join('');
+  $('#outTitle').textContent = found.length ? `${found.length} thing${found.length === 1 ? '' : 's'} found` : 'No tasks found';
+  $('#items').innerHTML = found.length ? found.map((t, i) => `<div class="item ${t.on ? 'on' : 'off'}" data-i="${i}">
+      <input type="checkbox" data-f="on" ${t.on ? 'checked' : ''} aria-label="Add this task">
+      <div>
+        <input class="txt" data-f="text" value="${esc(t.text)}" aria-label="Task">
+        <div class="fields">
+          <div><label class="k">Brand</label><select data-f="brand">${opts(t.brand)}</select></div>
+          <div><label class="k">Type</label><select data-f="kind"><option value="task" ${t.kind === 'task' ? 'selected' : ''}>My task</option><option value="waiting" ${t.kind === 'waiting' ? 'selected' : ''}>Waiting on…</option></select></div>
+          <div ${t.kind === 'waiting' ? '' : 'hidden'}><label class="k">Who</label><input data-f="who" value="${esc(t.who)}" placeholder="Name"></div>
+          <div><label class="k">Due</label><input type="date" data-f="due" value="${esc(t.due)}"></div>
+        </div>
+        ${t.detail ? `<div class="det">${esc(t.detail)}</div>` : ''}
+        ${t.quote ? `<div class="quote">“${esc(t.quote)}”</div>` : ''}
+        ${t.dupOf ? `<div class="dup">Looks like it’s already on your board: ${esc(t.dupOf)}</div>` : ''}
+      </div></div>`).join('') : '<p class="meta">Nothing for you to do in these notes.</p>';
+  updateAdd();
+}
+function updateAdd() { const n = found.filter(t => t.on).length; $('#addBtn').textContent = n ? `Add ${n} task${n === 1 ? '' : 's'} to Tasks HQ` : 'Tick the ones to add'; $('#addBtn').disabled = !n; }
+$('#items').addEventListener('input', e => {
+  const f = e.target.dataset.f, card = e.target.closest('.item'); if (!f || !card) return;
+  const t = found[+card.dataset.i];
+  if (f === 'on') { t.on = e.target.checked; card.className = 'item ' + (t.on ? 'on' : 'off'); updateAdd(); return; }
+  t[f] = e.target.value;
+  if (f === 'kind') render();
+});
+$('#allBtn').addEventListener('click', () => { const all = found.every(t => t.on); found.forEach(t => t.on = !all); render(); $('#allBtn').textContent = all ? 'Tick all' : 'Untick all'; });
+
+$('#addBtn').addEventListener('click', async () => {
+  const pick = found.filter(t => t.on);
+  const bad = pick.find(t => t.kind === 'waiting' && !t.who.trim()); if (bad) return toast('Say who you’re waiting on for: ' + bad.text);
+  $('#addBtn').disabled = true;
+  try {
+    const day = new Date().toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
+    await api('/tasks', 'POST', { items: pick.map(t => ({ brand: t.brand, text: t.text, kind: t.kind, who: t.who, due: t.due, detail: [t.detail, t.quote ? `From the notes: “${t.quote}”` : ''].filter(Boolean).join('\n'), source: 'Meeting notes, ' + day })) });
+    $('#outCard').hidden = true; $('#doneCard').hidden = false;
+    const per = {}; pick.forEach(t => per[t.brand] = (per[t.brand] || 0) + 1);
+    $('#doneTxt').textContent = `${pick.length} task${pick.length === 1 ? '' : 's'} added · ` + Object.entries(per).map(([b, n]) => `${b} ${n}`).join(', ');
+    $('#notes').value = ''; try { localStorage.removeItem(DRAFT); } catch {}
+  } catch (e) { toast('Not added: ' + e.message); $('#addBtn').disabled = false; }
+});
+$('#again').addEventListener('click', () => { $('#doneCard').hidden = true; $('#notes').focus(); });
+
+// ---------- sign in ----------
+async function start(p, remember) {
+  pass = p;
+  try {
+    const d = await api('/tasks');
+    brands = (d.brands || []).map(b => b.name);
+    if (remember) REMEMBER.set(KEY, p);
+    $('#lock').hidden = true; $('#app').hidden = false;
+    $('#hint').innerHTML = '<option value="">Work it out</option>' + brands.map(b => `<option>${esc(b)}</option>`).join('');
+    const want = new URLSearchParams(location.search).get('brand'); if (want && brands.includes(want)) $('#hint').value = want;
+    $('#notes').focus();
+  } catch (e) {
+    $('#app').hidden = true; $('#lock').hidden = false;
+    if (remember) $('#err').textContent = e.status === 401 ? 'That password didn’t work.' : 'Could not load: ' + e.message;
+    else if (e.status === 401) { REMEMBER.del(KEY); $('#err').textContent = 'Please sign in again.'; }
+    else $('#err').textContent = 'Could not load: ' + e.message;
+  }
+}
+$('#unlock').addEventListener('submit', e => { e.preventDefault(); $('#err').textContent = ''; start($('#pw').value.trim(), true); });
+const saved = REMEMBER.get(KEY);
+if (saved) start(saved, false); else $('#lock').hidden = false;
+</script>
+</body>
+</html>
