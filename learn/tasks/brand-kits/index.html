@@ -92,6 +92,14 @@
     .acts { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
     #toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: #fff; color: var(--ink); border: 1px solid var(--line); box-shadow: 0 10px 30px rgba(0,0,0,.15); padding: 12px 18px; border-radius: 12px; font-weight: 600; z-index: 9; max-width: calc(100% - 32px); display: flex; gap: 10px; align-items: center; }
     #toast i { width: 18px; height: 18px; border-radius: 5px; display: inline-block; border: 1px solid rgba(0,0,0,.1); }
+    /* Back to Tasks HQ: pill button (16 Nov 2026, Dan said the plain link was bad). */
+    .hqback { display: inline-flex; align-items: center; gap: 9px; padding: 6px 14px 6px 6px; border-radius: 999px; background: #fff; border: 1px solid #e3e6ee; box-shadow: 0 1px 2px rgba(18,20,28,.06), 0 4px 12px rgba(18,20,28,.05); color: #12141c; font: 600 14px 'Inter', system-ui, sans-serif; text-decoration: none; white-space: nowrap; transition: transform .15s, box-shadow .15s, border-color .15s; }
+    .hqback .hqarr { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(135deg, #bff3da, #9cc1f7); transition: transform .2s; }
+    .hqback .hqarr svg { width: 15px; height: 15px; }
+    .hqback:hover { transform: translateY(-1px); border-color: #9cc1f7; box-shadow: 0 2px 4px rgba(18,20,28,.06), 0 8px 20px rgba(79,111,224,.15); }
+    .hqback:hover .hqarr { transform: translateX(-3px); }
+    .hqback:active { transform: translateY(0) scale(.98); }
+    .hqback:focus-visible { outline: 2px solid #4f6fe0; outline-offset: 2px; }
   </style>
 </head>
 <body>
@@ -105,7 +113,7 @@
 
   <div id="app" hidden>
     <div class="top">
-      <a class="back" href="../">← Tasks HQ</a>
+      <a class="hqback" href="../" aria-label="Back to Tasks HQ"><span class="hqarr"><svg viewBox="0 0 24 24" fill="none" stroke="#12141c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg></span>Tasks HQ</a>
       <h1>Brand Kits</h1>
       <button class="small" id="addBrand">+ Add brand</button>
     </div>
