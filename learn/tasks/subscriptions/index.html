@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Subscriptions</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#f4f6fb">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@600;700&family=Inter:wght@400;500;600;700&display=swap">
+  <style>
+    /* Light only (Dan: no dark versions). Same mint → blue look as the Invoice maker. */
+    :root {
+      --bg: #f4f6fb; --card: #ffffff; --line: #e3e6ee; --ink: #12141c; --text: #3d4352; --muted: #6b7183;
+      --mint: #bff3da; --blue: #9cc1f7; --accent: #4f6fe0; --late: #c62f2f; --lateBg: #ffe8e8; --ok: #0f8f86; --okBg: #ddf7ec; --warn: #9a6a00; --warnBg: #fff3d6;
+      --font: 'Inter', system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--font); }
+    [hidden] { display: none !important; }
+    a { color: var(--accent); }
+    .wrap { max-width: 1000px; margin: 0 auto; padding: 24px 16px 80px; }
+    .top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+    .top h1 { font: 700 clamp(26px, 4vw, 38px) 'League Spartan', sans-serif; color: var(--ink); margin: 0; flex: 1; }
+    .back { text-decoration: none; font-weight: 600; font-size: 14px; }
+    button, .btn { cursor: pointer; padding: 9px 14px; border-radius: 11px; border: 0; font: 600 14px var(--font); color: var(--ink); background: linear-gradient(135deg, var(--mint), var(--blue)); text-decoration: none; display: inline-block; }
+    button.ghost, .btn.ghost { background: #fff; border: 1px solid var(--line); color: var(--text); }
+    button.small, .btn.small { padding: 6px 10px; font-size: 13px; border-radius: 9px; }
+    button.sure { background: #ffe1e1; color: var(--late); border: 1px solid #f3b4b4; }
+    button:disabled { opacity: .5; cursor: default; }
+    label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin: 12px 0 4px; }
+    input, select { width: 100%; padding: 9px 11px; border-radius: 10px; border: 1px solid var(--line); background: #fbfcfe; color: var(--ink); font: 15px var(--font); }
+    input:focus, select:focus { outline: 2px solid var(--blue); border-color: var(--accent); }
+
+    #lock { max-width: 420px; margin: 10vh auto 0; text-align: center; }
+    #lock form { display: flex; gap: 10px; margin-top: 18px; }
+    #lock input { flex: 1; min-width: 0; }
+    .err { color: var(--late); font-size: 14px; min-height: 20px; margin-top: 10px; }
+
+    .bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+    .bar .grow { flex: 1; }
+    .seg { display: inline-flex; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 2px; }
+    .seg button { background: transparent; border-radius: 999px; padding: 7px 13px; color: var(--muted); }
+    .seg button.on { background: linear-gradient(135deg, var(--mint), var(--blue)); color: var(--ink); }
+    .meta { font-size: 13px; color: var(--muted); }
+
+    .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .tile { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; }
+    .tile .k { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+    .tile .v { font: 700 25px 'League Spartan', sans-serif; color: var(--ink); margin-top: 4px; line-height: 1.2; }
+    .tile.warn { background: var(--warnBg); border-color: #f0d9a0; } .tile.warn .v { color: var(--warn); }
+
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; margin-bottom: 16px; }
+    .card h2 { font: 700 18px 'League Spartan', sans-serif; color: var(--ink); margin: 0; }
+    .form-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 12px; }
+    .form-grid .w2 { grid-column: span 2; }
+    @media (max-width: 720px) { .form-grid { grid-template-columns: 1fr 1fr; } .form-grid .w2 { grid-column: 1 / -1; } }
+    .formacts { display: flex; gap: 10px; margin-top: 14px; align-items: center; flex-wrap: wrap; }
+
+    h3.grp { font: 700 13px var(--font); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 22px 0 8px; }
+    .list { display: flex; flex-direction: column; gap: 8px; }
+    .sub { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; display: grid; grid-template-columns: 46px minmax(0, 1fr) auto auto; gap: 4px 14px; align-items: center; }
+    .sub.soon { border-color: #f0d9a0; box-shadow: inset 4px 0 0 #e9b949; }
+    .sub.off { opacity: .65; }
+    .ico { width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; font: 700 19px 'League Spartan', sans-serif; color: var(--ink); background: linear-gradient(135deg, var(--mint), var(--blue)); }
+    .who { font-weight: 600; color: var(--ink); }
+    .amt { font: 700 17px 'League Spartan', sans-serif; color: var(--ink); text-align: right; white-space: nowrap; }
+    .amt .g { display: block; font: 500 12px var(--font); color: var(--muted); }
+    .when { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; background: #eef1f7; color: var(--muted); text-align: center; }
+    .when.soon { background: var(--warnBg); color: var(--warn); } .when.today { background: var(--lateBg); color: var(--late); }
+    .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 999px; margin-left: 4px; background: #eef1f7; color: var(--muted); }
+    .tag.trial { background: #ece6ff; color: #5b3fc4; }
+    .acts { grid-column: 2 / -1; display: flex; gap: 6px; flex-wrap: wrap; }
+    @media (max-width: 600px) { .sub { grid-template-columns: 46px minmax(0, 1fr) auto; } .sub .when { grid-column: 2 / -1; justify-self: start; } }
+    .empty { text-align: center; color: var(--muted); padding: 26px 0; }
+    .pop { animation: pop .6s ease; }
+    @keyframes pop { 0% { transform: scale(.96); } 40% { transform: scale(1.02); box-shadow: 0 0 0 6px var(--mint); } 100% { transform: scale(1); } }
+    #toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: #fff; color: var(--ink); border: 1px solid var(--line); box-shadow: 0 10px 30px rgba(0,0,0,.15); padding: 12px 18px; border-radius: 12px; font-weight: 600; z-index: 9; max-width: calc(100% - 32px); display: flex; gap: 12px; align-items: center; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div id="lock" hidden>
+    <h1 style="font:700 32px 'League Spartan',sans-serif;color:var(--ink)">Subscriptions</h1>
+    <p>Same password as your Tasks HQ.</p>
+    <form id="unlock"><input id="pw" type="password" placeholder="Password" autocomplete="current-password"><button>Open</button></form>
+    <p class="err" id="err"></p>
+  </div>
+
+  <div id="app" hidden>
+    <div class="top">
+      <a class="back" href="../">← Tasks HQ</a>
+      <h1>Subscriptions</h1>
+      <button id="addBtn">+ Add subscription</button>
+    </div>
+
+    <div class="bar">
+      <div class="seg" id="sideTabs">
+        <button data-side="all" class="on">All</button>
+        <button data-side="business">💼 Business</button>
+        <button data-side="personal">🏠 Personal</button>
+      </div>
+    </div>
+
+    <div class="tiles" id="tiles"></div>
+
+    <div class="card" id="formCard" hidden>
+      <div style="display:flex;align-items:center;gap:10px"><h2 id="formTitle" style="flex:1">Add a subscription</h2><button class="ghost small" id="closeForm">Close</button></div>
+      <div class="form-grid">
+        <div class="w2"><label for="f-name">Name</label><input id="f-name" placeholder="e.g. Canva Pro, ChatGPT, Google Workspace"></div>
+        <div><label for="f-amt">Cost</label><input id="f-amt" inputmode="decimal" placeholder="0.00"></div>
+        <div><label for="f-cur">Currency</label><select id="f-cur"><option>AUD</option><option>USD</option><option>EUR</option><option>GBP</option><option>MXN</option></select></div>
+        <div><label for="f-cycle">Paid every</label><select id="f-cycle"><option value="month">Month</option><option value="year">Year</option><option value="quarter">Quarter</option><option value="week">Week</option></select></div>
+        <div><label for="f-renews">Next renewal</label><input id="f-renews" type="date"></div>
+        <div><label for="f-status">Status</label><select id="f-status"><option value="active">Active</option><option value="trial">Free trial</option><option value="cancelled">Cancelled</option></select></div>
+        <div><label for="f-side">Business or personal</label><select id="f-side"><option value="business">Business</option><option value="personal">Personal</option></select></div>
+        <div><label for="f-cat">Category</label><select id="f-cat"></select></div>
+        <div id="brandBox"><label for="f-brand">For which client / brand</label><select id="f-brand"></select></div>
+        <div class="w2"><label for="f-link">Manage / cancel link</label><input id="f-link" type="url" placeholder="https://…"></div>
+        <div class="w2"><label for="f-note">Note</label><input id="f-note" placeholder="e.g. which card, who has the login"></div>
+      </div>
+      <div class="formacts"><button id="saveBtn">Save</button><span class="meta" id="formMsg"></span></div>
+    </div>
+
+    <div id="lists"></div>
+    <p class="meta" id="fxNote" style="margin-top:16px"></p>
+  </div>
+</div>
+<div id="toast" hidden role="status"></div>
+
+<script>
+const API = 'https://brand-tasks-api.danieldelaway.workers.dev';
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// 30-day sliding login, shared with the Tasks HQ (same localStorage key "clientsHQ").
+const KEY = 'clientsHQ', DAYS = 30;
+const REMEMBER = {
+  get(k) {
+    let v = null; try { const exp = +localStorage.getItem(k + '__exp') || 0; v = localStorage.getItem(k); if (v && exp && exp < Date.now()) { v = null; localStorage.removeItem(k); } } catch {}
+    if (!v) { const m = document.cookie.match(new RegExp('(?:^|; )r_' + k + '=([^;]*)')); if (m) v = decodeURIComponent(m[1]); }
+    if (v) this.set(k, v); return v;
+  },
+  set(k, v) {
+    try { localStorage.setItem(k, v); localStorage.setItem(k + '__exp', String(Date.now() + DAYS * 864e5)); } catch {}
+    document.cookie = 'r_' + k + '=' + encodeURIComponent(v) + '; Max-Age=' + DAYS * 86400 + '; Path=/; Secure; SameSite=None; Partitioned';
+  },
+  del(k) { try { localStorage.removeItem(k); localStorage.removeItem(k + '__exp'); } catch {} document.cookie = 'r_' + k + '=; Max-Age=0; Path=/; Secure; SameSite=None; Partitioned'; },
+};
+let pass = '', subs = [], brands = [], side = 'all', editing = null, fx = { rates: {}, source: {} };
+
+async function api(path, method = 'GET', body) {
+  const r = await fetch(API + path, { method, headers: { 'X-Key': pass, ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(d.error || 'Something went wrong'), { status: r.status });
+  return d;
+}
+let toastT;
+function toast(msg, undo) {
+  const t = $('#toast'); t.innerHTML = esc(msg) + (undo ? ' <button class="small ghost" id="undo">Undo</button>' : ''); t.hidden = false;
+  if (undo) $('#undo').onclick = () => { t.hidden = true; undo(); };
+  clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 6000);
+}
+
+// ---------- helpers ----------
+const CATS = ['Software & apps', 'AI tools', 'Design', 'Hosting & domains', 'Email & marketing', 'Analytics', 'Storage & backup', 'Phone & internet', 'Learning', 'Entertainment', 'Health & fitness', 'Other'];
+const SYM = { AUD: 'A$', USD: 'US$', EUR: '€', GBP: '£', MXN: 'MX$' };
+const PER_MONTH = { week: 52 / 12, month: 1, quarter: 1 / 3, year: 1 / 12 };
+const CYCLE_WORD = { week: 'week', month: 'month', quarter: 'quarter', year: 'year' };
+const money = (n, cur = 'AUD') => (SYM[cur] || cur + ' ') + (Math.round((Number(n) || 0) * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const isoToday = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); };
+const nice = iso => iso ? new Date(iso + 'T00:00:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+const daysTo = iso => Math.round((Date.parse(iso + 'T00:00:00Z') - Date.parse(isoToday() + 'T00:00:00Z')) / 864e5);
+function latestRate(cur) { if (cur === 'AUD') return 1; const t = fx.rates[cur] || {}, k = Object.keys(t).sort().pop(); return k ? t[k] : null; }
+const audMonth = s => { const r = latestRate(s.currency); return r == null ? null : s.amount * (PER_MONTH[s.cycle] || 1) * r; };
+
+// ---------- form ----------
+$('#f-cat').innerHTML = CATS.map(c => `<option>${esc(c)}</option>`).join('');
+function fillBrands() { $('#f-brand').innerHTML = `<option value="">My own business (general)</option>` + brands.filter(b => b !== 'Life Admin').map(b => `<option>${esc(b)}</option>`).join(''); }
+$('#f-side').addEventListener('change', () => $('#brandBox').hidden = $('#f-side').value === 'personal');
+function openForm(s) {
+  editing = s || null; $('#formCard').hidden = false;
+  $('#formTitle').textContent = s ? 'Edit ' + s.name : 'Add a subscription'; $('#saveBtn').textContent = s ? 'Save changes' : 'Save';
+  $('#f-name').value = s?.name || ''; $('#f-amt').value = s?.amount || ''; $('#f-cur').value = s?.currency || 'USD'; $('#f-cycle').value = s?.cycle || 'month';
+  $('#f-renews').value = s?.renews || ''; $('#f-status').value = s?.status || 'active'; $('#f-side').value = s?.side || (side === 'personal' ? 'personal' : 'business');
+  if (s?.category && ![...$('#f-cat').options].some(o => o.value === s.category)) $('#f-cat').insertAdjacentHTML('beforeend', `<option>${esc(s.category)}</option>`);
+  $('#f-cat').value = s?.category || 'Software & apps'; $('#f-brand').value = s?.brand || ''; $('#f-link').value = s?.link || ''; $('#f-note').value = s?.note || '';
+  $('#brandBox').hidden = $('#f-side').value === 'personal'; $('#formMsg').textContent = '';
+  $('#formCard').scrollIntoView({ behavior: 'smooth', block: 'start' }); setTimeout(() => $('#f-name').focus(), 300);
+}
+$('#addBtn').addEventListener('click', () => openForm());
+$('#closeForm').addEventListener('click', () => { $('#formCard').hidden = true; editing = null; });
+$('#saveBtn').addEventListener('click', async () => {
+  const b = $('#saveBtn'); b.disabled = true;
+  try {
+    let link = $('#f-link').value.trim(); if (link && !/^https?:\/\//i.test(link)) link = 'https://' + link;
+    const before = new Set(subs.map(s => s.id));
+    const d = await api('/subs', 'POST', { sub: { id: editing?.id, name: $('#f-name').value, amount: $('#f-amt').value, currency: $('#f-cur').value, cycle: $('#f-cycle').value, renews: $('#f-renews').value,
+      status: $('#f-status').value, side: $('#f-side').value, category: $('#f-cat').value, brand: $('#f-side').value === 'business' ? $('#f-brand').value : '', link, note: $('#f-note').value } });
+    subs = d.subs; const id = editing?.id || subs.find(s => !before.has(s.id))?.id, was = !!editing;
+    await loadFx(); $('#formCard').hidden = true; editing = null; render();
+    const el = id && document.querySelector(`[data-id="${id}"]`); if (el) { el.classList.add('pop'); el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+    toast(was ? 'Changes saved.' : 'Subscription added.');
+  } catch (e) { toast('Not saved: ' + e.message); }
+  b.disabled = false;
+});
+
+// ---------- list ----------
+function render() {
+  const mine = subs.filter(s => side === 'all' || s.side === side);
+  const live = mine.filter(s => s.status !== 'cancelled'), off = mine.filter(s => s.status === 'cancelled');
+  const month = live.reduce((a, s) => a + (audMonth(s) || 0), 0), unknown = live.some(s => audMonth(s) == null);
+  const soon = live.filter(s => s.renews && daysTo(s.renews) <= 7), trials = live.filter(s => s.status === 'trial');
+  $('#tiles').innerHTML = `
+    <div class="tile"><div class="k">Per month</div><div class="v">≈ ${money(month)}</div><div class="meta">${live.length} active${unknown ? ' · some rates missing' : ''}</div></div>
+    <div class="tile"><div class="k">Per year</div><div class="v">≈ ${money(month * 12)}</div><div class="meta">In Australian dollars</div></div>
+    <div class="tile ${soon.length ? 'warn' : ''}"><div class="k">Renewing in 7 days</div><div class="v">${soon.length ? money(soon.reduce((a, s) => a + s.amount * (latestRate(s.currency) || 0), 0)) : 'None'}</div><div class="meta">${soon.length ? soon.map(s => esc(s.name)).join(', ') : 'Nothing coming up'}</div></div>
+    <div class="tile ${trials.length ? 'warn' : ''}"><div class="k">Free trials</div><div class="v">${trials.length || 'None'}</div><div class="meta">${trials.length ? 'Cancel before they start charging' : 'No trials running'}</div></div>`;
+  const row = s => {
+    const d = s.renews ? daysTo(s.renews) : null, am = audMonth(s), cancelled = s.status === 'cancelled';
+    const when = cancelled ? 'Cancelled' : d == null ? 'No date' : d === 0 ? 'Renews today' : d === 1 ? 'Tomorrow' : d <= 60 ? `In ${d} days` : nice(s.renews);
+    return `<div class="sub ${cancelled ? 'off' : d != null && d <= 7 ? 'soon' : ''}" data-id="${s.id}">
+      <div class="ico">${esc((s.name || '?').trim()[0].toUpperCase())}</div>
+      <div><div class="who">${esc(s.name)}${s.status === 'trial' ? '<span class="tag trial">Trial</span>' : ''}${s.side === 'personal' ? '<span class="tag">Personal</span>' : ''}</div>
+        <div class="meta">${esc(s.category)}${s.brand ? ' · ' + esc(s.brand) : ''}${s.renews && !cancelled ? ' · renews ' + nice(s.renews) : ''}${s.note ? ' · ' + esc(s.note) : ''}</div></div>
+      <div class="amt">${money(s.amount, s.currency)}<span class="g">a ${CYCLE_WORD[s.cycle]}${am != null && (s.currency !== 'AUD' || s.cycle !== 'month') ? ' · ≈ ' + money(am) + '/mo' : ''}</span></div>
+      <div class="when ${!cancelled && d != null && d <= 0 ? 'today' : !cancelled && d != null && d <= 7 ? 'soon' : ''}">${when}</div>
+      <div class="acts">${s.link ? `<a class="btn small ghost" href="${esc(s.link)}" target="_blank" rel="noopener">Manage ↗</a>` : ''}
+        ${cancelled ? '' : `<button class="small ghost" data-a="log" title="Add this payment to the Expenses page">➕ Log payment</button>`}
+        <button class="small ghost" data-a="edit">Edit</button>
+        <button class="small ghost" data-a="${cancelled ? 'restart' : 'cancel'}">${cancelled ? 'Restart' : 'Mark cancelled'}</button>
+        <button class="small ghost" data-a="del" aria-label="Delete">🗑</button></div>
+    </div>`;
+  };
+  const by = (a, b) => (a.renews || '9999').localeCompare(b.renews || '9999') || a.name.localeCompare(b.name);
+  $('#lists').innerHTML = mine.length
+    ? (live.length ? `<h3 class="grp">Active (${live.length})</h3><div class="list">${live.sort(by).map(row).join('')}</div>` : '')
+      + (off.length ? `<h3 class="grp">Cancelled (${off.length})</h3><div class="list">${off.sort((a, b) => a.name.localeCompare(b.name)).map(row).join('')}</div>` : '')
+    : `<div class="card empty">No subscriptions yet. Tap <b>+ Add subscription</b> to start.</div>`;
+  const src = Object.entries(fx.source || {}).map(([c, s]) => `${c} ${s}`).join(', ');
+  $('#fxNote').textContent = src ? `Totals are in Australian dollars at today’s rate (${src}). Renewal dates move forward on their own after each payment.` : 'Renewal dates move forward on their own after each payment.';
+}
+
+const sure = new WeakMap();
+$('#lists').addEventListener('click', async ev => {
+  const b = ev.target.closest('button[data-a]'); if (!b) return;
+  const id = b.closest('.sub').dataset.id, s = subs.find(x => x.id === id), a = b.dataset.a;
+  const save = async (patch, msg, undoPatch) => {
+    try { subs = (await api('/subs', 'POST', { sub: { ...s, ...patch } })).subs; render(); toast(msg, undoPatch ? async () => { subs = (await api('/subs', 'POST', { sub: { ...s, ...undoPatch } })).subs; render(); } : null); }
+    catch (e) { toast('Not saved: ' + e.message); }
+  };
+  if (a === 'edit') openForm(s);
+  if (a === 'cancel') save({ status: 'cancelled' }, `${s.name} marked cancelled.`, { status: s.status });
+  if (a === 'restart') save({ status: 'active' }, `${s.name} is active again.`, { status: 'cancelled' });
+  if (a === 'log') {
+    b.disabled = true;
+    try {
+      const before = new Set(((await api('/expenses')).expenses || []).map(e => e.id));
+      const d = await api('/expenses', 'POST', { expense: { date: isoToday(), vendor: s.name, amount: s.amount, currency: s.currency, gst: 0, side: s.side,
+        category: s.side === 'business' ? 'Software & subscriptions' : 'Other', brand: s.brand, note: 'Subscription payment' } });
+      const added = d.expenses.find(e => !before.has(e.id));
+      toast(`Logged ${money(s.amount, s.currency)} on the Expenses page. Add the receipt and GST there.`, added ? async () => { await api('/expenses/' + added.id, 'DELETE'); toast('Removed from Expenses.'); } : null);
+    } catch (e) { toast('Not logged: ' + e.message); }
+    b.disabled = false;
+  }
+  if (a === 'del') {
+    if (!sure.get(b)) { sure.set(b, 1); b.classList.add('sure'); b.textContent = 'Delete?'; setTimeout(() => { if (b.isConnected) { sure.delete(b); b.classList.remove('sure'); b.textContent = '🗑'; } }, 3000); return; }
+    try {
+      subs = (await api('/subs/' + id, 'DELETE')).subs; render();
+      toast(`${s.name} deleted.`, async () => { const { id: _x, ...rest } = s; subs = (await api('/subs', 'POST', { sub: rest })).subs; render(); toast('Put back.'); });
+    } catch (e) { toast('Not deleted: ' + e.message); }
+  }
+});
+$('#sideTabs').addEventListener('click', e => { const b = e.target.closest('[data-side]'); if (!b) return; side = b.dataset.side; document.querySelectorAll('#sideTabs button').forEach(x => x.classList.toggle('on', x === b)); render(); });
+
+async function loadFx() {
+  const curs = [...new Set(subs.map(s => s.currency).filter(c => c && c !== 'AUD'))].filter(c => !fx.rates[c]);
+  if (!curs.length) return;
+  const from = new Date(Date.now() - 14 * 864e5).toISOString().slice(0, 10);
+  try { const d = await api(`/fx?from=${from}&to=${isoToday()}&cur=${curs.join(',')}`); Object.assign(fx.rates, d.rates); Object.assign(fx.source, d.source); } catch {}
+}
+
+// ---------- sign in ----------
+async function start(p, remember) {
+  pass = p;
+  try {
+    const [d, t] = await Promise.all([api('/subs'), api('/tasks').catch(() => ({ brands: [] }))]);
+    subs = d.subs; brands = (t.brands || []).map(b => b.name);
+    if (remember) REMEMBER.set(KEY, p);
+    $('#lock').hidden = true; $('#app').hidden = false;
+    fillBrands(); await loadFx(); render();
+  } catch (e) {
+    $('#app').hidden = true; $('#lock').hidden = false;
+    if (remember) $('#err').textContent = e.status === 401 ? 'That password didn’t work.' : 'Could not load: ' + e.message;
+    else if (e.status === 401) { REMEMBER.del(KEY); $('#err').textContent = 'Please sign in again.'; }
+    else $('#err').textContent = 'Could not load: ' + e.message;
+  }
+}
+$('#unlock').addEventListener('submit', e => { e.preventDefault(); $('#err').textContent = ''; start($('#pw').value.trim(), true); });
+const saved = REMEMBER.get(KEY);
+if (saved) start(saved, false); else $('#lock').hidden = false;
+</script>
+</body>
+</html>

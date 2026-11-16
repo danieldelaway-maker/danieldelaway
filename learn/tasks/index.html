@@ -862,7 +862,11 @@ function render() {
     const line2 = !n ? '' : s.lodged ? 'Lodged ✓' : s.sent ? 'Sent to Naveen' : !n.ended ? 'Quarter still running' : days < 0 ? `<span style="color:#d64545;font-weight:700">${-days} days late</span>` : days <= 14 ? `<span style="color:#d64545;font-weight:700">${days} days left</span>` : `${days} days left`;
     return `<a class="board proj tool" href="bas/" style="--tint:#b9a4f2" aria-label="Open the BAS helper"><div class="plogo"><img src="logos/bas.svg" alt=""></div><h2>BAS</h2><p class="line">${n ? `Q${n.q} due ${esc(when)}` : 'Nothing due'}</p><p class="line">${line2}</p></a>`;
   })();
-  $('#brands').innerHTML = `<p class="grp">Work</p>` + W.map(x => x.tile).join('') + `<p class="grp">Tools</p>` + invTile + paidTile + expTile + basTile + (P.length ? `<p class="grp">Personal</p>` + P.map(x => x.tile).join('') : '');
+  // Subscriptions card (16 Nov 2026) opens subscriptions/. Shows how many are active and the next renewal.
+  const sb = d.subsSum || {};
+  const subNext = sb.next ? `Next: ${esc(sb.next.name)} ${sb.next.days <= 0 ? 'today' : sb.next.days === 1 ? 'tomorrow' : 'in ' + sb.next.days + ' days'}` : 'Nothing renewing';
+  const subTile = `<a class="board proj tool" href="subscriptions/" style="--tint:#f29bb8" aria-label="Open Subscriptions"><div class="plogo"><img src="logos/subscriptions.svg" alt=""></div><h2>Subscriptions</h2><p class="line">${sb.count ? sb.count + ' active' + (sb.trials ? ` · ${sb.trials} trial${sb.trials === 1 ? '' : 's'}` : '') : 'None added yet'}</p><p class="line"${sb.next && sb.next.days <= 3 ? ' style="color:#b07a00;font-weight:700"' : ''}>${subNext}</p></a>`;
+  $('#brands').innerHTML = `<p class="grp">Work</p>` + W.map(x => x.tile).join('') + `<p class="grp">Tools</p>` + invTile + paidTile + expTile + basTile + subTile + (P.length ? `<p class="grp">Personal</p>` + P.map(x => x.tile).join('') : '');
   $('#panel').innerHTML = W.concat(P).map(x => x.panel).join('');
   if (firstPaint) {
     firstPaint = false; const bx = $('#brands');
