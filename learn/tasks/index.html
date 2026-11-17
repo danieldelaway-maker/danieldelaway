@@ -123,7 +123,13 @@
     .hform .hfb { display: flex; gap: 6px; }
     .hform .hfb button { padding: 7px 12px; font-size: 13px; }
     .hform .ghost { background: #eef0f4; color: var(--w-ink); }
-    .hform .hdel.sure, button.sure { background: #d64545 !important; color: #fff !important; }
+    /* Two-tap delete confirm (17 Nov 2026): soft red pill, bin icon, countdown line. */
+    button.sure:not(#_) { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px 6px 10px; border-radius: 999px; background: #fdecec !important; color: #c62f2f !important; border: 1px solid #f3c3c3 !important; font: 600 12.5px/1.2 var(--font, system-ui, sans-serif); opacity: 1; position: relative; overflow: hidden; white-space: nowrap; box-shadow: 0 2px 8px rgba(198,47,47,.12); animation: surePop .18s ease-out; }
+    button.sure:not(#_):hover { background: #d64545 !important; color: #fff !important; border-color: #d64545 !important; }
+    button.sure:not(#_) svg { width: 13px; height: 13px; flex: none; }
+    button.sure:not(#_)::after { content: ''; position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; background: currentColor; opacity: .45; transform-origin: left; animation: sureTime 3s linear forwards; }
+    @keyframes surePop { from { transform: scale(.92); opacity: .4; } to { transform: none; opacity: 1; } }
+    @keyframes sureTime { from { transform: scaleX(1); } to { transform: scaleX(0); } }
     .tundo { margin-left: 10px; padding: 4px 10px; border-radius: 8px; font: 700 12px var(--font); background: #fff; color: #12141c; }
     #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: #12141c; color: #fff; border: 1px solid var(--line); padding: 10px 16px; border-radius: 12px; font-size: 14px; max-width: calc(100% - 32px); z-index: 10; }
     .foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 40px; font-size: 13px; color: var(--muted); }
@@ -1179,8 +1185,8 @@ async function habitAct(act, el) {
 // Two taps on the page instead of a browser pop-up: the first turns the button red, the second confirms.
 function sureTap(el) {
   if (el.classList.contains('sure')) return true;
-  const label = el.textContent; el.classList.add('sure'); el.textContent = 'Tap again to delete';
-  setTimeout(() => { if (el.isConnected) { el.classList.remove('sure'); el.textContent = label; } }, 3000);
+  const label = el.innerHTML; el.classList.add('sure'); el.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>Confirm delete';
+  setTimeout(() => { if (el.isConnected) { el.classList.remove('sure'); el.innerHTML = label; } }, 3000);
   return false;
 }
 function toastUndo(msg, undo) {

@@ -36,7 +36,13 @@
     button { cursor: pointer; padding: 9px 14px; border-radius: 11px; border: 0; font: 600 14px var(--font); color: var(--ink); background: linear-gradient(135deg, var(--mint), var(--blue)); }
     button.ghost { background: #fff; border: 1px solid var(--line); color: var(--text); }
     button.small { padding: 6px 10px; font-size: 13px; border-radius: 9px; }
-    button.sure { background: #ffe1e1; color: var(--down); border: 1px solid #f3b4b4; }
+    /* Two-tap delete confirm (17 Nov 2026): soft red pill, bin icon, countdown line. */
+    button.sure:not(#_) { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px 6px 10px; border-radius: 999px; background: #fdecec !important; color: #c62f2f !important; border: 1px solid #f3c3c3 !important; font: 600 12.5px/1.2 var(--font, system-ui, sans-serif); opacity: 1; position: relative; overflow: hidden; white-space: nowrap; box-shadow: 0 2px 8px rgba(198,47,47,.12); animation: surePop .18s ease-out; }
+    button.sure:not(#_):hover { background: #d64545 !important; color: #fff !important; border-color: #d64545 !important; }
+    button.sure:not(#_) svg { width: 13px; height: 13px; flex: none; }
+    button.sure:not(#_)::after { content: ''; position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; background: currentColor; opacity: .45; transform-origin: left; animation: sureTime 3s linear forwards; }
+    @keyframes surePop { from { transform: scale(.92); opacity: .4; } to { transform: none; opacity: 1; } }
+    @keyframes sureTime { from { transform: scaleX(1); } to { transform: scaleX(0); } }
     button:disabled { opacity: .5; cursor: default; }
     label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin: 12px 0 4px; }
     input, select { width: 100%; padding: 9px 11px; border-radius: 10px; border: 1px solid var(--line); background: #fbfcfe; color: var(--ink); font: 15px var(--font); }
@@ -309,7 +315,7 @@ $('#saveBtn').addEventListener('click', async () => {
 let delSure = false;
 $('#delBtn').addEventListener('click', async () => {
   const b = $('#delBtn');
-  if (!delSure) { delSure = true; b.classList.add('sure'); b.textContent = 'Tap again to delete'; setTimeout(() => { delSure = false; b.classList.remove('sure'); b.textContent = '🗑 Delete'; }, 3000); return; }
+  if (!delSure) { delSure = true; b.classList.add('sure'); b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>Confirm delete'; setTimeout(() => { delSure = false; b.classList.remove('sure'); b.textContent = '🗑 Delete'; }, 3000); return; }
   const h = editing; delSure = false;
   try {
     D = await api('/invest/holdings/' + h.id, 'DELETE'); $('#formCard').hidden = true; editing = null; render();
