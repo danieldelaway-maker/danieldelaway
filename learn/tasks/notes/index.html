@@ -54,6 +54,14 @@
     .row select { width: auto; }
     .grow { flex: 1; }
 
+    /* Images (17 Nov 2026): drop, paste or pick screenshots/photos alongside the text. */
+    #inCard { position: relative; transition: border-color .15s, box-shadow .15s; }
+    #inCard.drag { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(79,111,224,.15); }
+    #inCard.drag::after { content: 'Drop images here'; position: absolute; inset: 0; border-radius: 16px; display: grid; place-items: center; background: rgba(234,241,254,.88); color: var(--accent); font: 700 22px 'League Spartan', sans-serif; pointer-events: none; }
+    .thumbs { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+    .thumb { position: relative; width: 92px; height: 92px; border-radius: 12px; border: 1px solid var(--line); background: #fbfcfe; overflow: hidden; }
+    .thumb img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .thumb button { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; padding: 0; border-radius: 50%; background: #fff; border: 1px solid var(--line); font-size: 14px; line-height: 1; color: var(--ink); }
     .think { display: flex; gap: 10px; align-items: center; color: var(--muted); font-weight: 600; }
     .dots span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-right: 4px; animation: b 1s infinite ease-in-out; }
     .dots span:nth-child(2) { animation-delay: .15s; } .dots span:nth-child(3) { animation-delay: .3s; }
@@ -103,11 +111,14 @@
     </div>
 
     <div class="card" id="inCard">
-      <h2>Paste your notes</h2>
-      <textarea id="notes" placeholder="Paste meeting notes, a call summary, a Fireflies/Otter recap or a messy brain dump…"></textarea>
+      <h2>Paste your notes or drop images</h2>
+      <textarea id="notes" placeholder="Paste meeting notes, a call summary, a Fireflies/Otter recap or a messy brain dump… You can also drop or paste screenshots and photos here."></textarea>
+      <div class="thumbs" id="thumbs" hidden></div>
+      <input type="file" id="pick" accept="image/*" multiple hidden>
       <div class="row">
         <div><label class="k" for="hint">Mostly about</label><select id="hint"><option value="">Work it out</option></select></div>
         <span class="grow"></span>
+        <button class="ghost small" id="addImg">🖼 Add images</button>
         <button class="ghost small" id="clear">Clear</button>
         <button id="go">✨ Find the tasks</button>
       </div>
@@ -170,14 +181,63 @@ function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = fal
 const DRAFT = 'notesToTasksDraft';
 try { $('#notes').value = localStorage.getItem(DRAFT) || ''; } catch {}
 $('#notes').addEventListener('input', () => { try { localStorage.setItem(DRAFT, $('#notes').value); } catch {} });
-$('#clear').addEventListener('click', () => { $('#notes').value = ''; try { localStorage.removeItem(DRAFT); } catch {} $('#outCard').hidden = true; $('#notes').focus(); });
+$('#clear').addEventListener('click', () => { $('#notes').value = ''; imgs = []; drawThumbs(); try { localStorage.removeItem(DRAFT); } catch {} $('#outCard').hidden = true; $('#notes').focus(); });
+
+// ---------- images: drop, paste or pick. Shrunk to 1600px JPEG so uploads stay small. ----------
+let imgs = []; // [{type, data(base64), url}]
+const MAX_IMGS = 10;
+function shrink(file) {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file), im = new Image();
+    im.onload = () => {
+      const k = Math.min(1, 1600 / Math.max(im.width, im.height)), c = document.createElement('canvas');
+      c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+      const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      const d = c.toDataURL('image/jpeg', 0.85);
+      res({ type: 'image/jpeg', data: d.split(',')[1], url: d });
+    };
+    im.onerror = () => { URL.revokeObjectURL(url); rej(new Error('Couldn’t open ' + (file.name || 'that image'))); };
+    im.src = url;
+  });
+}
+async function addFiles(files) {
+  const list = [...files].filter(f => f.type.startsWith('image/'));
+  if (!list.length) return false;
+  for (const f of list) {
+    if (imgs.length >= MAX_IMGS) { toast(`Up to ${MAX_IMGS} images at a time.`); break; }
+    try { imgs.push(await shrink(f)); } catch (e) { toast(e.message); }
+  }
+  drawThumbs(); return true;
+}
+function drawThumbs() {
+  $('#thumbs').hidden = !imgs.length;
+  $('#thumbs').innerHTML = imgs.map((m, i) => `<div class="thumb"><img src="${m.url}" alt="Image ${i + 1}"><button type="button" data-rm="${i}" aria-label="Remove image">×</button></div>`).join('');
+}
+$('#thumbs').addEventListener('click', e => { const b = e.target.closest('[data-rm]'); if (b) { imgs.splice(+b.dataset.rm, 1); drawThumbs(); } });
+$('#addImg').addEventListener('click', () => $('#pick').click());
+$('#pick').addEventListener('change', async e => { await addFiles(e.target.files); e.target.value = ''; });
+$('#notes').addEventListener('paste', async e => {
+  const files = [...(e.clipboardData?.items || [])].filter(i => i.kind === 'file').map(i => i.getAsFile()).filter(Boolean);
+  if (files.some(f => f.type.startsWith('image/'))) { e.preventDefault(); await addFiles(files); }
+});
+// Drop anywhere on the page; the notes card lights up while dragging.
+let dragN = 0;
+const isFiles = e => [...(e.dataTransfer?.types || [])].includes('Files');
+addEventListener('dragenter', e => { if (!isFiles(e)) return; e.preventDefault(); dragN++; $('#inCard').classList.add('drag'); });
+addEventListener('dragover', e => { if (isFiles(e)) e.preventDefault(); });
+addEventListener('dragleave', e => { if (!isFiles(e)) return; if (--dragN <= 0) { dragN = 0; $('#inCard').classList.remove('drag'); } });
+addEventListener('drop', async e => {
+  if (!isFiles(e)) return; e.preventDefault(); dragN = 0; $('#inCard').classList.remove('drag');
+  if (!(await addFiles(e.dataTransfer.files))) toast('Only images can be dropped here.');
+});
 
 $('#go').addEventListener('click', async () => {
   const text = $('#notes').value.trim();
-  if (text.length < 10) return toast('Paste some notes first.');
+  if (text.length < 10 && !imgs.length) return toast('Paste some notes or drop an image first.');
   $('#go').disabled = true; $('#thinking').hidden = false; $('#outCard').hidden = true; $('#doneCard').hidden = true;
   try {
-    const d = await api('/notes-to-tasks', 'POST', { text, brand: $('#hint').value });
+    const d = await api('/notes-to-tasks', 'POST', { text, brand: $('#hint').value, images: imgs.map(m => ({ type: m.type, data: m.data })) });
     found = d.items.map(i => ({ ...i, on: !i.dupOf }));
     $('#summary').textContent = d.summary || '';
     render(); $('#outCard').hidden = false;
@@ -225,7 +285,7 @@ $('#addBtn').addEventListener('click', async () => {
     $('#outCard').hidden = true; $('#doneCard').hidden = false;
     const per = {}; pick.forEach(t => per[t.brand] = (per[t.brand] || 0) + 1);
     $('#doneTxt').textContent = `${pick.length} task${pick.length === 1 ? '' : 's'} added · ` + Object.entries(per).map(([b, n]) => `${b} ${n}`).join(', ');
-    $('#notes').value = ''; try { localStorage.removeItem(DRAFT); } catch {}
+    $('#notes').value = ''; imgs = []; drawThumbs(); try { localStorage.removeItem(DRAFT); } catch {}
   } catch (e) { toast('Not added: ' + e.message); $('#addBtn').disabled = false; }
 });
 $('#again').addEventListener('click', () => { $('#doneCard').hidden = true; $('#notes').focus(); });
