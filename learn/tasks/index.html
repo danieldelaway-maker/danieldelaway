@@ -87,8 +87,8 @@
     .tcard.done .trow b { text-decoration: line-through; font-weight: 500; color: var(--w-muted); }
     .tbody small { display: block; color: var(--w-text); font-size: 13.5px; line-height: 1.5; margin-top: 4px; }
     .src { color: var(--w-muted); font-size: 12px; margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px 10px; }
-    .src a { color: var(--w-accent); font-weight: 600; text-decoration: none; }
-    .src a:hover { text-decoration: underline; }
+    .src a { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 999px; background: linear-gradient(135deg, #ecfbf3, #eaf2fe); border: 1px solid #cfe0fb; color: #3a55c8; font-weight: 600; text-decoration: none; transition: transform .15s, box-shadow .15s, border-color .15s; }
+    .src a:hover { transform: translateY(-1px); border-color: #9cc1f7; box-shadow: 0 4px 12px rgba(79,111,224,.15); }
     .chip { flex: none; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; border: 1px solid currentColor; color: var(--w-muted); white-space: nowrap; }
     .chip.late { color: var(--w-late); } .chip.soon { color: var(--w-soon); } .chip.brand { color: var(--w-accent); }
     .edit { flex: none; background: none; border: 0; padding: 2px 4px; color: var(--w-muted); font: 500 12px var(--font); border-radius: 6px; }
@@ -127,8 +127,10 @@
     .tundo { margin-left: 10px; padding: 4px 10px; border-radius: 8px; font: 700 12px var(--font); background: #fff; color: #12141c; }
     #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: #12141c; color: #fff; border: 1px solid var(--line); padding: 10px 16px; border-radius: 12px; font-size: 14px; max-width: calc(100% - 32px); z-index: 10; }
     .foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 40px; font-size: 13px; color: var(--muted); }
-    .foot a { color: var(--muted); }
-    .foot button { background: none; color: var(--muted); padding: 0; font-weight: 500; text-decoration: underline; }
+    /* Footer pills (17 Nov 2026: no plain-text buttons). */
+    .foot a, .foot button { display: inline-flex; align-items: center; gap: 8px; padding: 7px 15px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); box-shadow: 0 1px 2px rgba(18,20,28,.06), 0 4px 12px rgba(18,20,28,.05); color: var(--ink); font: 600 13px var(--font); text-decoration: none; cursor: pointer; transition: transform .15s, box-shadow .15s, border-color .15s; }
+    .foot a:hover, .foot button:hover { transform: translateY(-1px); border-color: #9cc1f7; box-shadow: 0 2px 4px rgba(18,20,28,.06), 0 8px 20px rgba(79,111,224,.15); }
+    .foot button:hover { border-color: #f3b4b4; box-shadow: 0 2px 4px rgba(18,20,28,.06), 0 8px 20px rgba(198,47,47,.12); }
     .how { color: var(--muted); font-size: 13px; margin: 0; }
     @media (max-width: 560px) { .brands { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; } .proj[data-act=toggle] { padding: 16px 10px 14px; } .plogo { height: 64px; margin-bottom: 10px; } .plogo img { max-height: 64px; max-width: 90%; } .proj h2 { font-size: 15px; } .line { font-size: 12px; } }
     .acts { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; flex: none; }
@@ -461,7 +463,7 @@
       <div id="scrim" data-act="closeall"></div>
       <section id="cal" aria-label="Calendar"></section>
       <p class="how">Everything lives right here on this page: ticks, edits and new tasks save instantly. Tap a project to open it. Each project has an “Always remember” list at the top for little standing rules (tap one for the details). The number is how many tasks are open (red = something needs you within 2 days). Claude checks Slack, Gmail, WhatsApp, Upwork and your Wispr Flow call notes every 30 minutes (and Google Calendar, WeChat supplier chats and unpaid invoices twice a day) and puts what it finds in a yellow Suggested tray; nothing is added until you tap Add. Tasks due more than a week out sit in Later, and people you're waiting on move into your tasks as “Chase” after 5 days. Personal tax and admin live under Life Admin, apart from your work.</p>
-      <div class="foot"><a href="/learn/">← Back to the learning list</a><button id="lockBtn" type="button">Sign out</button></div>
+      <div class="foot"><a href="/learn/">← Back to the learning list</a><button id="lockBtn" type="button">🔒 Sign out</button></div>
     </div>
   </main>
   <div id="toast" hidden role="status"></div>
