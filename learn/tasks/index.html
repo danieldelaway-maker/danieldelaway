@@ -132,7 +132,7 @@
     @keyframes sureTime { from { transform: scaleX(1); } to { transform: scaleX(0); } }
     .tundo { margin-left: 10px; padding: 4px 10px; border-radius: 8px; font: 700 12px var(--font); background: #fff; color: #12141c; }
     #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: #12141c; color: #fff; border: 1px solid var(--line); padding: 10px 16px; border-radius: 12px; font-size: 14px; max-width: calc(100% - 32px); z-index: 10; }
-    .foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 40px; font-size: 13px; color: var(--muted); }
+    .foot { display: flex; flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 40px; font-size: 13px; color: var(--muted); }
     /* Footer pills (17 Nov 2026: no plain-text buttons). */
     .foot a, .foot button { display: inline-flex; align-items: center; gap: 8px; padding: 7px 15px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); box-shadow: 0 1px 2px rgba(18,20,28,.06), 0 4px 12px rgba(18,20,28,.05); color: var(--ink); font: 600 13px var(--font); text-decoration: none; cursor: pointer; transition: transform .15s, box-shadow .15s, border-color .15s; }
     .foot a:hover, .foot button:hover { transform: translateY(-1px); border-color: #9cc1f7; box-shadow: 0 2px 4px rgba(18,20,28,.06), 0 8px 20px rgba(79,111,224,.15); }
@@ -1320,5 +1320,6 @@ document.addEventListener('submit', async e => {
 });
 document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.proj[data-act=toggle]')) { e.preventDefault(); e.target.click(); return; } if (e.key === 'Escape' && editing) { editing = null; render(); } });
 </script>
+<script src="/learn/passkey.js" defer></script>
 </body>
 </html>

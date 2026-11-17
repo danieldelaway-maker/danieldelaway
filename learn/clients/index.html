@@ -72,9 +72,10 @@
     .dm { margin-top: 8px; padding: 10px 12px; border-radius: 10px; background: rgba(91,123,255,.08); border: 1px solid rgba(91,123,255,.25); color: var(--ink); white-space: pre-wrap; font-size: 14px; }
     .copy { margin-top: 6px; padding: 5px 10px; font-size: 12px; }
     .empty { color: var(--muted); font-size: 14px; padding: 12px 0; }
-    .foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 40px; font-size: 13px; color: var(--muted); }
-    .foot a { color: var(--muted); }
-    .foot button { background: none; color: var(--muted); padding: 0; font-weight: 500; text-decoration: underline; }
+    .foot { display: flex; flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 40px; font-size: 13px; color: var(--muted); }
+    /* Footer pills (17 Nov 2026: no plain-text buttons). */
+    .foot a, .foot button { display: inline-flex; align-items: center; gap: 8px; padding: 7px 15px; border-radius: 999px; background: #fff; border: 1px solid #e3e6ee; box-shadow: 0 1px 2px rgba(18,20,28,.06), 0 4px 12px rgba(18,20,28,.05); color: #12141c; font: 600 13px 'Inter', system-ui, sans-serif; text-decoration: none; cursor: pointer; transition: transform .15s, box-shadow .15s, border-color .15s; }
+    .foot a:hover, .foot button:hover { transform: translateY(-1px); border-color: #9cc1f7; box-shadow: 0 2px 4px rgba(18,20,28,.06), 0 8px 20px rgba(79,111,224,.15); }
     @media (max-width: 560px) { .actions li { grid-template-columns: 1fr; gap: 6px; } }
   </style>
 </head>
@@ -103,7 +104,7 @@
         <div class="tabs" role="tablist" id="tabs"></div>
         <div class="tbl" id="table"></div>
       </section>
-      <div class="foot"><a href="/learn/">← Back to the learning list</a><button id="lockBtn">Lock</button></div>
+      <div class="foot"><a href="/learn/">← Back to the learning list</a><button id="lockBtn">🔒 Lock</button></div>
     </div>
   </main>
   <div id="tip"></div>
@@ -225,5 +226,6 @@ function tables(d) {
   show(cur);
 }
 </script>
+<script src="/learn/passkey.js" defer></script>
 </body>
 </html>
