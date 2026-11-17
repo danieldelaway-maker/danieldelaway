@@ -91,9 +91,13 @@
     .src a:hover { transform: translateY(-1px); border-color: #9cc1f7; box-shadow: 0 4px 12px rgba(79,111,224,.15); }
     .chip { flex: none; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; border: 1px solid currentColor; color: var(--w-muted); white-space: nowrap; }
     .chip.late { color: var(--w-late); } .chip.soon { color: var(--w-soon); } .chip.brand { color: var(--w-accent); }
-    .edit { flex: none; background: none; border: 0; padding: 2px 4px; color: var(--w-muted); font: 500 12px var(--font); border-radius: 6px; }
-    .edit:hover { color: var(--w-ink); background: #e9ecf2; }
-    .edit.bin { font-size: 14px; opacity: .55; } .edit.bin:hover, .edit.bin.sure { opacity: 1; }
+    /* Edit / Chased / bin as pills to match Start (17 Nov 2026). */
+    .edit { flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px; background: #fff; border: 1px solid #dfe3ec; padding: 3px 10px; color: #4a5163; font: 600 12px/1.4 var(--font); border-radius: 999px; white-space: nowrap; transition: background .15s, border-color .15s, color .15s; }
+    .edit:hover { color: var(--w-ink); background: #eef1f7; border-color: #c9cfdc; }
+    .edit svg { width: 12px; height: 12px; flex: none; }
+    .edit.bin { padding: 0; width: 26px; height: 26px; color: #8a90a0; }
+    .edit.bin svg { width: 14px; height: 14px; }
+    .edit.bin:hover { color: #c62f2f; background: #fdecec; border-color: #f3c3c3; }
     .empty { color: var(--w-muted); font-size: 14px; margin: 0; }
 
     /* edit form */
@@ -139,7 +143,7 @@
     .foot button:hover { border-color: #f3b4b4; box-shadow: 0 2px 4px rgba(18,20,28,.06), 0 8px 20px rgba(198,47,47,.12); }
     .how { color: var(--muted); font-size: 13px; margin: 0; }
     @media (max-width: 560px) { .brands { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; } .proj[data-act=toggle] { padding: 16px 10px 14px; } .plogo { height: 64px; margin-bottom: 10px; } .plogo img { max-height: 64px; max-width: 90%; } .proj h2 { font-size: 15px; } .line { font-size: 12px; } }
-    .acts { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; flex: none; }
+    .acts { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; flex: none; }
     .chip.rep { color: #5b5bd6; }
     .who { font-weight: 700; color: var(--w-accent); }
     .tcard.chase { border-color: #f3b4b4; background: #fff6f6; }
@@ -618,7 +622,7 @@ function card(t) {
     <input type="checkbox" class="tick" ${t.done ? 'checked' : ''} aria-label="Mark “${esc(t.text)}” done">
     <div class="tbody" data-act="edit"><div class="trow"><b>${title}</b>${chips}</div>
     ${t.detail && (!t.done || doneToday(t)) ? `<small>${esc(t.detail)}</small>` : ''}${meta ? `<div class="src">${meta}</div>` : ''}</div>
-    <div class="acts">${t.done ? '' : `<a class="startcc" href="${esc(ccLink(t))}" title="Open a new Claude Code session with this task filled in">Start ▶</a>`}${extra}<button class="edit" data-act="edit" aria-label="Edit task">Edit</button><button class="edit bin" data-act="delete" title="Delete (not done)" aria-label="Delete task">🗑</button></div></li>`;
+    <div class="acts">${t.done ? '' : `<a class="startcc" href="${esc(ccLink(t))}" title="Open a new Claude Code session with this task filled in">Start ▶</a>`}${extra}<button class="edit" data-act="edit" aria-label="Edit task"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/></svg>Edit</button><button class="edit bin" data-act="delete" title="Delete (not done)" aria-label="Delete task"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button></div></li>`;
 }
 // ---------- Fun effects for actions (all skipped when the device asks for reduced motion) ----------
 const FX_OK = () => !matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -761,7 +765,7 @@ function notesBox(br) {
     if (editing === 'note:' + n.id) return `<li class="ncard">${noteForm(n)}</li>`;
     const op = openNotes.has(n.id);
     return `<li class="ncard ${op ? 'open' : ''}" data-nid="${n.id}"><button class="nrow" data-act="ntoggle" aria-expanded="${op}"><i class="dot"></i><span class="nt">${esc(n.text)}</span><span class="chev">▶</span></button>
-      ${op ? `<div class="nmore">${n.detail ? `<p>${esc(n.detail)}</p>` : ''}<div class="nacts"><button class="edit" data-act="nedit">Edit</button></div></div>` : ''}</li>`;
+      ${op ? `<div class="nmore">${n.detail ? `<p>${esc(n.detail)}</p>` : ''}<div class="nacts"><button class="edit" data-act="nedit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/></svg>Edit</button></div></div>` : ''}</li>`;
   };
   return `<div class="notes"><p class="notesh">📌 Always remember <span>${list.length ? 'Tap one for the details.' : 'Little rules for this project that must not get lost.'}</span></p>
     ${list.length || adding ? `<ul class="nlist">${list.map(item).join('')}${adding ? `<li class="ncard">${noteForm(null, br.id)}</li>` : ''}</ul>` : ''}
