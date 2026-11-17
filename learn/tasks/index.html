@@ -128,7 +128,7 @@
     .hform .hfb button { padding: 7px 12px; font-size: 13px; }
     .hform .ghost { background: #eef0f4; color: var(--w-ink); }
     /* Two-tap delete confirm (17 Nov 2026): soft red pill, bin icon, countdown line. */
-    button.sure:not(#_) { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px 6px 10px; border-radius: 999px; background: #fdecec !important; color: #c62f2f !important; border: 1px solid #f3c3c3 !important; font: 600 12.5px/1.2 var(--font, system-ui, sans-serif); opacity: 1; position: relative; overflow: hidden; white-space: nowrap; box-shadow: 0 2px 8px rgba(198,47,47,.12); animation: surePop .18s ease-out; }
+    button.sure:not(#_) { width: auto; height: auto; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px 6px 10px; border-radius: 999px; background: #fdecec !important; color: #c62f2f !important; border: 1px solid #f3c3c3 !important; font: 600 12.5px/1.2 var(--font, system-ui, sans-serif); opacity: 1; position: relative; overflow: hidden; white-space: nowrap; box-shadow: 0 2px 8px rgba(198,47,47,.12); animation: surePop .18s ease-out; }
     button.sure:not(#_):hover { background: #d64545 !important; color: #fff !important; border-color: #d64545 !important; }
     button.sure:not(#_) svg { width: 13px; height: 13px; flex: none; }
     button.sure:not(#_)::after { content: ''; position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; background: currentColor; opacity: .45; transform-origin: left; animation: sureTime 3s linear forwards; }
