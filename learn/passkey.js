@@ -4,7 +4,11 @@
 // The password still works as a backup. Pages just need: <script src="/learn/passkey.js" defer></script>
 (function () {
   const API = 'https://brand-tasks-api.danieldelaway.workers.dev';
-  const SITE = 'hq', PW_KEY = 'clientsHQ', DONE_KEY = 'pkSetUp';
+  // Other pages (ZenSIM, TBS dashboards) load this file with data-site / data-form, e.g.
+  // <script src="https://danieldelaway.com/learn/passkey.js" data-site="tbs" data-form="lf" defer></script>
+  const cfg = (document.currentScript && document.currentScript.dataset) || {};
+  const SITE = cfg.site || 'hq', FORM = cfg.form || 'unlock', PW_KEY = 'clientsHQ', DONE_KEY = 'pkSetUp';
+  const SETUP_WHERE = SITE === 'hq' ? 'at the bottom of the page' : 'at the bottom of Tasks HQ (danieldelaway.com/learn/tasks)';
   if (!window.PublicKeyCredential || !navigator.credentials) return;
 
   const apple = /iPhone|iPad/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -45,11 +49,11 @@
 
   // ---- Lock screen: "Sign in with Touch ID" ----
   async function signIn(btn, msg) {
-    const form = document.getElementById('unlock'), pw = document.getElementById('pw');
+    const form = document.getElementById(FORM), pw = form.querySelector('input[type=password]');
     btn.disabled = true; btn.classList.add('busy'); msg.className = 'pkmsg'; msg.textContent = '';
     try {
       const start = await call('/passkey/login/start', {});
-      if (start.none) throw new Error(`${NAME} isn’t set up yet. Sign in with the password once, then tap “Set up ${NAME}” at the bottom of the page.`);
+      if (start.none) throw new Error(`${NAME} isn’t set up yet. Sign in with the password once, then tap “Set up ${NAME}” ${SETUP_WHERE}.`);
       const o = start.options;
       const cred = await navigator.credentials.get({ publicKey: {
         challenge: b64.dec(o.challenge), rpId: o.rpId, timeout: o.timeout, userVerification: o.userVerification,
@@ -66,11 +70,11 @@
       form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event('submit', { cancelable: true }));
     } catch (e) {
       msg.className = 'pkmsg bad';
-      msg.textContent = e.name === 'NotAllowedError' ? `${NAME} was cancelled.` : e.message;
+      msg.textContent = e.name === 'NotAllowedError' ? `${NAME} was cancelled, or isn’t set up on this device yet (tap “Set up ${NAME}” ${SETUP_WHERE}).` : e.message;
     } finally { btn.disabled = false; btn.classList.remove('busy'); }
   }
   function addSignIn() {
-    const form = document.getElementById('unlock');
+    const form = document.getElementById(FORM);
     if (!form || document.querySelector('.pkwrap')) return;
     const wrap = document.createElement('div');
     wrap.className = 'pkwrap';
@@ -129,7 +133,7 @@
 
   async function init() {
     try { if (PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable && !(await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable())) return; } catch {}
-    addSignIn(); addSetUp();
+    addSignIn(); if (SITE === 'hq') addSetUp();
   }
   document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', init) : init();
 })();
