@@ -147,6 +147,14 @@
     .chip.rep { color: #5b5bd6; }
     .who { font-weight: 700; color: var(--w-accent); }
     .tcard.chase { border-color: #f3b4b4; background: #fff6f6; }
+    /* In progress (18 Nov 2026): started but not finished */
+    .tcard { transition: background .35s, border-color .35s, box-shadow .35s; }
+    .tcard.prog { background: #f1ecff; border-color: #c9b8f5; box-shadow: inset 4px 0 0 #7c5ce0; }
+    .chip.progc { color: #5b3fc4; background: #e4dafd; border-color: #c9b8f5; }
+    .edit.progb { color: #5b3fc4; border-color: #d6cbf7; }
+    .edit.progb:hover { background: #ece5ff; border-color: #b9a5f2; color: #4a2fb0; }
+    .edit.progb.on { background: #7c5ce0; border-color: #7c5ce0; color: #fff; }
+    .edit.progb.on:hover { background: #6a4bd0; border-color: #6a4bd0; color: #fff; }
     .form select { width: 100%; min-width: 0; box-sizing: border-box; font: 400 14px/1.45 var(--font); color: var(--w-ink); background: #fff; border: 1px solid #cfd4df; border-radius: 8px; padding: 8px 10px; }
     .tray { background: #fff8e6; border: 1px solid #f1dca5; border-radius: 14px; padding: 12px; margin-bottom: 14px; }
     .trayh { margin: 0 0 10px; font: 700 13px var(--font); color: #8a5a00; text-transform: uppercase; letter-spacing: .05em; }
@@ -624,6 +632,7 @@ function ccLink(t, sug) {
   ].filter(Boolean).map(x => (x === B ? '' : x));
   return 'claude://code/new?' + new URLSearchParams({ q: lines.join('\n').slice(0, 3500), folder: CC_FOLDER }).toString();
 }
+function fmtStarted(d) { const x = new Date(d + 'T12:00:00'); return isNaN(x) ? d : x.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }); }
 function card(t, inFinder) {
   if (editing === t.id) return `<li class="tcard">${form(t)}</li>`;
   const safe = /^https?:\/\//.test(t.link || '') ? t.link : '';
@@ -636,7 +645,10 @@ function card(t, inFinder) {
     if (!t.done) extra = `<button class="edit" data-act="chased" title="I followed up today">Chased</button>`;
   } else chips += dueChip(t);
   if (t.repeat) chips += `<span class="chip rep">${REP[t.repeat] || 'Repeats'}</span>`;
-  return `<li class="tcard ${t.done ? 'done' : ''} ${isChase(t) ? 'chase' : ''}" data-id="${t.id}">
+  const prog = !t.done && !!t.started;
+  if (prog) chips = `<span class="chip progc">In progress${t.started !== isoToday() ? ' since ' + esc(fmtStarted(t.started)) : ''}</span>` + chips;
+  if (!t.done) extra = `<button class="edit progb ${prog ? 'on' : ''}" data-act="progress" aria-pressed="${prog}" title="${prog ? 'Tap to mark as not started' : 'Mark as started but not finished'}">${prog ? '◐ In progress' : '◐ Started'}</button>` + extra;
+  return `<li class="tcard ${t.done ? 'done' : ''} ${isChase(t) ? 'chase' : ''} ${prog ? 'prog' : ''}" data-id="${t.id}">
     <input type="checkbox" class="tick" ${t.done ? 'checked' : ''} aria-label="Mark “${esc(t.text)}” done">
     <div class="tbody" data-act="edit"><div class="trow"><b>${title}</b>${chips}</div>
     ${t.detail && (!t.done || doneToday(t)) ? `<small>${esc(t.detail)}</small>` : ''}${meta ? `<div class="src">${meta}</div>` : ''}</div>
@@ -839,12 +851,13 @@ const F_OPTS = {
   urg: [['', 'Any urgency'], ['late', 'Overdue or chase'], ['today', 'Due today'], ['2', 'Due within 2 days'], ['week', 'Due this week'], ['later', 'Later (over a week)'], ['waiting', 'Waiting on others'], ['nodate', 'No due date']],
   type: [['', 'All kinds'], ['task', 'My tasks'], ['waiting', 'Waiting / chase'], ['repeat', 'Repeating']],
   src: [['', 'Anywhere'], ['me', 'Added by me'], ['slack', 'Slack'], ['gmail', 'Gmail'], ['whatsapp', 'WhatsApp'], ['upwork', 'Upwork'], ['wispr', 'Calls (Wispr Flow)'], ['calendar', 'Google Calendar'], ['wechat', 'WeChat'], ['invoice', 'Invoices']],
-  status: [['open', 'Open'], ['done', 'Done'], ['all', 'Open and done']],
+  status: [['open', 'Open'], ['prog', 'In progress'], ['done', 'Done'], ['all', 'Open and done']],
   sort: [['urgent', 'Most urgent first'], ['new', 'Newest added'], ['old', 'Oldest added'], ['due', 'Due date'], ['brand', 'Project']],
 };
 function finderMatch(t) {
   if (F.status === 'open' && t.done) return false;
   if (F.status === 'done' && !t.done) return false;
+  if (F.status === 'prog' && (t.done || !t.started)) return false;
   if (F.brand && t.brand !== F.brand) return false;
   if (F.type === 'task' && t.kind === 'waiting') return false;
   if (F.type === 'waiting' && t.kind !== 'waiting') return false;
@@ -1322,6 +1335,12 @@ document.addEventListener('click', async e => {
       r.animate([{ transform: 'none' }, { transform: 'translateX(-3px)' }, { transform: 'translateX(3px)' }, { transform: 'none' }], { duration: 150, iterations: 4 }); });
     try { await api('/tasks/' + t.id, 'PATCH', { due: t.due }); toast('Noted. The waiting clock starts again today.'); }
     catch (err) { t.due = was; render(); toast('Not saved: ' + err.message); }
+  }
+  else if (act === 'progress') {
+    const t = find(el.closest('.tcard').dataset.id), was = t.started || '';
+    t.started = was ? '' : isoToday(); render();
+    try { await api('/tasks/' + t.id, 'PATCH', { started: t.started }); toast(t.started ? 'Marked as in progress.' : 'Back to not started.'); }
+    catch (err) { t.started = was; render(); toast('Not saved: ' + err.message); }
   }
   else if (act === 'accept' || act === 'dismiss') {
     const li = el.closest('.scard'), sid = li.dataset.sid;
