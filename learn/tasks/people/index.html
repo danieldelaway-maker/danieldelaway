@@ -226,8 +226,31 @@ const handleUrl = p => {
 function matches(p, skip = {}) {
   if (!skip.type && type !== 'all' && p.type !== type) return false;
   if (!skip.brand && brand && !(p.brands || []).includes(brand)) return false;
-  const w = words(); if (w.length) { const h = hay(p); if (!w.every(x => h.includes(x))) return false; }
-  return true;
+  return !words().length || score(p) > 0;
+}
+// Search ranking (18 Nov 2026, Dan: typing "Anna" must show Anna first, not Alex whose notes say "manager").
+// Each word scores by where it hits: name > handle/email > role/company/brand > location/notes/links.
+// Names also match with double letters squashed (Anna = Ana) and mid-word; other fields only at the start of a word.
+const squash = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/(.)\1+/g, '$1');
+const startsWord = (text, w) => new RegExp('(^|[^a-z0-9])' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).test(text);
+function wordScore(p, w) {
+  const name = (p.name || '').toLowerCase(), sn = squash(name), sw = squash(w), first = name.split(/\s+/)[0];
+  if (name === w || first === w || sn.split(/\s+/)[0] === sw) return 100;
+  if (startsWord(name, w) || startsWord(sn, sw)) return 80;
+  if (name.includes(w) || sn.includes(sw)) return 50;
+  const handle = ((p.handle || '') + ' ' + (p.email || '')).toLowerCase();
+  if (startsWord(handle, w) || handle.replace(/^@/, '').startsWith(w)) return 40;
+  if (handle.includes(w)) return 25;
+  const mid = [p.role, p.company, TYPE_WORD[p.type], ...(p.brands || [])].join(' ').toLowerCase();
+  if (startsWord(mid, w)) return 20;
+  const low = [p.location, p.note, p.platform, p.phone, ...(p.links || [])].join(' ').toLowerCase();
+  if (startsWord(low, w)) return 5;
+  return 0;
+}
+function score(p) {
+  let t = 0;
+  for (const w of words()) { const s = wordScore(p, w); if (!s) return 0; t += s; }
+  return t;
 }
 function renderFilters() {
   $('#types').innerHTML = TYPES.map(([k, v]) => {
@@ -241,7 +264,8 @@ function renderFilters() {
 }
 function render() {
   renderFilters();
-  const list = people.filter(p => matches(p)).sort((a, b) => (a.status === 'past') - (b.status === 'past') || a.name.localeCompare(b.name));
+  const sc = new Map(words().length ? people.map(p => [p.id, score(p)]) : []);
+  const list = people.filter(p => matches(p)).sort((a, b) => (sc.get(b.id) || 0) - (sc.get(a.id) || 0) || (a.status === 'past') - (b.status === 'past') || a.name.localeCompare(b.name));
   $('#count').textContent = `${list.length} of ${people.length} ${people.length === 1 ? 'person' : 'people'}` + (brand ? ` · ${brand}` : '') + (q ? ` · “${q}”` : '');
   $('#grid').innerHTML = list.length ? list.map(card).join('') : `<div class="empty">${people.length ? 'Nobody matches. Try fewer words or another brand.' : 'No people yet. Tap <b>+ Add person</b>.'}</div>`;
   $('#clr').hidden = !q;
