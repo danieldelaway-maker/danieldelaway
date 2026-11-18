@@ -1209,7 +1209,7 @@ const find = id => data.tasks.find(t => t.id === id);
 // ---------- Daily scoreboard: finished tasks per day (from doneAt, your local time) ----------
 function scoreStats() {
   const per = {};
-  (data.tasks || []).forEach(t => { if (t.done && t.doneAt && t.kind !== 'waiting') { const k = isoOf(new Date(t.doneAt)); per[k] = (per[k] || 0) + 1; } });
+  (data.tasks || []).forEach(t => { if (t.done && t.doneAt && (t.kind !== 'waiting' || t.already)) { const k = isoOf(new Date(t.doneAt)); per[k] = (per[k] || 0) + 1; } });
   const today = isoToday(), n = per[today] || 0;
   const best = Math.max(0, ...Object.entries(per).filter(([k]) => k !== today).map(([, v]) => v));
   // Workday streak: Mon–Fri in a row with at least one finished; weekends never break it.
@@ -1381,16 +1381,17 @@ document.addEventListener('click', async e => {
     const li = el.closest('.scard'), sid = li.dataset.sid;
     li.style.pointerEvents = 'none'; const stamp = fx.stamp(li, 'DONE', '#0f9f86'); if (!stamp) li.classList.add('saving');
     try {
+      const before = scoreStats();
       const r = await api(`/suggestions/${sid}/accept`, 'POST', {});
       data.suggestions = data.suggestions.filter(x => x.id !== sid);
       if (r.task) {
-        const p = await api('/tasks/' + r.task.id, 'PATCH', { done: true });
-        const now = new Date().toISOString(); Object.assign(r.task, { done: true, edited: now, doneAt: now });
+        const p = await api('/tasks/' + r.task.id, 'PATCH', { done: true, already: true });
+        const now = new Date().toISOString(); Object.assign(r.task, { done: true, edited: now, doneAt: now, already: true });
         if (!find(r.task.id)) data.tasks.push(r.task);
         if (p && p.next) load(true);
       }
       if (stamp) await wait(450);
-      render(); toast('Logged as already done. ✓');
+      render(); recordCheck(before); toast('Logged as already done. ✓');
     } catch (err) { stamp?.remove(); li.style.pointerEvents = ''; li.classList.remove('saving'); toast('Not saved: ' + err.message); load(true); }
   }
   else if (act.startsWith('h') && ['hslip', 'htick', 'hedit', 'hadd', 'hdel'].includes(act)) { habitAct(act, el); return; }
