@@ -67,6 +67,10 @@
     .head { display: flex; gap: 12px; align-items: center; }
     .av { width: 46px; height: 46px; flex: none; border-radius: 50%; display: grid; place-items: center; font: 700 17px 'League Spartan', sans-serif; color: var(--ink); background: linear-gradient(135deg, var(--mint), var(--blue)); }
     .av.creator { background: linear-gradient(135deg, #ffd6e8, #ffc58f); }
+    .av img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
+    .av.hasimg { background: #eef1f7; box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--line); }
+    .photoRow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .photoRow .av { width: 64px; height: 64px; font-size: 22px; }
     .nm { font-weight: 700; color: var(--ink); font-size: 16px; line-height: 1.25; }
     .rl { font-size: 13px; color: var(--muted); }
     .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: #eef1f7; color: var(--muted); margin-right: 4px; }
@@ -136,6 +140,9 @@
     <div class="card" id="formCard" hidden>
       <div style="display:flex;align-items:center;gap:10px"><h2 id="formTitle" style="flex:1">Add a person</h2><button class="ghost small" id="closeForm">Close</button></div>
       <div class="form-grid">
+        <div class="w4"><label>Photo</label><div class="photoRow"><div class="av" id="f-av"></div>
+          <button type="button" class="small ghost" id="f-photo-btn">📷 Add photo</button><button type="button" class="small ghost" id="f-photo-del" hidden>Remove photo</button>
+          <input type="file" id="f-photo" accept="image/*" hidden><span class="meta">Or paste an image here</span></div></div>
         <div class="w2"><label for="f-name">Name</label><input id="f-name" placeholder="Full name"></div>
         <div><label for="f-type">Type</label><select id="f-type"></select></div>
         <div><label for="f-status">Status</label><select id="f-status"><option value="active">Active</option><option value="past">Past / not working together</option></select></div>
@@ -179,7 +186,8 @@ const REMEMBER = {
   },
   del(k) { try { localStorage.removeItem(k); localStorage.removeItem(k + '__exp'); } catch {} document.cookie = 'r_' + k + '=; Max-Age=0; Path=/; Secure; SameSite=None; Partitioned'; },
 };
-let pass = '', people = [], hqBrands = [], type = 'all', brand = '', q = '', editing = null, pickBrands = new Set();
+let pass = '', people = [], hqBrands = [], type = 'all', brand = '', q = '', editing = null, pickBrands = new Set(), photos = {}, newPhoto = null;
+// newPhoto: null = unchanged, '' = remove, 'data:…' = new photo picked in the form.
 
 async function api(path, method = 'GET', body) {
   const r = await fetch(API + path, { method, headers: { 'X-Key': pass, ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
@@ -239,6 +247,9 @@ function render() {
   $('#clr').hidden = !q;
   const u = new URL(location.href); brand ? u.searchParams.set('brand', brand) : u.searchParams.delete('brand'); type !== 'all' ? u.searchParams.set('type', type) : u.searchParams.delete('type'); history.replaceState(null, '', u);
 }
+const avatar = (p, src = photos[p.id]) => src
+  ? `<div class="av hasimg"><img src="${esc(src)}" alt="${esc(p.name)}" loading="lazy"></div>`
+  : `<div class="av ${p.type === 'creator' ? 'creator' : ''}">${esc(initials(p.name))}</div>`;
 function card(p) {
   const hu = handleUrl(p);
   const info = [
@@ -249,7 +260,7 @@ function card(p) {
     ...(p.links || []).map(l => `<div class="row">🔗 <a class="v" href="${esc(l)}" target="_blank" rel="noopener">${hl(l.replace(/^https?:\/\/(www\.)?/, ''))}</a></div>`),
   ].filter(Boolean).join('');
   return `<div class="p ${p.status === 'past' ? 'past' : ''}" data-id="${p.id}">
-    <div class="head"><div class="av ${p.type === 'creator' ? 'creator' : ''}">${esc(initials(p.name))}</div>
+    <div class="head">${avatar(p)}
       <div style="min-width:0"><div class="nm">${hl(p.name)}</div><div class="rl">${hl(p.role || '')}${p.company ? (p.role ? ' · ' : '') + hl(p.company) : ''}</div></div></div>
     <div><span class="tag ${p.type}">${esc(TYPE_WORD[p.type] || 'Other')}</span>${p.status === 'past' ? '<span class="tag past">Past</span>' : ''}</div>
     ${(p.brands || []).length ? `<div class="brands">${p.brands.map(b => `<span class="bb ${LOGO.has(slug(b)) ? '' : 'nologo'}" data-brand="${esc(b)}">${logoImg(b)}${hl(b)}</span>`).join('')}</div>` : ''}
@@ -290,6 +301,32 @@ function drawPick() {
 }
 $('#f-brands').addEventListener('click', e => { const b = e.target.closest('[data-b]'); if (!b) return; const n = b.dataset.b; pickBrands.has(n) ? pickBrands.delete(n) : pickBrands.add(n); drawPick(); });
 $('#f-brand-new').addEventListener('keydown', e => { if (e.key !== 'Enter') return; e.preventDefault(); const v = e.target.value.trim(); if (v) { pickBrands.add(v); e.target.value = ''; drawPick(); } });
+// ---------- photo in the form (shrunk to a 320px square JPEG in the browser) ----------
+function drawFormPhoto() {
+  const src = newPhoto !== null ? newPhoto : (editing && photos[editing.id]) || '';
+  const el = $('#f-av'); el.className = 'av' + (src ? ' hasimg' : '');
+  el.innerHTML = src ? `<img src="${esc(src)}" alt="">` : esc(initials($('#f-name').value || '?'));
+  $('#f-photo-btn').textContent = src ? '📷 Change photo' : '📷 Add photo'; $('#f-photo-del').hidden = !src;
+}
+function shrink(file) {
+  return new Promise((res, rej) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const s = Math.min(img.width, img.height), out = Math.min(320, s), c = document.createElement('canvas'); c.width = c.height = out;
+      c.getContext('2d').drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, out, out);
+      URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', 0.8));
+    };
+    img.onerror = () => rej(new Error('Could not read that image')); img.src = url;
+  });
+}
+async function takePhoto(file) { if (!file || !/^image\//.test(file.type)) return; try { newPhoto = await shrink(file); drawFormPhoto(); } catch (e) { $('#formMsg').textContent = e.message; } }
+$('#f-photo-btn').addEventListener('click', () => $('#f-photo').click());
+$('#f-photo').addEventListener('change', e => { takePhoto(e.target.files[0]); e.target.value = ''; });
+$('#f-photo-del').addEventListener('click', () => { newPhoto = ''; drawFormPhoto(); });
+$('#f-name').addEventListener('input', () => { if (!$('#f-av').classList.contains('hasimg')) drawFormPhoto(); });
+$('#formCard').addEventListener('paste', e => { const f = [...(e.clipboardData?.files || [])].find(f => /^image\//.test(f.type)); if (f) { e.preventDefault(); takePhoto(f); } });
+$('#formCard').addEventListener('dragover', e => e.preventDefault());
+$('#formCard').addEventListener('drop', e => { const f = [...(e.dataTransfer?.files || [])].find(f => /^image\//.test(f.type)); if (f) { e.preventDefault(); takePhoto(f); } });
 function openForm(p) {
   editing = p || null; $('#formCard').hidden = false;
   $('#formTitle').textContent = p ? 'Edit ' + p.name : 'Add a person'; $('#saveBtn').textContent = p ? 'Save changes' : 'Save';
@@ -298,6 +335,7 @@ function openForm(p) {
   $('#f-handle').value = p?.handle || ''; $('#f-platform').value = p?.platform || ''; $('#f-location').value = p?.location || '';
   $('#f-links').value = (p?.links || []).join('\n'); $('#f-note').value = p?.note || '';
   pickBrands = new Set(p?.brands || (brand ? [brand] : [])); drawPick(); $('#formMsg').textContent = '';
+  newPhoto = null; drawFormPhoto();
   $('#formCard').scrollIntoView({ behavior: 'smooth', block: 'start' }); setTimeout(() => $('#f-name').focus(), 300);
 }
 $('#addBtn').addEventListener('click', () => openForm());
@@ -312,6 +350,9 @@ $('#saveBtn').addEventListener('click', async () => {
       links: $('#f-links').value.split(/\n+/).map(s => s.trim()).filter(Boolean).map(s => /^https?:\/\//i.test(s) ? s : 'https://' + s), note: $('#f-note').value };
     people = (await api('/people', 'POST', { person })).people;
     const id = editing?.id || people.find(p => !before.has(p.id))?.id, was = !!editing;
+    if (id && newPhoto) { people = (await api(`/people/${id}/photo`, 'POST', { type: 'image/jpeg', data: newPhoto })).people; photos[id] = newPhoto; }
+    if (id && newPhoto === '' && photos[id]) { people = (await api(`/people/${id}/photo`, 'DELETE')).people; delete photos[id]; }
+    newPhoto = null;
     $('#formCard').hidden = true; editing = null; render();
     const el = id && document.querySelector(`[data-id="${id}"]`); if (el) { el.classList.add('pop'); el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
     toast(was ? 'Changes saved.' : 'Person added.');
@@ -329,6 +370,8 @@ async function start(p, remember) {
     if (remember) REMEMBER.set(KEY, p);
     const u = new URL(location.href); brand = u.searchParams.get('brand') || ''; type = TYPES.some(([k]) => k === u.searchParams.get('type')) ? u.searchParams.get('type') : 'all';
     $('#lock').hidden = true; $('#app').hidden = false; render();
+    // Photos come in a second request so the list shows straight away.
+    api('/people/photos').then(r => { photos = r.photos || {}; render(); }).catch(() => {});
   } catch (e) {
     $('#app').hidden = true; $('#lock').hidden = false;
     if (remember) $('#err').textContent = e.status === 401 ? 'That password didn’t work.' : 'Could not load: ' + e.message;
