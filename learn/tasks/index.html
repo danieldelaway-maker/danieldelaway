@@ -976,7 +976,10 @@ function render() {
   const notesTile = `<a class="board proj tool" href="notes/" style="--tint:#9fd6a8" aria-label="Turn meeting notes into tasks"><div class="plogo"><img src="logos/notes.svg" alt=""></div><h2>Notes → Tasks</h2><p class="line">Paste meeting notes</p><p class="line">Claude finds the to-dos</p></a>`;
   // Brand kits card (16 Nov 2026) opens brand-kits/.
   const kitsTile = `<a class="board proj tool" href="brand-kits/" style="--tint:#f0a36b" aria-label="Open Brand kits"><div class="plogo"><img src="logos/brand-kits.svg" alt=""></div><h2>Brand Kits</h2><p class="line">Colours, fonts, logos</p><p class="line">Tap a colour to copy</p></a>`;
-  $('#brands').innerHTML = `<p class="grp">Work</p>` + W.map(x => x.tile).join('') + `<p class="grp">Tools</p>` + invTile + paidTile + expTile + basTile + subTile + notesTile + kitsTile + `<p class="grp">Personal</p>` + P.map(x => x.tile).join('') + invmTile;
+  // People directory card (18 Nov 2026) opens people/. Everyone tied to the brands, creators/UGC first.
+  const pp = d.peopleSum || {};
+  const peopleTile = `<a class="board proj tool" href="people/" style="--tint:#f5a3c7" aria-label="Open the People directory"><div class="plogo"><img src="logos/people.svg" alt=""></div><h2>People</h2><p class="line">${pp.count ? pp.count + ' people' : 'Search everyone'}</p><p class="line">${pp.count ? pp.creators + ' creators & UGC' : 'Creators, teams, suppliers'}</p></a>`;
+  $('#brands').innerHTML = `<p class="grp">Work</p>` + W.map(x => x.tile).join('') + `<p class="grp">Tools</p>` + invTile + paidTile + expTile + basTile + subTile + notesTile + kitsTile + peopleTile + `<p class="grp">Personal</p>` + P.map(x => x.tile).join('') + invmTile;
   $('#panel').innerHTML = W.concat(P).map(x => x.panel).join('');
   if (firstPaint) {
     firstPaint = false; const bx = $('#brands');

@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>People</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#f4f6fb">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@600;700&family=Inter:wght@400;500;600;700&display=swap">
+  <style>
+    /* People directory (18 Nov 2026). Light only, same mint → blue look as the other Tools pages.
+       Contacts are stored in the brand-tasks-api worker (key "people"), never in this public repo. */
+    :root {
+      --bg: #f4f6fb; --card: #ffffff; --line: #e3e6ee; --ink: #12141c; --text: #3d4352; --muted: #6b7183;
+      --mint: #bff3da; --blue: #9cc1f7; --accent: #4f6fe0; --late: #c62f2f; --ok: #0f8f86; --okBg: #ddf7ec;
+      --font: 'Inter', system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--font); }
+    [hidden] { display: none !important; }
+    a { color: var(--accent); }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 16px 80px; }
+    .top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+    .top h1 { font: 700 clamp(26px, 4vw, 38px) 'League Spartan', sans-serif; color: var(--ink); margin: 0; flex: 1; }
+    button, .btn { cursor: pointer; padding: 9px 14px; border-radius: 11px; border: 0; font: 600 14px var(--font); color: var(--ink); background: linear-gradient(135deg, var(--mint), var(--blue)); text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+    button.ghost, .btn.ghost { background: #fff; border: 1px solid var(--line); color: var(--text); }
+    button.small, .btn.small { padding: 5px 10px; font-size: 13px; border-radius: 9px; }
+    button.sure { background: #ffe1e1; color: var(--late); border: 1px solid #f3b4b4; }
+    button:disabled { opacity: .5; cursor: default; }
+    label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin: 12px 0 4px; }
+    input, select, textarea { width: 100%; padding: 9px 11px; border-radius: 10px; border: 1px solid var(--line); background: #fbfcfe; color: var(--ink); font: 15px var(--font); }
+    textarea { min-height: 70px; resize: vertical; }
+    input:focus, select:focus, textarea:focus { outline: 2px solid var(--blue); border-color: var(--accent); }
+
+    #lock { max-width: 420px; margin: 10vh auto 0; text-align: center; }
+    #lock form { display: flex; gap: 10px; margin-top: 18px; }
+    #lock input { flex: 1; min-width: 0; }
+    .err { color: var(--late); font-size: 14px; min-height: 20px; margin-top: 10px; }
+    .meta { font-size: 13px; color: var(--muted); }
+
+    /* Search */
+    .search { position: relative; margin-bottom: 12px; }
+    .search input { padding: 14px 16px 14px 46px; font-size: 17px; border-radius: 14px; background: #fff; box-shadow: 0 1px 2px rgba(18,20,28,.05), 0 6px 18px rgba(18,20,28,.05); }
+    .search svg { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; }
+    .search .clr { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); }
+
+    .seg { display: inline-flex; flex-wrap: wrap; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 2px; margin-bottom: 10px; }
+    .seg button { background: transparent; border-radius: 999px; padding: 7px 13px; color: var(--muted); }
+    .seg button.on { background: linear-gradient(135deg, var(--mint), var(--blue)); color: var(--ink); }
+    .seg .n { font-size: 11.5px; opacity: .75; }
+
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px 4px 4px; border-radius: 999px; background: #fff; border: 1px solid var(--line); font: 600 13px var(--font); color: var(--text); cursor: pointer; }
+    .chip.nologo { padding-left: 11px; }
+    .chip img { width: 22px; height: 22px; border-radius: 50%; object-fit: contain; background: #fff; }
+    .chip.on { border-color: var(--accent); background: linear-gradient(135deg, #ecfbf3, #eaf2fe); color: #2b3a8f; box-shadow: 0 0 0 2px #cfe0fb; }
+    .chip .n { font-size: 11.5px; color: var(--muted); }
+
+    .count { margin: 4px 2px 10px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+    .p { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 15px; display: flex; flex-direction: column; gap: 8px; transition: box-shadow .15s, border-color .15s; }
+    .p:hover { border-color: #cfe0fb; box-shadow: 0 6px 18px rgba(79,111,224,.10); }
+    .p.past { opacity: .7; }
+    .head { display: flex; gap: 12px; align-items: center; }
+    .av { width: 46px; height: 46px; flex: none; border-radius: 50%; display: grid; place-items: center; font: 700 17px 'League Spartan', sans-serif; color: var(--ink); background: linear-gradient(135deg, var(--mint), var(--blue)); }
+    .av.creator { background: linear-gradient(135deg, #ffd6e8, #ffc58f); }
+    .nm { font-weight: 700; color: var(--ink); font-size: 16px; line-height: 1.25; }
+    .rl { font-size: 13px; color: var(--muted); }
+    .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: #eef1f7; color: var(--muted); margin-right: 4px; }
+    .tag.creator { background: #ffe4ef; color: #b02a64; }
+    .tag.team { background: var(--okBg); color: var(--ok); }
+    .tag.client { background: #e6edff; color: #3a55c8; }
+    .tag.freelancer { background: #fff3d6; color: #9a6a00; }
+    .tag.supplier { background: #ece6ff; color: #5b3fc4; }
+    .tag.past { background: #f1f1f1; color: #888; }
+    .brands { display: flex; gap: 5px; flex-wrap: wrap; }
+    .bb { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; padding: 2px 8px 2px 2px; border-radius: 999px; background: #f4f6fb; border: 1px solid var(--line); cursor: pointer; }
+    .bb.nologo { padding-left: 8px; }
+    .bb img { width: 18px; height: 18px; border-radius: 50%; object-fit: contain; background: #fff; }
+    .info { font-size: 13.5px; display: flex; flex-direction: column; gap: 3px; }
+    .info .row { display: flex; gap: 6px; align-items: center; min-width: 0; }
+    .info .row span.v { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+    .copy { border: 0; background: none; padding: 0 2px; font-size: 12px; color: var(--accent); cursor: pointer; font-weight: 600; }
+    .note { font-size: 13.5px; color: var(--text); background: #f8f9fc; border-radius: 10px; padding: 7px 10px; white-space: pre-wrap; }
+    .acts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: auto; padding-top: 2px; }
+    mark { background: #fff1a8; color: inherit; border-radius: 3px; padding: 0 1px; }
+    .empty { text-align: center; color: var(--muted); padding: 30px 0; grid-column: 1 / -1; }
+
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; margin-bottom: 16px; }
+    .card h2 { font: 700 18px 'League Spartan', sans-serif; color: var(--ink); margin: 0; }
+    .form-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 12px; }
+    .form-grid .w2 { grid-column: span 2; } .form-grid .w4 { grid-column: 1 / -1; }
+    @media (max-width: 720px) { .form-grid { grid-template-columns: 1fr 1fr; } .form-grid .w2, .form-grid .w4 { grid-column: 1 / -1; } }
+    .bpick { display: flex; gap: 6px; flex-wrap: wrap; }
+    .formacts { display: flex; gap: 10px; margin-top: 14px; align-items: center; flex-wrap: wrap; }
+
+    .pop { animation: pop .7s ease; }
+    @keyframes pop { 0% { transform: scale(.95); } 40% { transform: scale(1.03); box-shadow: 0 0 0 6px var(--mint); } 100% { transform: scale(1); } }
+    .burn { animation: burn .5s ease forwards; }
+    @keyframes burn { to { opacity: 0; transform: scale(.85) rotate(-3deg); filter: blur(2px) saturate(2) hue-rotate(-30deg); } }
+    #toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: #fff; color: var(--ink); border: 1px solid var(--line); box-shadow: 0 10px 30px rgba(0,0,0,.15); padding: 12px 18px; border-radius: 12px; font-weight: 600; z-index: 9; max-width: calc(100% - 32px); display: flex; gap: 12px; align-items: center; }
+    .hqback { display: inline-flex; align-items: center; gap: 9px; padding: 6px 14px 6px 6px; border-radius: 999px; background: #fff; border: 1px solid #e3e6ee; box-shadow: 0 1px 2px rgba(18,20,28,.06), 0 4px 12px rgba(18,20,28,.05); color: #12141c; font: 600 14px 'Inter', system-ui, sans-serif; text-decoration: none; white-space: nowrap; transition: transform .15s, box-shadow .15s, border-color .15s; }
+    .hqback .hqarr { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(135deg, #bff3da, #9cc1f7); transition: transform .2s; }
+    .hqback .hqarr svg { width: 15px; height: 15px; }
+    .hqback:hover { transform: translateY(-1px); border-color: #9cc1f7; box-shadow: 0 2px 4px rgba(18,20,28,.06), 0 8px 20px rgba(79,111,224,.15); }
+    .hqback:hover .hqarr { transform: translateX(-3px); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div id="lock" hidden>
+    <h1 style="font:700 32px 'League Spartan',sans-serif;color:var(--ink)">People</h1>
+    <p>Same password as your Tasks HQ.</p>
+    <form id="unlock"><input id="pw" type="password" placeholder="Password" autocomplete="current-password"><button>Open</button></form>
+    <p class="err" id="err"></p>
+  </div>
+
+  <div id="app" hidden>
+    <div class="top">
+      <a class="hqback" href="../" aria-label="Back to Tasks HQ"><span class="hqarr"><svg viewBox="0 0 24 24" fill="none" stroke="#12141c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg></span>Tasks HQ</a>
+      <h1>People</h1>
+      <button id="addBtn">+ Add person</button>
+    </div>
+
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#6b7183" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+      <input id="q" type="search" placeholder="Search name, brand, role, handle, email, notes…" autocomplete="off">
+      <button class="small ghost clr" id="clr" hidden>Clear</button>
+    </div>
+    <div class="seg" id="types"></div>
+    <div class="chips" id="brandChips"></div>
+
+    <div class="card" id="formCard" hidden>
+      <div style="display:flex;align-items:center;gap:10px"><h2 id="formTitle" style="flex:1">Add a person</h2><button class="ghost small" id="closeForm">Close</button></div>
+      <div class="form-grid">
+        <div class="w2"><label for="f-name">Name</label><input id="f-name" placeholder="Full name"></div>
+        <div><label for="f-type">Type</label><select id="f-type"></select></div>
+        <div><label for="f-status">Status</label><select id="f-status"><option value="active">Active</option><option value="past">Past / not working together</option></select></div>
+        <div class="w2"><label for="f-role">Role</label><input id="f-role" placeholder="e.g. UGC creator, Founder, Video editor"></div>
+        <div class="w2"><label for="f-company">Company</label><input id="f-company" placeholder="Their own company or agency"></div>
+        <div class="w4"><label>Brands they work with (tap to pick)</label><div class="bpick" id="f-brands"></div>
+          <input id="f-brand-new" placeholder="+ Another brand, press Enter" style="margin-top:8px;max-width:320px"></div>
+        <div class="w2"><label for="f-email">Email</label><input id="f-email" type="email"></div>
+        <div class="w2"><label for="f-phone">Phone / WhatsApp</label><input id="f-phone" inputmode="tel"></div>
+        <div><label for="f-handle">Handle</label><input id="f-handle" placeholder="@name"></div>
+        <div><label for="f-platform">Platform</label><select id="f-platform"><option value="">—</option><option>Instagram</option><option>TikTok</option><option>YouTube</option><option>LinkedIn</option><option>Facebook</option><option>X</option><option>Upwork</option><option>Trybe</option><option>WeChat</option><option>Other</option></select></div>
+        <div class="w2"><label for="f-location">Location</label><input id="f-location" placeholder="City, country"></div>
+        <div class="w4"><label for="f-links">Links (one per line)</label><textarea id="f-links" placeholder="https://instagram.com/…&#10;https://drive.google.com/… (portfolio, pCloud folder)"></textarea></div>
+        <div class="w4"><label for="f-note">Notes</label><textarea id="f-note" placeholder="What they do for you, rates, last content, anything to remember"></textarea></div>
+      </div>
+      <div class="formacts"><button id="saveBtn">Save</button><span class="meta" id="formMsg"></span></div>
+    </div>
+
+    <p class="meta count" id="count"></p>
+    <div class="grid" id="grid"></div>
+  </div>
+</div>
+<div id="toast" hidden role="status"></div>
+
+<script>
+const API = 'https://brand-tasks-api.danieldelaway.workers.dev';
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const slug = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+// 30-day sliding login, shared with the Tasks HQ (same localStorage key "clientsHQ").
+const KEY = 'clientsHQ', DAYS = 30;
+const REMEMBER = {
+  get(k) {
+    let v = null; try { const exp = +localStorage.getItem(k + '__exp') || 0; v = localStorage.getItem(k); if (v && exp && exp < Date.now()) { v = null; localStorage.removeItem(k); } } catch {}
+    if (!v) { const m = document.cookie.match(new RegExp('(?:^|; )r_' + k + '=([^;]*)')); if (m) v = decodeURIComponent(m[1]); }
+    if (v) this.set(k, v); return v;
+  },
+  set(k, v) {
+    try { localStorage.setItem(k, v); localStorage.setItem(k + '__exp', String(Date.now() + DAYS * 864e5)); } catch {}
+    document.cookie = 'r_' + k + '=' + encodeURIComponent(v) + '; Max-Age=' + DAYS * 86400 + '; Path=/; Secure; SameSite=None; Partitioned';
+  },
+  del(k) { try { localStorage.removeItem(k); localStorage.removeItem(k + '__exp'); } catch {} document.cookie = 'r_' + k + '=; Max-Age=0; Path=/; Secure; SameSite=None; Partitioned'; },
+};
+let pass = '', people = [], hqBrands = [], type = 'all', brand = '', q = '', editing = null, pickBrands = new Set();
+
+async function api(path, method = 'GET', body) {
+  const r = await fetch(API + path, { method, headers: { 'X-Key': pass, ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(d.error || 'Something went wrong'), { status: r.status });
+  return d;
+}
+let toastT;
+function toast(msg, undo) {
+  const t = $('#toast'); t.innerHTML = esc(msg) + (undo ? ' <button class="small ghost" id="undo">Undo</button>' : ''); t.hidden = false;
+  if (undo) $('#undo').onclick = () => { t.hidden = true; undo(); };
+  clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 6000);
+}
+
+const TYPES = [['all', 'Everyone'], ['creator', '🎬 Creators & UGC'], ['team', 'Client team'], ['client', 'Clients'], ['freelancer', 'Freelancers'], ['supplier', 'Suppliers'], ['partner', 'Partners'], ['other', 'Other']];
+const TYPE_WORD = { creator: 'Creator / UGC', team: 'Team', client: 'Client', freelancer: 'Freelancer', supplier: 'Supplier', partner: 'Partner', other: 'Other' };
+// Logos already on the HQ (logos/<slug>.png). Other brands just show their name.
+const LOGO = new Set(['delaway-digital', 'everyone', 'her-naturals', 'kitchen-impossible', 'sally', 'sls3', 'standish-co', 'tinct', 'true-blue-studies', 'tsp', 'zensim']);
+const logoImg = b => LOGO.has(slug(b)) ? `<img src="../logos/${slug(b)}.png" alt="" loading="lazy">` : '';
+const initials = n => (n || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+const hay = p => [p.name, p.role, p.company, p.email, p.phone, p.handle, p.platform, p.location, p.note, TYPE_WORD[p.type], ...(p.brands || []), ...(p.links || [])].join(' ').toLowerCase();
+const words = () => q.toLowerCase().split(/\s+/).filter(Boolean);
+function hl(s) {
+  let out = esc(s); const w = words(); if (!w.length || !s) return out;
+  const re = new RegExp('(' + w.map(x => esc(x).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')', 'gi');
+  return out.replace(/(<[^>]*>)|([^<]+)/g, (m, tag, txt) => tag || txt.replace(re, '<mark>$1</mark>'));
+}
+const allBrands = () => [...new Set([...hqBrands, ...people.flatMap(p => p.brands || [])])].filter(b => b && b !== 'Life Admin');
+const handleUrl = p => {
+  const h = (p.handle || '').replace(/^@/, '').trim(); if (!h || /\s/.test(h)) return '';
+  const base = { Instagram: 'https://instagram.com/', TikTok: 'https://www.tiktok.com/@', YouTube: 'https://www.youtube.com/@', X: 'https://x.com/' }[p.platform];
+  return base ? base + h : '';
+};
+
+// ---------- filters ----------
+function matches(p, skip = {}) {
+  if (!skip.type && type !== 'all' && p.type !== type) return false;
+  if (!skip.brand && brand && !(p.brands || []).includes(brand)) return false;
+  const w = words(); if (w.length) { const h = hay(p); if (!w.every(x => h.includes(x))) return false; }
+  return true;
+}
+function renderFilters() {
+  $('#types').innerHTML = TYPES.map(([k, v]) => {
+    const n = people.filter(p => (k === 'all' || p.type === k) && matches(p, { type: 1 })).length;
+    if (k !== 'all' && k !== 'creator' && !people.some(p => p.type === k)) return '';
+    return `<button data-type="${k}" class="${type === k ? 'on' : ''}">${esc(v)} <span class="n">${n}</span></button>`;
+  }).join('');
+  const bs = allBrands().map(b => [b, people.filter(p => (p.brands || []).includes(b) && matches(p, { brand: 1 })).length]).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  $('#brandChips').innerHTML = `<button class="chip nologo ${brand ? '' : 'on'}" data-brand="">All brands</button>` +
+    bs.map(([b, n]) => `<button class="chip ${LOGO.has(slug(b)) ? '' : 'nologo'} ${brand === b ? 'on' : ''}" data-brand="${esc(b)}">${logoImg(b)}${esc(b)} <span class="n">${n}</span></button>`).join('');
+}
+function render() {
+  renderFilters();
+  const list = people.filter(p => matches(p)).sort((a, b) => (a.status === 'past') - (b.status === 'past') || a.name.localeCompare(b.name));
+  $('#count').textContent = `${list.length} of ${people.length} ${people.length === 1 ? 'person' : 'people'}` + (brand ? ` · ${brand}` : '') + (q ? ` · “${q}”` : '');
+  $('#grid').innerHTML = list.length ? list.map(card).join('') : `<div class="empty">${people.length ? 'Nobody matches. Try fewer words or another brand.' : 'No people yet. Tap <b>+ Add person</b>.'}</div>`;
+  $('#clr').hidden = !q;
+  const u = new URL(location.href); brand ? u.searchParams.set('brand', brand) : u.searchParams.delete('brand'); type !== 'all' ? u.searchParams.set('type', type) : u.searchParams.delete('type'); history.replaceState(null, '', u);
+}
+function card(p) {
+  const hu = handleUrl(p);
+  const info = [
+    p.email && `<div class="row">✉️ <a class="v" href="mailto:${esc(p.email)}">${hl(p.email)}</a><button class="copy" data-copy="${esc(p.email)}">Copy</button></div>`,
+    p.phone && `<div class="row">📞 <span class="v">${hl(p.phone)}</span><button class="copy" data-copy="${esc(p.phone)}">Copy</button>${/^\+?[\d\s()-]{8,}$/.test(p.phone) ? `<a class="copy" href="https://wa.me/${p.phone.replace(/\D/g, '')}" target="_blank" rel="noopener">WhatsApp</a>` : ''}</div>`,
+    p.handle && `<div class="row">📱 ${hu ? `<a class="v" href="${esc(hu)}" target="_blank" rel="noopener">${hl(p.handle)}</a>` : `<span class="v">${hl(p.handle)}</span>`}${p.platform ? ` <span class="meta">${esc(p.platform)}</span>` : ''}</div>`,
+    p.location && `<div class="row">📍 <span class="v">${hl(p.location)}</span></div>`,
+    ...(p.links || []).map(l => `<div class="row">🔗 <a class="v" href="${esc(l)}" target="_blank" rel="noopener">${hl(l.replace(/^https?:\/\/(www\.)?/, ''))}</a></div>`),
+  ].filter(Boolean).join('');
+  return `<div class="p ${p.status === 'past' ? 'past' : ''}" data-id="${p.id}">
+    <div class="head"><div class="av ${p.type === 'creator' ? 'creator' : ''}">${esc(initials(p.name))}</div>
+      <div style="min-width:0"><div class="nm">${hl(p.name)}</div><div class="rl">${hl(p.role || '')}${p.company ? (p.role ? ' · ' : '') + hl(p.company) : ''}</div></div></div>
+    <div><span class="tag ${p.type}">${esc(TYPE_WORD[p.type] || 'Other')}</span>${p.status === 'past' ? '<span class="tag past">Past</span>' : ''}</div>
+    ${(p.brands || []).length ? `<div class="brands">${p.brands.map(b => `<span class="bb ${LOGO.has(slug(b)) ? '' : 'nologo'}" data-brand="${esc(b)}">${logoImg(b)}${hl(b)}</span>`).join('')}</div>` : ''}
+    ${info ? `<div class="info">${info}</div>` : ''}
+    ${p.note ? `<div class="note">${hl(p.note)}</div>` : ''}
+    <div class="acts"><button class="small ghost" data-a="edit">✏️ Edit</button><button class="small ghost" data-a="del" aria-label="Delete">🗑</button></div>
+  </div>`;
+}
+
+// ---------- events ----------
+$('#q').addEventListener('input', e => { q = e.target.value.trim(); render(); });
+$('#clr').addEventListener('click', () => { $('#q').value = ''; q = ''; render(); $('#q').focus(); });
+$('#types').addEventListener('click', e => { const b = e.target.closest('[data-type]'); if (!b) return; type = b.dataset.type; render(); });
+$('#brandChips').addEventListener('click', e => { const b = e.target.closest('[data-brand]'); if (!b) return; brand = brand === b.dataset.brand ? '' : b.dataset.brand; render(); });
+const sure = new WeakMap();
+$('#grid').addEventListener('click', async ev => {
+  const c = ev.target.closest('[data-copy]');
+  if (c) { try { await navigator.clipboard.writeText(c.dataset.copy); c.textContent = 'Copied ✓'; setTimeout(() => c.textContent = 'Copy', 1500); } catch {} return; }
+  const bb = ev.target.closest('.bb[data-brand]'); if (bb) { brand = bb.dataset.brand; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+  const b = ev.target.closest('button[data-a]'); if (!b) return;
+  const el = b.closest('.p'), id = el.dataset.id, p = people.find(x => x.id === id);
+  if (b.dataset.a === 'edit') openForm(p);
+  if (b.dataset.a === 'del') {
+    if (!sure.get(b)) { sure.set(b, 1); b.classList.add('sure'); b.textContent = 'Delete?'; setTimeout(() => { if (b.isConnected) { sure.delete(b); b.classList.remove('sure'); b.textContent = '🗑'; } }, 3000); return; }
+    el.classList.add('burn');
+    try {
+      const d = await api('/people/' + id, 'DELETE'); setTimeout(() => { people = d.people; render(); }, 450);
+      toast(`${p.name} deleted.`, async () => { const { id: _x, ...rest } = p; people = (await api('/people', 'POST', { person: rest })).people; render(); toast('Put back.'); });
+    } catch (e) { el.classList.remove('burn'); toast('Not deleted: ' + e.message); }
+  }
+});
+
+// ---------- form ----------
+$('#f-type').innerHTML = TYPES.slice(1).map(([k, v]) => `<option value="${k}">${esc(v.replace(/^\S+ /, ''))}</option>`).join('');
+function drawPick() {
+  const all = [...new Set([...allBrands(), ...pickBrands])];
+  $('#f-brands').innerHTML = all.map(b => `<button type="button" class="chip ${LOGO.has(slug(b)) ? '' : 'nologo'} ${pickBrands.has(b) ? 'on' : ''}" data-b="${esc(b)}">${logoImg(b)}${esc(b)}</button>`).join('');
+}
+$('#f-brands').addEventListener('click', e => { const b = e.target.closest('[data-b]'); if (!b) return; const n = b.dataset.b; pickBrands.has(n) ? pickBrands.delete(n) : pickBrands.add(n); drawPick(); });
+$('#f-brand-new').addEventListener('keydown', e => { if (e.key !== 'Enter') return; e.preventDefault(); const v = e.target.value.trim(); if (v) { pickBrands.add(v); e.target.value = ''; drawPick(); } });
+function openForm(p) {
+  editing = p || null; $('#formCard').hidden = false;
+  $('#formTitle').textContent = p ? 'Edit ' + p.name : 'Add a person'; $('#saveBtn').textContent = p ? 'Save changes' : 'Save';
+  $('#f-name').value = p?.name || ''; $('#f-type').value = p?.type || (type !== 'all' ? type : 'creator'); $('#f-status').value = p?.status || 'active';
+  $('#f-role').value = p?.role || ''; $('#f-company').value = p?.company || ''; $('#f-email').value = p?.email || ''; $('#f-phone').value = p?.phone || '';
+  $('#f-handle').value = p?.handle || ''; $('#f-platform').value = p?.platform || ''; $('#f-location').value = p?.location || '';
+  $('#f-links').value = (p?.links || []).join('\n'); $('#f-note').value = p?.note || '';
+  pickBrands = new Set(p?.brands || (brand ? [brand] : [])); drawPick(); $('#formMsg').textContent = '';
+  $('#formCard').scrollIntoView({ behavior: 'smooth', block: 'start' }); setTimeout(() => $('#f-name').focus(), 300);
+}
+$('#addBtn').addEventListener('click', () => openForm());
+$('#closeForm').addEventListener('click', () => { $('#formCard').hidden = true; editing = null; });
+$('#saveBtn').addEventListener('click', async () => {
+  const b = $('#saveBtn'); b.disabled = true;
+  try {
+    const pend = $('#f-brand-new').value.trim(); if (pend) { pickBrands.add(pend); $('#f-brand-new').value = ''; }
+    const before = new Set(people.map(p => p.id));
+    const person = { ...(editing || {}), name: $('#f-name').value, type: $('#f-type').value, status: $('#f-status').value, role: $('#f-role').value, company: $('#f-company').value,
+      brands: [...pickBrands], email: $('#f-email').value, phone: $('#f-phone').value, handle: $('#f-handle').value, platform: $('#f-platform').value, location: $('#f-location').value,
+      links: $('#f-links').value.split(/\n+/).map(s => s.trim()).filter(Boolean).map(s => /^https?:\/\//i.test(s) ? s : 'https://' + s), note: $('#f-note').value };
+    people = (await api('/people', 'POST', { person })).people;
+    const id = editing?.id || people.find(p => !before.has(p.id))?.id, was = !!editing;
+    $('#formCard').hidden = true; editing = null; render();
+    const el = id && document.querySelector(`[data-id="${id}"]`); if (el) { el.classList.add('pop'); el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+    toast(was ? 'Changes saved.' : 'Person added.');
+  } catch (e) { $('#formMsg').textContent = 'Not saved: ' + e.message; }
+  b.disabled = false;
+});
+document.addEventListener('keydown', e => { if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA' && !$('#app').hidden) { e.preventDefault(); $('#q').focus(); } });
+
+// ---------- sign in ----------
+async function start(p, remember) {
+  pass = p;
+  try {
+    const [d, t] = await Promise.all([api('/people'), api('/tasks').catch(() => ({ brands: [] }))]);
+    people = d.people; hqBrands = (t.brands || []).map(b => b.name);
+    if (remember) REMEMBER.set(KEY, p);
+    const u = new URL(location.href); brand = u.searchParams.get('brand') || ''; type = TYPES.some(([k]) => k === u.searchParams.get('type')) ? u.searchParams.get('type') : 'all';
+    $('#lock').hidden = true; $('#app').hidden = false; render();
+  } catch (e) {
+    $('#app').hidden = true; $('#lock').hidden = false;
+    if (remember) $('#err').textContent = e.status === 401 ? 'That password didn’t work.' : 'Could not load: ' + e.message;
+    else if (e.status === 401) { REMEMBER.del(KEY); $('#err').textContent = 'Please sign in again.'; }
+    else $('#err').textContent = 'Could not load: ' + e.message;
+  }
+}
+$('#unlock').addEventListener('submit', e => { e.preventDefault(); $('#err').textContent = ''; start($('#pw').value.trim(), true); });
+const saved = REMEMBER.get(KEY);
+if (saved) start(saved, false); else $('#lock').hidden = false;
+</script>
+<script src="/learn/passkey.js" defer></script>
+</body>
+</html>
