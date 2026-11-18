@@ -154,6 +154,8 @@
     .edit.progb { color: #5b3fc4; border-color: #d6cbf7; }
     .edit.progb:hover { background: #ece5ff; border-color: #b9a5f2; color: #4a2fb0; }
     .edit.progb.on { background: #7c5ce0; border-color: #7c5ce0; color: #fff; }
+    .sweepfx { position: absolute; inset: 0; border-radius: inherit; background: #e4dafd; transform-origin: left; pointer-events: none; z-index: 0; }
+    .tcard.sweep > *:not(.sweepfx) { position: relative; z-index: 1; }
     .edit.progb.on:hover { background: #6a4bd0; border-color: #6a4bd0; color: #fff; }
     .form select { width: 100%; min-width: 0; box-sizing: border-box; font: 400 14px/1.45 var(--font); color: var(--w-ink); background: #fff; border: 1px solid #cfd4df; border-radius: 8px; padding: 8px 10px; }
     .tray { background: #fff8e6; border: 1px solid #f1dca5; border-radius: 14px; padding: 12px; margin-bottom: 14px; }
@@ -750,6 +752,14 @@ function magicWand(card) {
   fx.emoji(b.left, y - 30, '🪄', [{ transform: 'rotate(-20deg)' }, { transform: `translateX(${b.width - 30}px) rotate(20deg)` }], { duration: 900, easing: 'ease-in-out' }, 26);
   for (let i = 0; i < 12; i++) fx.emoji(b.left + 10 + i * (b.width - 30) / 12, y - 10 + Math.random() * 30, '✨', [{ transform: 'scale(0)', opacity: 0 }, { transform: 'scale(1)', opacity: 1 }, { transform: 'scale(0) translateY(10px)', opacity: 0 }], { duration: 600, delay: i * 75 }, 14);
 }
+// "Started" animation (Dan picked option A, paint sweep, 18 Nov 2026): purple washes across the card left to right.
+function paintSweep(card) {
+  card.classList.add('sweep'); card.style.background = 'var(--w-card)'; card.style.boxShadow = 'none';
+  const d = document.createElement('div'); d.className = 'sweepfx'; card.prepend(d);
+  d.animate([{ transform: 'scaleX(0)', opacity: 1 }, { transform: 'scaleX(1)', opacity: 1, offset: .6 }, { transform: 'scaleX(1)', opacity: 0 }], { duration: 900, easing: 'ease-out' })
+    .finished.then(() => { d.remove(); card.classList.remove('sweep'); });
+  setTimeout(() => { card.style.background = ''; card.style.boxShadow = ''; }, 450);
+}
 const afterPaint = sel => new Promise(r => requestAnimationFrame(() => r(document.querySelector(sel))));
 
 // Dismiss animation: red DISMISSED stamp slams on, then the card is flicked off to the right.
@@ -1339,6 +1349,7 @@ document.addEventListener('click', async e => {
   else if (act === 'progress') {
     const t = find(el.closest('.tcard').dataset.id), was = t.started || '';
     t.started = was ? '' : isoToday(); render();
+    if (t.started) afterPaint(`.tcard[data-id="${t.id}"]`).then(r => { if (r && FX_OK()) paintSweep(r); });
     try { await api('/tasks/' + t.id, 'PATCH', { started: t.started }); toast(t.started ? 'Marked as in progress.' : 'Back to not started.'); }
     catch (err) { t.started = was; render(); toast('Not saved: ' + err.message); }
   }
