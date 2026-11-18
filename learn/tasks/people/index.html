@@ -235,9 +235,12 @@ const squash = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').rep
 const startsWord = (text, w) => new RegExp('(^|[^a-z0-9])' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).test(text);
 function wordScore(p, w) {
   const name = (p.name || '').toLowerCase(), sn = squash(name), sw = squash(w), first = name.split(/\s+/)[0];
-  if (name === w || first === w || sn.split(/\s+/)[0] === sw) return 100;
-  if (startsWord(name, w) || startsWord(sn, sw)) return 80;
-  if (name.includes(w) || sn.includes(sw)) return 50;
+  if (name === w || first === w) return 100;
+  if (sn.split(/\s+/)[0] === sw) return 90;
+  if (startsWord(name, w)) return 80;
+  if (startsWord(sn, sw)) return 70;
+  if (name.includes(w)) return 50;
+  if (sn.includes(sw)) return 45;
   const handle = ((p.handle || '') + ' ' + (p.email || '')).toLowerCase();
   if (startsWord(handle, w) || handle.replace(/^@/, '').startsWith(w)) return 40;
   if (handle.includes(w)) return 25;
