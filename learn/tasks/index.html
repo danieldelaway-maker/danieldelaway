@@ -1259,7 +1259,12 @@ document.addEventListener('change', async e => {
   if (!e.target.classList.contains('tick')) return;
   const li = e.target.closest('.tcard'), t = find(li.dataset.id), done = e.target.checked;
   const was = t.edited, box = e.target.getBoundingClientRect(); const wasAt = t.doneAt, before = scoreStats(); t.done = done; t.edited = new Date().toISOString(); t.doneAt = done ? t.edited : ''; render(); if (done) { celebrate(t.id, box); recordCheck(before); } else afterPaint(`.tcard[data-id="${t.id}"]`).then(c => { if (!c || !FX_OK()) return; const b = c.getBoundingClientRect(); fx.float(b.left + 110, b.top, '⏪ Back on the list', '#888780', 15); c.animate([{ transform: 'none' }, { transform: 'translateX(-12px)' }, { transform: 'none' }], { duration: 400 }); });
-  try { const r = await api('/tasks/' + t.id, 'PATCH', { done }); toast(done ? (r.next ? 'Ticked off. The next one is lined up.' : 'Ticked off.') : 'Moved back to open.'); if (r.next) load(true); }
+  try { const r = await api('/tasks/' + t.id, 'PATCH', { done }); const wasAlready = t.already;
+    toastUndo(done ? (r.next ? 'Ticked off. The next one is lined up.' : 'Ticked off.') : 'Moved back to open.', () => undoSave(async () => {
+      t.done = !done; t.edited = was; t.doneAt = wasAt; if (r.next) data.tasks = data.tasks.filter(x => x.id !== r.next); render();
+      await api('/tasks/' + t.id, 'PATCH', { done: !done, roll: false, ...(done ? {} : { already: !!wasAlready }) }); if (r.next) await api('/tasks/' + r.next, 'DELETE');
+    }));
+    if (r.next) load(true); }
   catch (err) { t.done = !done; t.edited = was; t.doneAt = wasAt; render(); toast('Not saved: ' + err.message); }
 });
 async function habitAct(act, el) {
@@ -1299,7 +1304,7 @@ async function habitAct(act, el) {
     if (!sureTap(el)) return;
     const hid = el.closest('.hform').dataset.hid, hh = data.habits.find(x => x.id === hid), was = data.habits, row = el.closest('.hrow');
     const gone = fx.burn(row);
-    try { await api('/habits/' + hid, 'DELETE'); await gone; data.habits = was.filter(x => x !== hh); editing = null; render(); toast('Deleted.'); }
+    try { await api('/habits/' + hid, 'DELETE'); await gone; data.habits = was.filter(x => x !== hh); editing = null; render(); toastUndo('Deleted.', () => undoDelete('habit', hid)); }
     catch (err) { row.getAnimations().forEach(a => a.cancel()); row.style.pointerEvents = ''; toast('Not deleted: ' + err.message); }
   }
 }
@@ -1313,6 +1318,21 @@ function sureTap(el) {
 function toastUndo(msg, undo) {
   const t = $('#toast'); t.textContent = msg + ' '; const b = document.createElement('button'); b.className = 'tundo'; b.type = 'button'; b.textContent = 'Undo';
   b.onclick = () => { t.hidden = true; undo(); }; t.appendChild(b); t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 6000);
+}
+// Runs an Undo: the page is put back first, then saved; if saving fails, reload the real state.
+async function undoSave(fn) { try { await fn(); toast('Undone.'); } catch (err) { toast('Could not undo: ' + err.message); load(true); } }
+// Undo for Add / Dismiss / Already done on a suggestion: back into the tray, and the task it made is removed.
+function undoReopen(sug, taskId) {
+  if (!sug) return;
+  undoSave(async () => { if (taskId) data.tasks = data.tasks.filter(x => x.id !== taskId);
+    sug.status = 'pending'; delete sug.decided; if (!data.suggestions.some(x => x.id === sug.id)) data.suggestions.push(sug); render();
+    await api(`/suggestions/${sug.id}/reopen`, 'POST', taskId ? { task: taskId } : {}); });
+}
+// Undo for a delete: brings the item back out of the worker's trash.
+function undoDelete(type, id) {
+  undoSave(async () => { const r = await api('/restore', 'POST', { type, id }); const key = type + 's';
+    (data[key] ||= []); if (!data[key].some(x => x.id === id)) data[key].push(r.item); render();
+    afterPaint(type === 'task' ? `.tcard[data-id="${id}"]` : type === 'note' ? `.ncard[data-nid="${id}"]` : `.hrow[data-hid="${id}"]`).then(x => x && fx.popIn(x)); });
 }
 // Habit edit / add forms (in the page, no browser pop-ups).
 async function habitSubmit(f) {
@@ -1343,18 +1363,18 @@ document.addEventListener('click', async e => {
     afterPaint(`.tcard[data-id="${t.id}"]`).then(r => { if (!r || !FX_OK()) return; const b = r.getBoundingClientRect();
       fx.emoji(b.left + b.width / 2, b.top - 34, '🔔', [{ transform: 'translateX(-50%) rotate(0)', opacity: 0 }, { transform: 'translateX(-50%) rotate(25deg)', opacity: 1 }, { transform: 'translateX(-50%) rotate(-25deg)' }, { transform: 'translateX(-50%) rotate(20deg)' }, { transform: 'translateX(-50%) rotate(-20deg)' }, { transform: 'translateX(-50%) rotate(10deg)' }, { transform: 'translateX(-50%) rotate(0)', opacity: 0 }], { duration: 1200 }, 30);
       r.animate([{ transform: 'none' }, { transform: 'translateX(-3px)' }, { transform: 'translateX(3px)' }, { transform: 'none' }], { duration: 150, iterations: 4 }); });
-    try { await api('/tasks/' + t.id, 'PATCH', { due: t.due }); toast('Noted. The waiting clock starts again today.'); }
+    try { await api('/tasks/' + t.id, 'PATCH', { due: t.due }); toastUndo('Noted. The waiting clock starts again today.', () => undoSave(async () => { t.due = was; render(); await api('/tasks/' + t.id, 'PATCH', { due: was || '' }); })); }
     catch (err) { t.due = was; render(); toast('Not saved: ' + err.message); }
   }
   else if (act === 'progress') {
     const t = find(el.closest('.tcard').dataset.id), was = t.started || '';
     t.started = was ? '' : isoToday(); render();
     if (t.started) afterPaint(`.tcard[data-id="${t.id}"]`).then(r => { if (r && FX_OK()) paintSweep(r); });
-    try { await api('/tasks/' + t.id, 'PATCH', { started: t.started }); toast(t.started ? 'Marked as in progress.' : 'Back to not started.'); }
+    try { await api('/tasks/' + t.id, 'PATCH', { started: t.started }); const now = t.started; toastUndo(now ? 'Marked as in progress.' : 'Back to not started.', () => undoSave(async () => { t.started = was; render(); await api('/tasks/' + t.id, 'PATCH', { started: was }); })); }
     catch (err) { t.started = was; render(); toast('Not saved: ' + err.message); }
   }
   else if (act === 'accept' || act === 'dismiss') {
-    const li = el.closest('.scard'), sid = li.dataset.sid;
+    const li = el.closest('.scard'), sid = li.dataset.sid, sug = data.suggestions.find(x => x.id === sid);
     const anim = act === 'dismiss' ? stampAndFlick(li) : null;
     let added = null;
     if (act === 'accept') { li.style.pointerEvents = 'none'; added = fx.stamp(li, 'ADDED', '#0f9f86'); if (!added) li.classList.add('saving'); }
@@ -1365,7 +1385,7 @@ document.addEventListener('click', async e => {
       if (act === 'accept') {
         if (added) await wait(450);
         const from = li.getBoundingClientRect(), text = li.querySelector('.trow b')?.textContent || '';
-        if (r.task && !find(r.task.id)) data.tasks.push(r.task); render(); toast('Added to your tasks. 🎉');
+        if (r.task && !find(r.task.id)) data.tasks.push(r.task); render(); toastUndo('Added to your tasks. 🎉', () => undoReopen(sug, r.task?.id));
         const row = r.task && await afterPaint(`.tcard[data-id="${r.task.id}"]`);
         if (row && added) {
           // Never scroll: fly into the new row only if it's on screen; otherwise celebrate where the suggestion was.
@@ -1373,12 +1393,12 @@ document.addEventListener('click', async e => {
           if (seen) { row.style.opacity = 0; await fx.fly(from, row, text); row.style.opacity = ''; fx.popIn(row, true); const [x, y] = fx.center(row); fx.float(x, y - 10, '+1 task'); }
           else { const x = from.left + from.width / 2, y = from.top + from.height / 2; fx.burst(x, y, 22, 70); fx.float(x, y - 10, '+1 task ' + (rb.top >= innerHeight ? '↓' : '↑')); fx.popIn(row); }
         }
-      } else { toast('Dismissed. It won’t be suggested again.'); render(); }
+      } else { toastUndo('Dismissed. It won’t be suggested again.', () => undoReopen(sug)); render(); }
     } catch (err) { if (anim) anim.undo(); added?.remove(); li.style.pointerEvents = ''; li.classList.remove('saving'); toast('Not saved: ' + err.message); }
   }
   else if (act === 'sdone') {
     // Already done: add the suggestion as a task and tick it off in one go (it shows struck through today, then moves to Done).
-    const li = el.closest('.scard'), sid = li.dataset.sid;
+    const li = el.closest('.scard'), sid = li.dataset.sid, sug = data.suggestions.find(x => x.id === sid);
     li.style.pointerEvents = 'none'; const stamp = fx.stamp(li, 'DONE', '#0f9f86'); if (!stamp) li.classList.add('saving');
     try {
       const before = scoreStats();
@@ -1391,7 +1411,7 @@ document.addEventListener('click', async e => {
         if (p && p.next) load(true);
       }
       if (stamp) await wait(450);
-      render(); recordCheck(before); toast('Logged as already done. ✓');
+      render(); recordCheck(before); toastUndo('Logged as already done. ✓', () => undoReopen(sug, r.task?.id));
     } catch (err) { stamp?.remove(); li.style.pointerEvents = ''; li.classList.remove('saving'); toast('Not saved: ' + err.message); load(true); }
   }
   else if (act.startsWith('h') && ['hslip', 'htick', 'hedit', 'hadd', 'hdel'].includes(act)) { habitAct(act, el); return; }
@@ -1404,7 +1424,7 @@ document.addEventListener('click', async e => {
     const id = el.closest('form').dataset.nid, n = data.notes.find(x => x.id === id);
     if (!sureTap(el)) return;
     const card = el.closest('.ncard'), gone = fx.burn(card); if (!FX_OK()) card.classList.add('saving');
-    try { await api('/notes/' + id, 'DELETE'); await gone; data.notes = data.notes.filter(x => x.id !== id); editing = null; render(); toast('Deleted.'); }
+    try { await api('/notes/' + id, 'DELETE'); await gone; data.notes = data.notes.filter(x => x.id !== id); editing = null; render(); toastUndo('Deleted.', () => undoDelete('note', id)); }
     catch (err) { card.getAnimations().forEach(a => a.cancel()); card.style.pointerEvents = ''; card.classList.remove('saving'); toast('Not deleted: ' + err.message); }
   }
   else if (act === 'cancel') { editing = null; render(); }
@@ -1412,7 +1432,7 @@ document.addEventListener('click', async e => {
     const id = (el.closest('form') || el.closest('.tcard')).dataset.id, t = find(id);
     if (!sureTap(el)) return;
     const card = el.closest('.tcard'), gone = fx.burn(card); if (!FX_OK()) card.classList.add('saving');
-    try { await api('/tasks/' + id, 'DELETE'); await gone; data.tasks = data.tasks.filter(x => x.id !== id); editing = null; render(); toast('Deleted.'); }
+    try { await api('/tasks/' + id, 'DELETE'); await gone; data.tasks = data.tasks.filter(x => x.id !== id); editing = null; render(); toastUndo('Deleted.', () => undoDelete('task', id)); }
     catch (err) { card.getAnimations().forEach(a => a.cancel()); card.style.pointerEvents = ''; card.classList.remove('saving'); toast('Not deleted: ' + err.message); }
   }
 });
@@ -1460,7 +1480,7 @@ document.addEventListener('submit', async e => {
     let tid = f.dataset.id;
     if (tid) { await api('/tasks/' + tid, 'PATCH', v); Object.assign(find(tid), v); }
     else { const r = await api('/tasks', 'POST', { ...v, brand: f.dataset.brand }); tid = r.task?.id || r.id; data.tasks.push(r.task || { ...v, id: r.id, brand: f.dataset.brand, done: false, source: 'added on the site' }); }
-    editing = null; toast(f.dataset.id ? 'Saved.' : 'New task added. Let’s go! 💪'); render();
+    editing = null; if (f.dataset.id) toast('Saved.'); else { const nid = tid; toastUndo('New task added. Let’s go! 💪', () => undoSave(async () => { data.tasks = data.tasks.filter(x => x.id !== nid); render(); await api('/tasks/' + nid, 'DELETE'); })); } render();
     afterPaint(`.tcard[data-id="${tid}"]`).then(r => { fx.popIn(r, !f.dataset.id); if (r && !f.dataset.id) { const [x, y] = fx.center(r); fx.float(x, y - 10, '+1 task'); } });
   } catch (err) { f.closest('.tcard').classList.remove('saving'); f.querySelectorAll('button').forEach(b => b.disabled = false); toast('Not saved: ' + err.message); }
 });
