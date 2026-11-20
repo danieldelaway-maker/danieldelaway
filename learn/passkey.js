@@ -7,8 +7,10 @@
   // Other pages (ZenSIM, TBS dashboards) load this file with data-site / data-form, e.g.
   // <script src="https://danieldelaway.com/learn/passkey.js" data-site="tbs" data-form="lf" defer></script>
   const cfg = (document.currentScript && document.currentScript.dataset) || {};
-  const SITE = cfg.site || 'hq', FORM = cfg.form || 'unlock', PW_KEY = 'clientsHQ', DONE_KEY = 'pkSetUp';
-  const SETUP_WHERE = SITE === 'hq' ? 'at the bottom of the page' : 'at the bottom of Tasks HQ (danieldelaway.com/learn/tasks)';
+  // Optional: data-setup-btn (id of the element the "Set up" button goes next to), data-key-store (localStorage key holding
+  // that page's password) and data-setup-where (where the set-up button is, for the hint). Added 20 Nov 2026 for TBS HQ.
+  const SITE = cfg.site || 'hq', FORM = cfg.form || 'unlock', PW_KEY = cfg.keyStore || 'clientsHQ', DONE_KEY = 'pkSetUp' + (SITE === 'hq' ? '' : '_' + SITE);
+  const SETUP_WHERE = cfg.setupWhere || (SITE === 'hq' ? 'at the bottom of the page' : 'at the bottom of Tasks HQ (danieldelaway.com/learn/tasks)');
   if (!window.PublicKeyCredential || !navigator.credentials) return;
 
   const apple = /iPhone|iPad/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -118,7 +120,7 @@
     }
   }
   function addSetUp() {
-    const out = document.getElementById('lockBtn');
+    const out = document.getElementById(cfg.setupBtn || 'lockBtn');
     if (!out || document.querySelector('.pkset')) return;
     const btn = document.createElement('button');
     btn.type = 'button'; btn.className = 'pkset';
@@ -133,7 +135,7 @@
 
   async function init() {
     try { if (PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable && !(await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable())) return; } catch {}
-    addSignIn(); if (SITE === 'hq') addSetUp();
+    addSignIn(); if (SITE === 'hq' || cfg.setupBtn) addSetUp();
   }
   document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', init) : init();
 })();
