@@ -790,6 +790,8 @@ function sugCard(s) {
     <div class="sbtns"><button data-act="accept">Add</button><button class="sdone" data-act="sdone" title="Add it to the list as already ticked off">✓ Already done</button><button class="ghost" data-act="dismiss">Dismiss</button><button class="ghost" data-act="scomment">💬 Comment</button><a class="startcc" href="${esc(ccLink(s, true))}" title="Open a new Claude Code session with this suggestion filled in">Start ▶</a></div></li>`;
 }
 const order = (a, b) => (a.due || '9999').localeCompare(b.due || '9999');
+// Started (in progress) open tasks go to the top of every list (Dan, 21 Nov 2026).
+const progFirst = (a, b) => (!b.done && !!b.started) - (!a.done && !!a.started);
 const section = (title, list, open) => list.length ? `<details class="sec" ${open ? 'open' : ''}><summary>${title} (${list.length})</summary><ul class="tasks">${list.join('')}</ul></details>` : '';
 
 function noteForm(n, brandId) {
@@ -883,7 +885,7 @@ const fActive = () => Object.keys(F_DEF).filter(k => k !== 'sort' && k !== 'bran
 function finderList() {
   const bn = id => ((data.brands || []).find(b => b.id === id) || {}).name || '';
   const by = {
-    urgent: (a, b) => (a.done - b.done) || (urgLevel(a) - urgLevel(b)) || order(a, b),
+    urgent: (a, b) => (a.done - b.done) || progFirst(a, b) || (urgLevel(a) - urgLevel(b)) || order(a, b),
     new: (a, b) => (b.created || '').localeCompare(a.created || ''),
     old: (a, b) => (a.created || '9').localeCompare(b.created || '9'),
     due: order,
@@ -922,10 +924,10 @@ function render() {
     const mine = d.tasks.filter(t => t.brand === br.id);
     const sugs = (d.suggestions || []).filter(s => slug(s.brand) === slug(br.name) || s.brand === br.id);
     const openT = mine.filter(t => !t.done);
-    const waiting = openT.filter(t => t.kind === 'waiting' && !isChase(t)).sort((a, b) => order(a, b));
-    const later = openT.filter(isLater).sort(order);
+    const waiting = openT.filter(t => t.kind === 'waiting' && !isChase(t)).sort((a, b) => progFirst(a, b) || order(a, b));
+    const later = openT.filter(isLater).sort((a, b) => progFirst(a, b) || order(a, b));
     const main = openT.filter(t => !waiting.includes(t) && !later.includes(t));
-    const shown = main.concat(mine.filter(doneToday)).sort((a, b) => (a.done - b.done) || (isChase(b) - isChase(a)) || order(a, b));
+    const shown = main.concat(mine.filter(doneToday)).sort((a, b) => (a.done - b.done) || progFirst(a, b) || (isChase(b) - isChase(a)) || order(a, b));
     const done = mine.filter(t => t.done && !doneToday(t));
     const urgent = main.filter(t => isChase(t) || (t.due && t.kind !== 'waiting' && diff(t.due) <= 2)).length;
     const adding = editing === 'new:' + br.id;
