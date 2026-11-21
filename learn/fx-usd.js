@@ -29,14 +29,14 @@
     return v;
   }
   var SKIP = /^(SCRIPT|STYLE|TEXTAREA|INPUT|SELECT|OPTION|CODE|PRE|NOSCRIPT)$/;
-  function convertText(s) {
+  function convertText(s, tail) {
     RE.lastIndex = 0;
     var out = [], last = 0, m, hit = false;
     while ((m = RE.exec(s))) {
       var cur, v;
       if (m[1]) { cur = PRE[m[1].replace(/\s|\$$/g, '').toUpperCase()] || PRE[m[1].trim()]; v = value(m[2], m[3]); }
       else { cur = POST[m[6].toUpperCase()]; v = value(m[4], m[5]); }
-      var end = m.index + m[0].length, after = s.slice(end, end + 24);
+      var end = m.index + m[0].length, after = (s + (tail || '')).slice(end, end + 24);
       if (!cur || !rates[cur] || !isFinite(v) || /US\$|USD/i.test(after)) continue;
       out.push(s.slice(last, end), { t: ' (≈ ' + usd(v / rates[cur]) + ')' });
       last = end; hit = true;
@@ -57,7 +57,9 @@
     var list = [], n;
     while ((n = tw.nextNode())) list.push(n);
     list.forEach(function (node) {
-      var parts = convertText(node.nodeValue);
+      // If a conversion span already follows this text, count it as "already converted".
+      var nx = node.nextSibling, tail = nx && nx.nodeType === 1 && nx.classList.contains('fxusd') ? nx.textContent : '';
+      var parts = convertText(node.nodeValue, tail);
       if (!parts) return;
       var f = document.createDocumentFragment();
       parts.forEach(function (p) {
