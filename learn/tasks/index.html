@@ -1352,6 +1352,15 @@ async function habitSubmit(f) {
     }
   } catch (err) { f.querySelectorAll('button').forEach(b => b.disabled = false); toast('Not saved: ' + err.message); }
 }
+// Start ▶ on a task also marks it Started (purple, moves to the top) so it's easy to find later (Dan, 24 Nov 2026).
+// The link still opens Claude; the re-render waits a moment so the deep link isn't cancelled.
+document.addEventListener('click', e => {
+  const a = e.target.closest('.tcard a.startcc'); if (!a) return;
+  const t = find(a.closest('.tcard').dataset.id); if (!t || t.done || t.started) return;
+  t.started = isoToday();
+  setTimeout(() => { render(); afterPaint(`.tcard[data-id="${t.id}"]`).then(r => { if (r && FX_OK()) { r.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); paintSweep(r); } }); }, 150);
+  api('/tasks/' + t.id, 'PATCH', { started: t.started }).catch(err => { t.started = ''; render(); toast('Not saved: ' + err.message); });
+});
 document.addEventListener('click', async e => {
   const el = e.target.closest('[data-act]'); if (!el || e.target.closest('a')) return;
   const act = el.dataset.act;
