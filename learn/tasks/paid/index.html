@@ -69,6 +69,8 @@
     .months .chip { padding: 5px 11px; font-size: 13px; white-space: nowrap; flex: none; }
     .msum { font-size: 14px; color: var(--muted); margin: 0 0 12px; }
     .msum b { color: var(--ink); }
+    .msum code { font: inherit; }
+    .msum + .msum { margin-top: -8px; }
     .chip.on { background: linear-gradient(135deg, var(--mint), var(--blue)); color: var(--ink); border-color: transparent; box-shadow: 0 0 0 2px var(--accent) inset; }
 
     .list { display: flex; flex-direction: column; gap: 10px; }
@@ -123,6 +125,7 @@
     <div class="filters" id="filters"></div>
     <div class="months" id="months"></div>
     <p class="msum" id="msum" hidden></p>
+    <p class="msum" id="mtot" hidden></p>
     <div class="list" id="list"></div>
     <p class="meta" style="margin-top:14px">Due date is 14 days after the invoice date unless you change it. Every invoice saved in the Invoice maker shows up here automatically.</p>
   </div>
@@ -150,6 +153,11 @@ const REMEMBER = {
 let pass = '', inv = null, filter = 'open', pickM = 'all';
 // Month filter (25 Nov 2026): paid invoices sit in the month they were paid, unpaid ones in the month they were sent.
 const monthOf = r => (r.paid || r.date || '').slice(0, 7);
+// Totals in one currency (25 Nov 2026): today's rate, same source as fx-usd.js (units per 1 USD).
+let FX = { USD: 1, AUD: 1.53, EUR: 0.92, GBP: 0.79, CAD: 1.39, NZD: 1.68 };
+try { const c = JSON.parse(localStorage.getItem('fxUsd') || 'null'); if (c && c.r && c.r.AUD) FX = c.r; } catch {}
+fetch('https://open.er-api.com/v6/latest/USD').then(r => r.json()).then(d => { if (d && d.rates && d.rates.AUD) { FX = d.rates; if (inv) render(); } }).catch(() => {});
+const toUsd = o => Object.entries(o).reduce((t, [c, n]) => t + n / (FX[c] || 1), 0);
 const monthName = m => new Date(m + '-01T00:00:00').toLocaleDateString('en-AU', { month: 'short', year: 'numeric' });
 
 async function api(path, method = 'GET', body) {
@@ -219,6 +227,9 @@ function render() {
   const today = isoToday();
   $('#msum').hidden = pickM === 'all';
   if (pickM !== 'all') $('#msum').innerHTML = `${filter === 'paid' ? 'Paid in' : filter === 'all' ? 'Paid or sent in' : 'Sent in'} ${new Date(pickM + '-01T00:00:00').toLocaleDateString('en-AU', { month: 'long', year: 'numeric' })}: <b>${moneyList(sumBy(show))}</b> · ${show.length} invoice${show.length === 1 ? '' : 's'}`;
+  const sums = sumBy(show), usdT = toUsd(sums);
+  $('#mtot').hidden = pickM === 'all' || !show.length;
+  if (!$('#mtot').hidden) $('#mtot').innerHTML = `Total in USD: <b>${money(usdT, 'USD')}</b> · Total in AUD: <b><code>${money(usdT * (FX.AUD || 1.53), 'AUD')}</code></b> <small>(today's rate)</small>`;
   $('#list').innerHTML = show.length ? show.map(r => {
     const s = stateOf(r), due = dueOf(r), n = due ? daysBetween(today, due) : 0;
     const label = s === 'paid' ? 'Paid ' + nice(r.paid) : s === 'late' ? `${-n} day${n === -1 ? '' : 's'} overdue` : n === 0 ? 'Due today' : `Due in ${n} day${n === 1 ? '' : 's'}`;
