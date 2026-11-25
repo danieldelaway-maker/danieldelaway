@@ -147,7 +147,7 @@ const REMEMBER = {
   },
   del(k) { try { localStorage.removeItem(k); localStorage.removeItem(k + '__exp'); } catch {} document.cookie = 'r_' + k + '=; Max-Age=0; Path=/; Secure; SameSite=None; Partitioned'; },
 };
-let pass = '', inv = null, filter = 'open', month = 'all';
+let pass = '', inv = null, filter = 'open', pickM = 'all';
 // Month filter (25 Nov 2026): paid invoices sit in the month they were paid, unpaid ones in the month they were sent.
 const monthOf = r => (r.paid || r.date || '').slice(0, 7);
 const monthName = m => new Date(m + '-01T00:00:00').toLocaleDateString('en-AU', { month: 'short', year: 'numeric' });
@@ -199,7 +199,7 @@ let editId = null;
 function render() {
   const rows = inv.issued.slice();
   const open = rows.filter(r => !r.paid), late = open.filter(r => stateOf(r) === 'late');
-  const month = isoToday().slice(0, 7), paidMonth = rows.filter(r => r.paid && r.paid.startsWith(month));
+  const thisMonth = isoToday().slice(0, 7), paidMonth = rows.filter(r => r.paid && r.paid.startsWith(thisMonth));
   $('#tiles').innerHTML = `
     <div class="tile"><div class="k">Owed to you</div><div class="v">${moneyList(sumBy(open))}</div><div class="meta">${open.length} unpaid invoice${open.length === 1 ? '' : 's'}</div></div>
     <div class="tile ${late.length ? 'late' : ''}"><div class="k">Overdue</div><div class="v">${late.length ? moneyList(sumBy(late)) : 'None'}</div><div class="meta">${late.length} past due date</div></div>
@@ -212,13 +212,13 @@ function render() {
   const inFilter = rows.filter(r => filter === 'all' || (filter === 'open' ? !r.paid : stateOf(r) === filter));
   const counts = {}; inFilter.forEach(r => { const m = monthOf(r); if (m) counts[m] = (counts[m] || 0) + 1; });
   const mList = Object.keys(counts).sort().reverse();
-  if (month !== 'all' && !counts[month]) month = 'all';
-  $('#months').innerHTML = mList.length > 1 || month !== 'all' ? `<button class="chip ${month === 'all' ? 'on' : ''}" data-m="all">All months</button>` + mList.map(m => `<button class="chip ${month === m ? 'on' : ''}" data-m="${m}">${monthName(m)} (${counts[m]})</button>`).join('') : '';
-  const show = inFilter.filter(r => month === 'all' || monthOf(r) === month)
+  if (pickM !== 'all' && !counts[pickM]) pickM = 'all';
+  $('#months').innerHTML = mList.length > 1 || pickM !== 'all' ? `<button class="chip ${pickM === 'all' ? 'on' : ''}" data-m="all">All months</button>` + mList.map(m => `<button class="chip ${pickM === m ? 'on' : ''}" data-m="${m}">${monthName(m)} (${counts[m]})</button>`).join('') : '';
+  const show = inFilter.filter(r => pickM === 'all' || monthOf(r) === pickM)
     .sort((a, b) => rank[stateOf(a)] - rank[stateOf(b)] || (stateOf(a) === 'paid' ? b.no.localeCompare(a.no) : dueOf(a).localeCompare(dueOf(b))));
   const today = isoToday();
-  $('#msum').hidden = month === 'all';
-  if (month !== 'all') $('#msum').innerHTML = `${filter === 'paid' ? 'Paid in' : filter === 'all' ? 'Paid or sent in' : 'Sent in'} ${new Date(month + '-01T00:00:00').toLocaleDateString('en-AU', { month: 'long', year: 'numeric' })}: <b>${moneyList(sumBy(show))}</b> · ${show.length} invoice${show.length === 1 ? '' : 's'}`;
+  $('#msum').hidden = pickM === 'all';
+  if (pickM !== 'all') $('#msum').innerHTML = `${filter === 'paid' ? 'Paid in' : filter === 'all' ? 'Paid or sent in' : 'Sent in'} ${new Date(month + '-01T00:00:00').toLocaleDateString('en-AU', { month: 'long', year: 'numeric' })}: <b>${moneyList(sumBy(show))}</b> · ${show.length} invoice${show.length === 1 ? '' : 's'}`;
   $('#list').innerHTML = show.length ? show.map(r => {
     const s = stateOf(r), due = dueOf(r), n = due ? daysBetween(today, due) : 0;
     const label = s === 'paid' ? 'Paid ' + nice(r.paid) : s === 'late' ? `${-n} day${n === -1 ? '' : 's'} overdue` : n === 0 ? 'Due today' : `Due in ${n} day${n === 1 ? '' : 's'}`;
@@ -249,8 +249,8 @@ async function patch(id, body, msg, undoBody) {
   } catch (e) { toast('Not saved: ' + e.message); }
 }
 
-$('#filters').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (b) { filter = b.dataset.f; if (filter === 'paid') month = isoToday().slice(0, 7); render(); } });
-$('#months').addEventListener('click', e => { const b = e.target.closest('[data-m]'); if (b) { month = b.dataset.m; render(); } });
+$('#filters').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (b) { filter = b.dataset.f; if (filter === 'paid') pickM = isoToday().slice(0, 7); render(); } });
+$('#months').addEventListener('click', e => { const b = e.target.closest('[data-m]'); if (b) { pickM = b.dataset.m; render(); } });
 $('#list').addEventListener('click', e => {
   const b = e.target.closest('button[data-a]'); if (!b) return;
   const card = b.closest('.inv'), id = card.dataset.id, r = inv.issued.find(x => x.id === id);
