@@ -948,17 +948,17 @@ function render() {
     const rank = [-main.length, late ? 0 : 1, urgent ? 0 : 1, next ? next.due : '9999'];
     if (!isOpen) return { tile, panel: '', rank };
     // Life Admin shows its tasks first, then habits / notes / suggestions (Dan, 15 Nov 2026)
+    // Add task sits between Always remember and Suggested by Claude (Dan, 25 Nov 2026)
+    const addHtml = adding ? `<ul class="tasks addtop"><li class="tcard">${form(null, br.id)}</li></ul>` : `<button class="add addtop" data-act="add" data-brand="${br.id}">+ Add task</button>`;
     const extrasHtml = `${key === 'life-admin' ? habitsBox() : ''}
       ${notesBox(br)}
+      ${key === 'life-admin' ? '' : addHtml}
       ${sugs.length ? `<div class="tray"><p class="trayh">Suggested by Claude <span>Add the ones that are real; dismiss the rest.</span></p><ul class="tasks">${sugs.map(sugCard).join('')}</ul></div>` : ''}`;
     const tasksHtml = `${shown.length ? `<ul class="tasks">${shown.map(card).join('')}</ul>` : '<p class="empty">Nothing open right now.</p>'}`;
-    // Add task sits at the very top of the open card (Dan, 25 Nov 2026)
-    const addHtml = adding ? `<ul class="tasks addtop"><li class="tcard">${form(null, br.id)}</li></ul>` : `<button class="add addtop" data-act="add" data-brand="${br.id}">+ Add task</button>`;
     const panel = `<article class="board open">
       <div class="ohead"><div class="plogo sm">${logo}</div><h2>${esc(br.name)}</h2>${DASH[key] ? `<a class="dashlink" href="${DASH[key]}" target="_blank" rel="noopener" style="--tint:${TINT[key] || '#5b7bff'}">📊 Dashboard ↗</a>` : ''}<button class="close" data-act="toggle" data-brand="${br.id}" aria-label="Close ${esc(br.name)}">Close</button></div>
-      ${addHtml}
       ${finderBox(br.id)}
-      ${fFiltering() ? `<div id="fres">${finderResults()}</div>` + extrasHtml : `${key === 'life-admin' ? tasksHtml + extrasHtml : extrasHtml + tasksHtml}
+      ${fFiltering() ? `<div id="fres">${finderResults()}</div>` + extrasHtml : `${key === 'life-admin' ? addHtml + tasksHtml + extrasHtml : extrasHtml + tasksHtml}
       ${section('Waiting on others', waiting.map(card), true)}
       ${section('Later', later.map(card), false)}
       ${section('Done', done.map(card), false)}`}</article>`;
