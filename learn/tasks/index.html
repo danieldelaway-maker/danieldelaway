@@ -114,6 +114,7 @@
     .btns .del { margin-left: auto; background: none; color: var(--w-late); padding: 8px 4px; }
     .add { margin-top: 10px; width: 100%; background: none; border: 1.5px dashed #cfd4df; color: var(--w-muted); font-weight: 600; }
     .add:hover { border-color: var(--w-accent); color: var(--w-accent); }
+    .add.addtop, .tasks.addtop { margin: 4px 0 14px; }
 
     details { margin-top: 12px; border-top: 1px solid var(--w-line); padding-top: 10px; }
     summary { cursor: pointer; font-size: 13px; color: var(--w-muted); }
@@ -950,12 +951,14 @@ function render() {
     const extrasHtml = `${key === 'life-admin' ? habitsBox() : ''}
       ${notesBox(br)}
       ${sugs.length ? `<div class="tray"><p class="trayh">Suggested by Claude <span>Add the ones that are real; dismiss the rest.</span></p><ul class="tasks">${sugs.map(sugCard).join('')}</ul></div>` : ''}`;
-    const tasksHtml = `${shown.length || adding ? `<ul class="tasks">${shown.map(card).join('')}${adding ? `<li class="tcard">${form(null, br.id)}</li>` : ''}</ul>` : '<p class="empty">Nothing open right now.</p>'}
-      ${adding ? '' : `<button class="add" data-act="add" data-brand="${br.id}">+ Add task</button>`}`;
+    const tasksHtml = `${shown.length ? `<ul class="tasks">${shown.map(card).join('')}</ul>` : '<p class="empty">Nothing open right now.</p>'}`;
+    // Add task sits at the very top of the open card (Dan, 25 Nov 2026)
+    const addHtml = adding ? `<ul class="tasks addtop"><li class="tcard">${form(null, br.id)}</li></ul>` : `<button class="add addtop" data-act="add" data-brand="${br.id}">+ Add task</button>`;
     const panel = `<article class="board open">
       <div class="ohead"><div class="plogo sm">${logo}</div><h2>${esc(br.name)}</h2>${DASH[key] ? `<a class="dashlink" href="${DASH[key]}" target="_blank" rel="noopener" style="--tint:${TINT[key] || '#5b7bff'}">📊 Dashboard ↗</a>` : ''}<button class="close" data-act="toggle" data-brand="${br.id}" aria-label="Close ${esc(br.name)}">Close</button></div>
+      ${addHtml}
       ${finderBox(br.id)}
-      ${fFiltering() ? `<div id="fres">${finderResults()}</div>${adding ? `<ul class="tasks"><li class="tcard">${form(null, br.id)}</li></ul>` : ''}` + extrasHtml : `${key === 'life-admin' ? tasksHtml + extrasHtml : extrasHtml + tasksHtml}
+      ${fFiltering() ? `<div id="fres">${finderResults()}</div>` + extrasHtml : `${key === 'life-admin' ? tasksHtml + extrasHtml : extrasHtml + tasksHtml}
       ${section('Waiting on others', waiting.map(card), true)}
       ${section('Later', later.map(card), false)}
       ${section('Done', done.map(card), false)}`}</article>`;
