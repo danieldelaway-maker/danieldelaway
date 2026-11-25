@@ -65,6 +65,10 @@
 
     .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
     .chip { background: #fff; border: 1px solid var(--line); color: var(--text); padding: 7px 13px; border-radius: 999px; font-weight: 600; font-size: 14px; }
+    .months { display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 6px; margin-bottom: 8px; scrollbar-width: thin; }
+    .months .chip { padding: 5px 11px; font-size: 13px; white-space: nowrap; flex: none; }
+    .msum { font-size: 14px; color: var(--muted); margin: 0 0 12px; }
+    .msum b { color: var(--ink); }
     .chip.on { background: linear-gradient(135deg, var(--mint), var(--blue)); color: var(--ink); border-color: transparent; box-shadow: 0 0 0 2px var(--accent) inset; }
 
     .list { display: flex; flex-direction: column; gap: 10px; }
@@ -117,6 +121,8 @@
     </div>
     <div class="tiles" id="tiles"></div>
     <div class="filters" id="filters"></div>
+    <div class="months" id="months"></div>
+    <p class="msum" id="msum" hidden></p>
     <div class="list" id="list"></div>
     <p class="meta" style="margin-top:14px">Due date is 14 days after the invoice date unless you change it. Every invoice saved in the Invoice maker shows up here automatically.</p>
   </div>
@@ -141,7 +147,10 @@ const REMEMBER = {
   },
   del(k) { try { localStorage.removeItem(k); localStorage.removeItem(k + '__exp'); } catch {} document.cookie = 'r_' + k + '=; Max-Age=0; Path=/; Secure; SameSite=None; Partitioned'; },
 };
-let pass = '', inv = null, filter = 'open';
+let pass = '', inv = null, filter = 'open', month = 'all';
+// Month filter (25 Nov 2026): paid invoices sit in the month they were paid, unpaid ones in the month they were sent.
+const monthOf = r => (r.paid || r.date || '').slice(0, 7);
+const monthName = m => new Date(m + '-01T00:00:00').toLocaleDateString('en-AU', { month: 'short', year: 'numeric' });
 
 async function api(path, method = 'GET', body) {
   const r = await fetch(API + path, { method, headers: { 'X-Key': pass, ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
@@ -200,9 +209,16 @@ function render() {
   $('#filters').innerHTML = F.map(([k, l, n]) => `<button class="chip ${filter === k ? 'on' : ''}" data-f="${k}">${l} (${n})</button>`).join('');
 
   const rank = { late: 0, due: 1, paid: 2 };
-  const show = rows.filter(r => filter === 'all' || (filter === 'open' ? !r.paid : stateOf(r) === filter))
+  const inFilter = rows.filter(r => filter === 'all' || (filter === 'open' ? !r.paid : stateOf(r) === filter));
+  const counts = {}; inFilter.forEach(r => { const m = monthOf(r); if (m) counts[m] = (counts[m] || 0) + 1; });
+  const mList = Object.keys(counts).sort().reverse();
+  if (month !== 'all' && !counts[month]) month = 'all';
+  $('#months').innerHTML = mList.length > 1 || month !== 'all' ? `<button class="chip ${month === 'all' ? 'on' : ''}" data-m="all">All months</button>` + mList.map(m => `<button class="chip ${month === m ? 'on' : ''}" data-m="${m}">${monthName(m)} (${counts[m]})</button>`).join('') : '';
+  const show = inFilter.filter(r => month === 'all' || monthOf(r) === month)
     .sort((a, b) => rank[stateOf(a)] - rank[stateOf(b)] || (stateOf(a) === 'paid' ? b.no.localeCompare(a.no) : dueOf(a).localeCompare(dueOf(b))));
   const today = isoToday();
+  $('#msum').hidden = month === 'all';
+  if (month !== 'all') $('#msum').innerHTML = `${filter === 'paid' ? 'Paid in' : filter === 'all' ? 'Paid or sent in' : 'Sent in'} ${new Date(month + '-01T00:00:00').toLocaleDateString('en-AU', { month: 'long', year: 'numeric' })}: <b>${moneyList(sumBy(show))}</b> · ${show.length} invoice${show.length === 1 ? '' : 's'}`;
   $('#list').innerHTML = show.length ? show.map(r => {
     const s = stateOf(r), due = dueOf(r), n = due ? daysBetween(today, due) : 0;
     const label = s === 'paid' ? 'Paid ' + nice(r.paid) : s === 'late' ? `${-n} day${n === -1 ? '' : 's'} overdue` : n === 0 ? 'Due today' : `Due in ${n} day${n === 1 ? '' : 's'}`;
@@ -233,7 +249,8 @@ async function patch(id, body, msg, undoBody) {
   } catch (e) { toast('Not saved: ' + e.message); }
 }
 
-$('#filters').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (b) { filter = b.dataset.f; render(); } });
+$('#filters').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (b) { filter = b.dataset.f; if (filter === 'paid') month = isoToday().slice(0, 7); render(); } });
+$('#months').addEventListener('click', e => { const b = e.target.closest('[data-m]'); if (b) { month = b.dataset.m; render(); } });
 $('#list').addEventListener('click', e => {
   const b = e.target.closest('button[data-a]'); if (!b) return;
   const card = b.closest('.inv'), id = card.dataset.id, r = inv.issued.find(x => x.id === id);
