@@ -218,7 +218,7 @@ function render() {
     .sort((a, b) => rank[stateOf(a)] - rank[stateOf(b)] || (stateOf(a) === 'paid' ? b.no.localeCompare(a.no) : dueOf(a).localeCompare(dueOf(b))));
   const today = isoToday();
   $('#msum').hidden = pickM === 'all';
-  if (pickM !== 'all') $('#msum').innerHTML = `${filter === 'paid' ? 'Paid in' : filter === 'all' ? 'Paid or sent in' : 'Sent in'} ${new Date(month + '-01T00:00:00').toLocaleDateString('en-AU', { month: 'long', year: 'numeric' })}: <b>${moneyList(sumBy(show))}</b> · ${show.length} invoice${show.length === 1 ? '' : 's'}`;
+  if (pickM !== 'all') $('#msum').innerHTML = `${filter === 'paid' ? 'Paid in' : filter === 'all' ? 'Paid or sent in' : 'Sent in'} ${new Date(pickM + '-01T00:00:00').toLocaleDateString('en-AU', { month: 'long', year: 'numeric' })}: <b>${moneyList(sumBy(show))}</b> · ${show.length} invoice${show.length === 1 ? '' : 's'}`;
   $('#list').innerHTML = show.length ? show.map(r => {
     const s = stateOf(r), due = dueOf(r), n = due ? daysBetween(today, due) : 0;
     const label = s === 'paid' ? 'Paid ' + nice(r.paid) : s === 'late' ? `${-n} day${n === -1 ? '' : 's'} overdue` : n === 0 ? 'Due today' : `Due in ${n} day${n === 1 ? '' : 's'}`;
