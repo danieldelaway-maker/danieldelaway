@@ -472,6 +472,7 @@
     .nmore { padding: 0 12px 10px 25px; }
     .nmore p { margin: 0 0 6px; color: var(--w-text); font-size: 13.5px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
     .nmore .nacts { display: flex; gap: 6px; }
+    .nmore .ndel:hover, .nmore .ndel.sure { color: #d64545; border-color: #f0c4c4; background: #fff5f5; }
     .ncard .form { padding: 10px; }
     .nadd { margin-top: 8px; width: 100%; background: none; border: 1.5px dashed #c9d2ee; color: #6a76a8; font-weight: 600; padding: 7px 12px; font-size: 13px; }
     .nadd:hover { border-color: #5b7bff; color: #3b4a8a; }
@@ -808,7 +809,7 @@ function notesBox(br) {
     if (editing === 'note:' + n.id) return `<li class="ncard">${noteForm(n)}</li>`;
     const op = openNotes.has(n.id);
     return `<li class="ncard ${op ? 'open' : ''}" data-nid="${n.id}"><button class="nrow" data-act="ntoggle" aria-expanded="${op}"><i class="dot"></i><span class="nt">${esc(n.text)}</span><span class="chev">▶</span></button>
-      ${op ? `<div class="nmore">${n.detail ? `<p>${esc(n.detail)}</p>` : ''}<div class="nacts"><button class="edit" data-act="nedit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/></svg>Edit</button></div></div>` : ''}</li>`;
+      ${op ? `<div class="nmore">${n.detail ? `<p>${esc(n.detail)}</p>` : ''}<div class="nacts"><button class="edit" data-act="nedit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/></svg>Edit</button><button class="edit ndel" data-act="ndelete" title="Delete this note (tap twice)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>Delete</button></div></div>` : ''}</li>`;
   };
   return `<div class="notes"><p class="notesh">📌 Always remember <span>${list.length ? 'Tap one for the details.' : 'Little rules for this project that must not get lost.'}</span></p>
     ${list.length || adding ? `<ul class="nlist">${list.map(item).join('')}${adding ? `<li class="ncard">${noteForm(null, br.id)}</li>` : ''}</ul>` : ''}
@@ -1435,7 +1436,7 @@ document.addEventListener('click', async e => {
   else if (act === 'nadd') { if (editing) return; editing = 'newnote:' + el.dataset.brand; render(); }
   else if (act === 'nedit') { if (editing) return; editing = 'note:' + el.closest('.ncard').dataset.nid; render(); }
   else if (act === 'ndelete') {
-    const id = el.closest('form').dataset.nid, n = data.notes.find(x => x.id === id);
+    const id = (el.closest('form') || el.closest('.ncard')).dataset.nid, n = data.notes.find(x => x.id === id);
     if (!sureTap(el)) return;
     const card = el.closest('.ncard'), gone = fx.burn(card); if (!FX_OK()) card.classList.add('saving');
     try { await api('/notes/' + id, 'DELETE'); await gone; data.notes = data.notes.filter(x => x.id !== id); editing = null; render(); toastUndo('Deleted.', () => undoDelete('note', id)); }
